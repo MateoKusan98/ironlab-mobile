@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "commonjs",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "jsx": "react-native",
     "strict": true,
     "moduleResolution": "node",
@@ -20,11 +22,23 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@shared": ["src/shared"],
-      "@shared/*": ["src/shared/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@shared": [
+        "src/shared"
+      ],
+      "@shared/*": [
+        "src/shared/*"
+      ]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }

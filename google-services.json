@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1069153560623",
+    "project_id": "ironlab-90b18",
+    "storage_bucket": "ironlab-90b18.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1069153560623:android:ded95d03f4640c69bbbeda",
+        "android_client_info": {
+          "package_name": "com.ironlab.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeLNbZE7FL9-bKg7-YGBbkGzDPwZ9vE08"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -4,3 +4,6 @@ dist/
 *.log
 ios/
 android/
+.env
+.env.*
+!.env.example
