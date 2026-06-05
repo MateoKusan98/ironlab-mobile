@@ -6,7 +6,7 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://REPLACE_WITH_RAILWAY_URL/api"
+        "EXPO_PUBLIC_API_URL": "https://ironlab-backend-production.up.railway.app/api"
       },
       "android": {
         "buildType": "apk"

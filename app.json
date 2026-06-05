@@ -44,8 +44,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+        "projectId": "7ae3f6fb-da0e-49cb-873e-c6a06bbfe850"
       }
-    }
+    },
+    "owner": "tkemas"
   }
 }
