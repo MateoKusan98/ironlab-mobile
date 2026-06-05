@@ -1,0 +1,243 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { palette } from '../../theme';
+import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
+import { useAuthStore } from '../../stores/auth.store';
+import { UserAvatar } from '../../components/ui/UserAvatar';
+import { ScreenHeader } from '../../components/ui/ScreenHeader';
+import { Bell, PersonSimpleRun, Lightning, Robot, CalendarBlank, ChartBar, ArrowRight, Camera } from 'phosphor-react-native';
+
+// const CATEGORIES = [
+//   { id: '1', label: 'HIIT', Icon: Fire, color: '#1A3322', iconColor: '#f97316' },
+//   { id: '2', label: 'Strength', Icon: Barbell, color: '#1E293B', iconColor: '#93c5fd' },
+//   { id: '3', label: 'Cardio', Icon: PersonSimpleRun, color: '#422006', iconColor: '#fb923c' },
+//   { id: '4', label: 'Mobility', Icon: PersonSimpleBike, color: '#3D1525', iconColor: '#f9a8d4' },
+// ];
+
+export const WorkoutScreen: React.FC = () => {
+  const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const user = useAuthStore((s) => s.user);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScreenHeader
+        left={<UserAvatar user={user} size={36} />}
+        title={t('nav.workouts')}
+        right={<TouchableOpacity style={styles.bellBtn}><Bell size={20} weight="bold" color="#a1a1aa" /></TouchableOpacity>}
+      />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+
+        {/* AI Banner */}
+        <TouchableOpacity
+          style={styles.aiBanner}
+          onPress={() => user?.isAICoachSetupComplete ? navigation.navigate('StartSession', {}) : navigation.navigate('AICoachWelcome')}
+        >
+          <View style={styles.aiBannerLeft}>
+            <Text style={styles.aiBannerLabel}>M-7EO · Personal AI Trainer</Text>
+            <Text style={styles.aiBannerTitle}>
+              {user?.isAICoachSetupComplete ? t('workouts.sessionReady') : t('workouts.getAI')}
+            </Text>
+            <View style={styles.aiBannerCta}>
+              <Text style={styles.aiBannerCtaText}>{user?.isAICoachSetupComplete ? 'Start session' : 'Get started'}</Text>
+              <ArrowRight size={14} weight="bold" color="rgba(0,0,0,0.7)" />
+            </View>
+          </View>
+          <Robot size={52} weight="fill" color="rgba(0,0,0,0.18)" style={styles.aiBannerIcon} />
+        </TouchableOpacity>
+
+        {/* Section: Start Training */}
+        <Text style={styles.sectionTitle}>Start Training</Text>
+
+        {/* Start Session Banner */}
+        <TouchableOpacity style={styles.startSessionBanner} onPress={() => navigation.navigate('StartSession', {})}>
+          <View style={[styles.bannerIconWrap, { backgroundColor: palette.brand[600] + '33' }]}>
+            <Lightning size={22} weight="fill" color={palette.brand[400]} />
+          </View>
+          <View style={styles.bannerText}>
+            <Text style={styles.bannerTitle}>{t('workouts.logSession')}</Text>
+            <Text style={styles.bannerSub}>{t('workouts.trackSets')}</Text>
+          </View>
+          <ArrowRight size={18} weight="bold" color={palette.gray[500]} />
+        </TouchableOpacity>
+
+        {/* Cardio Log Banner */}
+        <TouchableOpacity style={styles.cardioBanner} onPress={() => navigation.navigate('CardioLog')}>
+          <View style={[styles.bannerIconWrap, { backgroundColor: '#fb923c22' }]}>
+            <PersonSimpleRun size={22} weight="bold" color="#fb923c" />
+          </View>
+          <View style={styles.bannerText}>
+            <Text style={styles.bannerTitle}>Log Cardio</Text>
+            <Text style={styles.bannerSub}>Running, cycling, HIIT and more</Text>
+          </View>
+          <ArrowRight size={18} weight="bold" color={palette.gray[500]} />
+        </TouchableOpacity>
+
+        {/* Form Check Banner */}
+        <TouchableOpacity style={styles.formCheckBanner} onPress={() => navigation.navigate('FormCheck')}>
+          <View style={[styles.bannerIconWrap, { backgroundColor: '#7c3aed22' }]}>
+            <Camera size={22} weight="fill" color="#a78bfa" />
+          </View>
+          <View style={styles.bannerText}>
+            <Text style={styles.bannerTitle}>Assess Form</Text>
+            <Text style={styles.bannerSub}>AI analysis or IronLab coach review</Text>
+          </View>
+          <ArrowRight size={18} weight="bold" color={palette.gray[500]} />
+        </TouchableOpacity>
+
+        {/* Section: Track Progress */}
+        <Text style={styles.sectionTitle}>Track Progress</Text>
+
+        {/* History & Stats row */}
+        <View style={styles.quickRow}>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('WorkoutHistory')}>
+            <View style={styles.quickIconWrap}>
+              <CalendarBlank size={22} weight="bold" color={palette.brand[400]} />
+            </View>
+            <Text style={styles.quickLabel}>{t('nav.history')}</Text>
+            <Text style={styles.quickSub}>Past sessions</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('Stats')}>
+            <View style={styles.quickIconWrap}>
+              <ChartBar size={22} weight="bold" color={palette.brand[400]} />
+            </View>
+            <Text style={styles.quickLabel}>{t('nav.stats')}</Text>
+            <Text style={styles.quickSub}>Volume & PRs</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {/* BUILD YOUR PROGRAM FAB — hidden for now, re-enable when feature is ready */}
+      {/* <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('ProgramCreatorStart')}>
+        <Text style={styles.fabIcon}>+</Text>
+        <Text style={styles.fabText}>{t('workouts.buildProgram')}</Text>
+      </TouchableOpacity> */}
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#09090B',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+  },
+  bellBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: palette.gray[500],
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+    marginTop: 28,
+  },
+
+  // AI Banner
+  aiBanner: {
+    flexDirection: 'row',
+    backgroundColor: palette.brand[500],
+    borderRadius: 20,
+    paddingHorizontal: 22,
+    paddingVertical: 24,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+    overflow: 'hidden',
+  },
+  aiBannerLeft: { flex: 1 },
+  aiBannerLabel: { color: 'rgba(0,0,0,0.55)', fontSize: 11, fontWeight: '600', letterSpacing: 0.4, marginBottom: 6 },
+  aiBannerTitle: { color: '#000', fontSize: 18, fontWeight: '800', marginBottom: 14, lineHeight: 22 },
+  aiBannerCta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  aiBannerCtaText: { color: 'rgba(0,0,0,0.7)', fontSize: 13, fontWeight: '700' },
+  aiBannerIcon: { position: 'absolute', right: -8, bottom: -10 },
+
+  // Action banners
+  startSessionBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#18181B',
+    borderRadius: 16,
+    padding: 18,
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#27272A',
+    gap: 14,
+  },
+  cardioBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#18181B',
+    borderRadius: 16,
+    padding: 18,
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#27272A',
+    gap: 14,
+  },
+  formCheckBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#18181B',
+    borderRadius: 16,
+    padding: 18,
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#27272A',
+    gap: 14,
+  },
+  bannerIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerText: { flex: 1 },
+  bannerTitle: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 2 },
+  bannerSub: { fontSize: 12, color: palette.gray[400] },
+
+  // Quick cards
+  quickRow: { flexDirection: 'row', gap: 12 },
+  quickCard: {
+    flex: 1,
+    backgroundColor: '#18181B',
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#27272A',
+    gap: 6,
+  },
+  quickIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: palette.brand[600] + '22',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  quickLabel: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  quickSub: { fontSize: 12, color: palette.gray[500] },
+});
