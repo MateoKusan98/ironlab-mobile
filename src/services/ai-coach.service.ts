@@ -85,6 +85,7 @@ export interface AICoachProfileData {
   deadliftFrequencyPerWeek?: number;
   nutritionTrackingEnabled?: boolean;
   trainingFocus?: string; // 'hypertrophy' | 'powerbuilding' | 'strength'
+  preferredIntensity?: number; // 1=Easy 2=Light 3=Moderate 4=Hard 5=Max
 }
 
 export const aiCoachService = {
