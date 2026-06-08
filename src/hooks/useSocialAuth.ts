@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook';
 import { makeRedirectUri } from 'expo-auth-session';
 import { Alert } from 'react-native';
 import { useAuthStore } from '../stores/auth.store';
@@ -20,11 +19,6 @@ export function useSocialAuth() {
     redirectUri: makeRedirectUri({ scheme: 'ironlab', path: 'auth' }),
   });
 
-  const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
-    redirectUri: makeRedirectUri({ scheme: 'ironlab', path: 'auth' }),
-  });
-
   useEffect(() => {
     if (googleResponse?.type === 'success' && googleResponse.authentication?.accessToken) {
       handleSocialAuth('google', googleResponse.authentication.accessToken);
@@ -33,15 +27,7 @@ export function useSocialAuth() {
     }
   }, [googleResponse]);
 
-  useEffect(() => {
-    if (fbResponse?.type === 'success' && fbResponse.authentication?.accessToken) {
-      handleSocialAuth('facebook', fbResponse.authentication.accessToken);
-    } else if (fbResponse?.type === 'error') {
-      Alert.alert('Facebook Sign-In', fbResponse.error?.message ?? 'Sign-in was cancelled');
-    }
-  }, [fbResponse]);
-
-  const handleSocialAuth = async (provider: 'google' | 'facebook', accessToken: string) => {
+  const handleSocialAuth = async (provider: 'google', accessToken: string) => {
     setIsLoading(true);
     try {
       const response = await authService.socialAuth({ provider, accessToken });
@@ -56,9 +42,7 @@ export function useSocialAuth() {
 
   return {
     signInWithGoogle: () => googlePromptAsync(),
-    signInWithFacebook: () => fbPromptAsync(),
     isGoogleReady: !!googleRequest,
-    isFacebookReady: !!fbRequest,
     isLoading,
   };
 }
