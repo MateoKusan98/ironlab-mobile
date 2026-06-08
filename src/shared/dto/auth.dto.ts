@@ -15,3 +15,8 @@ export interface LoginDto {
 export interface RefreshTokenDto {
   refreshToken: string;
 }
+
+export interface SocialAuthDto {
+  provider: 'google' | 'facebook';
+  accessToken: string;
+}

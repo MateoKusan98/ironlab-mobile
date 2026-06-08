@@ -7,10 +7,8 @@ import {
   ScrollView,
   Dimensions,
   Animated,
-  TextInput,
   Alert,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,7 +20,7 @@ import { nutritionService } from '../../services/nutrition.service';
 import { Button } from '../../components/ui/Button';
 import { FitnessGoal } from '@shared';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 type Step = 'Intro' | 'Preferences' | 'Allergies' | 'Snacking' | 'Goal' | 'Training' | 'Calories';
 
@@ -83,9 +81,18 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
     fat: number;
   } | null>(null);
   const [isFetchingTdee, setIsFetchingTdee] = useState(false);
+  const introFade = useRef(new Animated.Value(0)).current;
+  const introSlide = useRef(new Animated.Value(30)).current;
 
   const steps: Step[] = ['Intro', 'Preferences', 'Allergies', 'Snacking', 'Goal', 'Training', 'Calories'];
   const progress = (step + 1) / steps.length;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(introFade, { toValue: 1, duration: 700, useNativeDriver: true }),
+      Animated.timing(introSlide, { toValue: 0, duration: 700, useNativeDriver: true }),
+    ]).start();
+  }, []);
 
   // Prefill training frequency from any existing AI-coach data so a user who
   // already set it (e.g. in AI Coach setup) confirms rather than silently resets it.
@@ -149,30 +156,30 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
   );
 
   const renderIntro = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.contentTop}>
-        <View style={styles.aiLogoContainer}>
-          <Text style={styles.aiLogoPlaceholder}>+</Text>
-        </View>
-        <Text style={styles.heading}>
+    <View style={styles.introStep}>
+      <View style={styles.introHero}>
+        <View style={styles.introGlowRing} />
+        <Text style={styles.introHeroEmoji}>🍽️</Text>
+      </View>
+      <Animated.View
+        style={[styles.introBottom, { opacity: introFade, transform: [{ translateY: introSlide }] }]}
+      >
+        <Text style={styles.introHeading}>
           {t('nutritionSetup.introGreeting', { name: user?.name?.split(' ')[0] || 'there' })}
         </Text>
-      </View>
-      <View style={styles.contentBottom}>
-        <Button label={t('nutritionSetup.yesStart')} onPress={nextStep} style={styles.primaryBtn} />
-        <TouchableOpacity style={styles.tertiaryBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.tertiaryBtnText}>{t('common.no')}</Text>
+        <TouchableOpacity style={styles.introYesBtn} onPress={nextStep} activeOpacity={0.85}>
+          <Text style={styles.introYesBtnText}>{t('nutritionSetup.yesStart')}</Text>
         </TouchableOpacity>
-      </View>
+        <TouchableOpacity style={styles.introNoBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.introNoBtnText}>{t('common.no')}</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 
   const renderPreferences = () => (
     <View style={styles.stepContainer}>
       <View style={styles.contentTop}>
-        <View style={styles.aiLogoContainerSmall}>
-          <Text style={styles.aiLogoPlaceholderSmall}>+</Text>
-        </View>
         <Text style={styles.stepTitle}>{t('nutritionSetup.foodPreferences')}</Text>
         <ScrollView style={styles.optionsList}>
           {PREFERENCE_OPTIONS.map((opt) => (
@@ -204,9 +211,6 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
   const renderAllergies = () => (
     <View style={styles.stepContainer}>
       <View style={styles.contentTop}>
-        <View style={styles.aiLogoContainerSmall}>
-          <Text style={styles.aiLogoPlaceholderSmall}>+</Text>
-        </View>
         <Text style={styles.stepTitle}>{t('nutritionSetup.allergies')}</Text>
         <View style={styles.chipsContainer}>
           {ALLERGY_OPTIONS.map((opt) => {
@@ -243,9 +247,6 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
   const renderSnacking = () => (
     <View style={styles.stepContainer}>
       <View style={styles.contentTop}>
-        <View style={styles.aiLogoContainerSmall}>
-          <Text style={styles.aiLogoPlaceholderSmall}>+</Text>
-        </View>
         <Text style={styles.stepTitle}>{t('nutritionSetup.snacking')}</Text>
         <View style={styles.pickerContainer}>
           {SNACK_FREQUENCY_KEYS.map((freqKey, idx) => {
@@ -273,9 +274,6 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
   const renderGoal = () => (
     <View style={styles.stepContainer}>
       <View style={styles.contentTop}>
-        <View style={styles.aiLogoContainerSmall}>
-          <Text style={styles.aiLogoPlaceholderSmall}>+</Text>
-        </View>
         <Text style={styles.stepTitle}>{t('nutritionSetup.goalTitle')}</Text>
         <View style={styles.goalList}>
           {GOAL_OPTIONS.map((opt) => {
@@ -316,9 +314,6 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
   const renderTraining = () => (
     <View style={styles.stepContainer}>
       <View style={styles.contentTop}>
-        <View style={styles.aiLogoContainerSmall}>
-          <Text style={styles.aiLogoPlaceholderSmall}>+</Text>
-        </View>
         <Text style={styles.stepTitle}>{t('nutritionSetup.trainingTitle')}</Text>
         <View style={styles.caloriesInputContainer}>
           <Text style={styles.caloriesUnit}>{t('nutritionSetup.daysPerWeek')}</Text>
@@ -393,9 +388,6 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
   const renderCalories = () => (
     <View style={styles.stepContainer}>
       <View style={styles.contentTop}>
-        <View style={styles.aiLogoContainerSmall}>
-          <Text style={styles.aiLogoPlaceholderSmall}>+</Text>
-        </View>
         <Text style={styles.stepTitle}>{t('nutritionSetup.dailyCalories')}</Text>
 
         {!targets ? (
@@ -502,6 +494,60 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: palette.brand[500],
   },
+  introStep: {
+    flex: 1,
+  },
+  introHero: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  introGlowRing: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: palette.brand[500],
+    opacity: 0.08,
+  },
+  introHeroEmoji: {
+    fontSize: 96,
+  },
+  introBottom: {
+    padding: 28,
+    paddingBottom: 40,
+  },
+  introHeading: {
+    fontSize: 30,
+    fontWeight: '900',
+    color: '#FFF',
+    letterSpacing: -0.5,
+    lineHeight: 40,
+    marginBottom: 32,
+  },
+  introYesBtn: {
+    backgroundColor: palette.brand[500],
+    height: 58,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  introYesBtnText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  introNoBtn: {
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  introNoBtnText: {
+    color: palette.gray[500],
+    fontSize: 15,
+    fontWeight: '600',
+  },
   stepContainer: {
     flex: 1,
     padding: theme.spacing.xl,
@@ -514,89 +560,17 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
     paddingBottom: theme.spacing.xl,
   },
-  aiLogoContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    backgroundColor: palette.brand[600],
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing.xxl,
-    shadowColor: palette.brand[500],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  aiLogoPlaceholder: {
-    fontSize: 40,
-    color: '#000',
-    fontWeight: 'bold',
-  },
-  aiLogoContainerSmall: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    backgroundColor: palette.brand[600],
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing.xl,
-    shadowColor: palette.brand[500],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  aiLogoPlaceholderSmall: {
-    fontSize: 28,
-    color: '#000',
-    fontWeight: 'bold',
-  },
-  heading: {
-    fontSize: 26,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text,
-    lineHeight: 36,
-  },
   stepTitle: {
-    fontSize: 24,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 26,
+    fontWeight: '900',
     color: theme.colors.text,
+    letterSpacing: -0.5,
     marginBottom: theme.spacing.xl,
   },
   primaryBtn: {
-    backgroundColor: palette.brand[600],
-    height: 56,
+    backgroundColor: palette.brand[500],
+    height: 58,
     borderRadius: 16,
-    alignSelf: 'flex-end',
-    paddingHorizontal: theme.spacing.xl,
-  },
-  secondaryBtn: {
-    height: 56,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: palette.brand[600],
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-end',
-    paddingHorizontal: theme.spacing.lg,
-  },
-  secondaryBtnText: {
-    color: palette.brand[500],
-    fontWeight: theme.fontWeight.semibold,
-  },
-  tertiaryBtn: {
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: '#F43F5E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-end',
-    paddingHorizontal: theme.spacing.xl,
-  },
-  tertiaryBtnText: {
-    color: '#FFF',
-    fontWeight: theme.fontWeight.semibold,
   },
   optionsList: {
     flex: 1,

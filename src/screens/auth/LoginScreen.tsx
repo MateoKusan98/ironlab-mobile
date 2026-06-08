@@ -21,6 +21,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { authService } from '../../services/auth.service';
 import { Envelope, Eye, EyeSlash, GoogleLogo, Lock } from 'phosphor-react-native';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
+import { useSocialAuth } from '../../hooks/useSocialAuth';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -36,6 +37,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const setAuth = useAuthStore((state) => state.setAuth);
+  const { signInWithGoogle, isGoogleReady, isLoading: isSocialLoading } = useSocialAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -144,11 +146,12 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           <Button
-            label={t('auth.signInWithGoogle')}
-            onPress={() => {}}
+            label={isSocialLoading ? t('auth.signingIn') : t('auth.signInWithGoogle')}
+            onPress={signInWithGoogle}
             variant="outline"
             color="gray"
             style={styles.googleBtn}
+            disabled={!isGoogleReady || isSocialLoading || isLoading}
             icon={<GoogleLogo size={18} color={palette.gray[300]} weight="bold" />}
           />
         </View>

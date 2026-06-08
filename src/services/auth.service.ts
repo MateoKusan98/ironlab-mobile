@@ -1,6 +1,6 @@
 import { api } from './api';
 import { AuthResponse, ApiResponse } from '@shared';
-import { RegisterDto, LoginDto } from '@shared';
+import { RegisterDto, LoginDto, SocialAuthDto } from '@shared';
 
 export const authService = {
   register: async (dto: RegisterDto): Promise<AuthResponse> => {
@@ -10,6 +10,11 @@ export const authService = {
 
   login: async (dto: LoginDto): Promise<AuthResponse> => {
     const { data } = await api.post<ApiResponse<AuthResponse>>('/auth/login', dto);
+    return data.data;
+  },
+
+  socialAuth: async (dto: SocialAuthDto): Promise<AuthResponse> => {
+    const { data } = await api.post<ApiResponse<AuthResponse>>('/auth/social', dto);
     return data.data;
   },
 

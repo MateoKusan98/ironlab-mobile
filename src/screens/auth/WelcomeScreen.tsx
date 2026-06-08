@@ -10,8 +10,9 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 import { theme, palette } from '../../theme';
-import { Envelope, FacebookLogo, GoogleLogo } from 'phosphor-react-native';
+import { Envelope, GoogleLogo } from 'phosphor-react-native';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
+import { useSocialAuth } from '../../hooks/useSocialAuth';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Welcome'>;
@@ -21,6 +22,7 @@ const { width, height } = Dimensions.get('window');
 
 export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
+  const { signInWithGoogle, isGoogleReady, isLoading } = useSocialAuth();
 
   return (
     <View style={styles.container}>
@@ -58,14 +60,13 @@ export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         <View style={styles.actionBlock}>
-          <TouchableOpacity style={styles.socialBtn} onPress={() => {}} activeOpacity={0.75}>
+          <TouchableOpacity
+            style={[styles.socialBtn, (!isGoogleReady || isLoading) && styles.btnDisabled]}
+            onPress={signInWithGoogle}
+            activeOpacity={0.75}
+            disabled={!isGoogleReady || isLoading}>
             <GoogleLogo size={20} color="#fff" weight="bold" />
             <Text style={styles.socialBtnText}>{t('auth.signInWithGoogle')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.socialBtn} onPress={() => {}} activeOpacity={0.75}>
-            <FacebookLogo size={20} color="#fff" weight="fill" />
-            <Text style={styles.socialBtnText}>{t('auth.signInWithFacebook')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -150,6 +151,9 @@ const styles = StyleSheet.create({
   emailBtn: {
     borderColor: palette.brand[700],
     backgroundColor: `rgba(194, 65, 12, 0.15)`,
+  },
+  btnDisabled: {
+    opacity: 0.45,
   },
   socialBtnText: {
     color: palette.gray[50],
