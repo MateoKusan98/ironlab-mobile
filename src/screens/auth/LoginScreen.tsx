@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  Alert,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
@@ -9,15 +19,14 @@ import { Checkbox } from '../../components/ui/Checkbox';
 import { theme, palette } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { authService } from '../../services/auth.service';
-import { Lock } from 'phosphor-react-native';
+import { Envelope, Eye, EyeSlash, GoogleLogo, Lock } from 'phosphor-react-native';
+import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 };
 
-const AuthLogo = () => (
-  <Text style={styles.logoText}>IronLab</Text>
-);
+const { width, height } = Dimensions.get('window');
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -38,7 +47,6 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     try {
       const response = await authService.login({ email, password });
       await setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
-      // navigation will happen automatically via AppNavigator
     } catch (error: any) {
       const message = error.response?.data?.message || 'Invalid email or password.';
       Alert.alert(t('auth.signIn'), message);
@@ -48,16 +56,39 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* Warm radial glow */}
+      <Svg width={width} height={height} style={StyleSheet.absoluteFillObject} pointerEvents="none">
+        <Defs>
+          <RadialGradient
+            id="loginGlow"
+            cx={width * 0.5}
+            cy={height * 0.35}
+            r={width * 0.75}
+            gradientUnits="userSpaceOnUse">
+            <Stop offset="0" stopColor="#7C2D12" stopOpacity="0.5" />
+            <Stop offset="0.5" stopColor="#431407" stopOpacity="0.2" />
+            <Stop offset="1" stopColor="#000000" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Ellipse
+          cx={width * 0.5}
+          cy={height * 0.35}
+          rx={width * 0.75}
+          ry={height * 0.45}
+          fill="url(#loginGlow)"
+        />
+      </Svg>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <AuthLogo />
-          <Text style={[theme.typography.textLg, styles.subtitle]}>
-            {t('auth.signInSubtitle')}
-          </Text>
+          <Text style={styles.logoText}>IronLab</Text>
+          <Text style={styles.subtitle}>{t('auth.signInSubtitle')}</Text>
         </View>
 
         <View style={styles.form}>
@@ -68,7 +99,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
-            leftIcon={<Text style={{ color: palette.gray[500] }}>✉</Text>}
+            leftIcon={<Envelope size={18} color={palette.gray[500]} />}
           />
           <TextInput
             label={t('auth.password')}
@@ -78,15 +109,16 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             secureTextEntry={!showPassword}
             leftIcon={<Lock size={18} color={palette.gray[500]} />}
             rightIcon={
-              <Text 
-                style={{ color: palette.gray[500] }} 
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? '👁' : '🚫'}
-              </Text>
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+                {showPassword ? (
+                  <EyeSlash size={18} color={palette.gray[500]} />
+                ) : (
+                  <Eye size={18} color={palette.gray[500]} />
+                )}
+              </TouchableOpacity>
             }
           />
-          
+
           <View style={styles.optionsRow}>
             <Checkbox
               checked={keepSignedIn}
@@ -114,22 +146,17 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
           <Button
             label={t('auth.signInWithGoogle')}
             onPress={() => {}}
-            variant="ghost"
+            variant="outline"
             color="gray"
             style={styles.googleBtn}
-            icon={<Text style={{ color: '#4285F4', fontWeight: 'bold', marginRight: 8, fontSize: 18 }}>G</Text>}
+            icon={<GoogleLogo size={18} color={palette.gray[300]} weight="bold" />}
           />
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <Text style={[theme.typography.textMd, { color: palette.gray[400] }]}>
-          {t('auth.noAccount')}{' '}
-        </Text>
-        <Text
-          style={[theme.typography.textMd, styles.link]}
-          onPress={() => navigation.navigate('Register')}
-        >
+        <Text style={styles.footerText}>{t('auth.noAccount')} </Text>
+        <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
           {t('auth.signUp')}
         </Text>
       </View>
@@ -145,22 +172,25 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: theme.spacing.xl,
+    paddingTop: theme.spacing['4xl'],
     justifyContent: 'center',
   },
   header: {
     alignItems: 'center',
-    marginBottom: theme.spacing['2xl'],
+    marginBottom: theme.spacing['3xl'],
   },
   logoText: {
-    fontSize: 36,
+    fontSize: 38,
     fontWeight: '900',
     color: palette.brand[500],
-    letterSpacing: -1,
-    marginBottom: theme.spacing.xl,
+    letterSpacing: -1.5,
+    marginBottom: theme.spacing.md,
   },
   subtitle: {
-    color: palette.gray[300],
+    color: palette.gray[400],
+    fontSize: 15,
     textAlign: 'center',
+    lineHeight: 22,
   },
   form: {
     gap: theme.spacing.sm,
@@ -172,9 +202,9 @@ const styles = StyleSheet.create({
     marginVertical: theme.spacing.sm,
   },
   forgotLink: {
-    color: palette.brand[500],
-    fontWeight: 'bold',
-    textDecorationLine: 'underline',
+    color: palette.brand[400],
+    fontWeight: '600',
+    fontSize: 14,
   },
   mainBtn: {
     marginTop: theme.spacing.md,
@@ -190,10 +220,11 @@ const styles = StyleSheet.create({
     backgroundColor: palette.gray[800],
   },
   dividerText: {
-    color: palette.gray[500],
+    color: palette.gray[600],
     paddingHorizontal: theme.spacing.md,
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   googleBtn: {
     marginBottom: theme.spacing.xl,
@@ -204,9 +235,13 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xl,
     paddingBottom: Platform.OS === 'ios' ? 40 : theme.spacing.xl,
   },
+  footerText: {
+    color: palette.gray[500],
+    fontSize: 14,
+  },
   link: {
-    color: palette.brand[500],
-    fontWeight: 'bold',
-    textDecorationLine: 'underline',
+    color: palette.brand[400],
+    fontWeight: '700',
+    fontSize: 14,
   },
 });

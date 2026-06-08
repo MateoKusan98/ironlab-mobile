@@ -716,9 +716,8 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
 
       const profileData: AICoachProfileData = {};
 
-      // Merge basic setup preferences (duration, priority, intensity) into profile
+      // Merge basic setup preferences (duration, intensity) into profile
       if (preferences?.duration) profileData.sessionDurationMinutes = preferences.duration;
-      if (preferences?.priority) profileData.primaryGoal = preferences.priority;
       if (preferences?.intensity) profileData.preferredIntensity = preferences.intensity;
 
       Object.entries(answers).forEach(([key, val]) => {

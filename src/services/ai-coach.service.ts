@@ -23,7 +23,6 @@ export interface CoachPreferences {
   timeSlot: 'morning' | 'afternoon' | 'evening';
   duration: number;
   intensity: number;
-  priority: 'hypertrophy' | 'powerbuilding' | 'strength';
 }
 
 export interface AICoachProfileData {

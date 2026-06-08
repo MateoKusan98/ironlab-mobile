@@ -26,7 +26,7 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AICoachSetup'>;
 };
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 3;
 
 const TIME_OPTIONS = [
   { value: 'morning', labelKey: 'aiCoachSetup.morning', subKey: 'aiCoachSetup.morningSub' },
@@ -34,32 +34,6 @@ const TIME_OPTIONS = [
   { value: 'evening', labelKey: 'aiCoachSetup.evening', subKey: 'aiCoachSetup.eveningSub' },
 ];
 
-const PRIORITY_TICKS = ['hypertrophy', 'powerbuilding', 'strength'] as const;
-
-const PrioritySlider = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
-  <View style={ps.wrap}>
-    <View style={ps.trackRow}>
-      <View style={ps.trackBg} />
-      <View style={ps.dotsRow}>
-        {PRIORITY_TICKS.map((tick) => {
-          const active = value === tick;
-          return (
-            <TouchableOpacity key={tick} onPress={() => onChange(tick)} style={ps.dotTouch} activeOpacity={0.7}>
-              <View style={[ps.dot, active && ps.dotActive]}>
-                {active && <View style={ps.dotInner} />}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-    <View style={ps.labelRow}>
-      <Text style={[ps.label, value === 'hypertrophy' && ps.labelActive]}>Hypertrophy</Text>
-      <Text style={[ps.label, ps.labelCenter, value === 'powerbuilding' && ps.labelActive]}>Powerbuilding</Text>
-      <Text style={[ps.label, ps.labelRight, value === 'strength' && ps.labelActive]}>Strength</Text>
-    </View>
-  </View>
-);
 
 const DURATIONS = Array.from({ length: 23 }, (_, i) => (i + 1) * 5);
 const ITEM_HEIGHT = 60;
@@ -277,11 +251,10 @@ const wheel = StyleSheet.create({
 export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
-  const [prefs, setPrefs] = useState<CoachPreferences>({
+  const [prefs, setPrefs] = useState<Omit<CoachPreferences, 'priority'>>({
     timeSlot: 'morning',
     duration: 45,
     intensity: 3,
-    priority: 'hypertrophy',
   });
   const progressAnim = useRef(new Animated.Value(1 / TOTAL_STEPS)).current;
 
@@ -397,16 +370,6 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       )}
 
-      {step === 3 && (
-        <View style={styles.stepContainer}>
-          <Text style={styles.question}>{t('aiCoachSetup.questionPriority')}</Text>
-          <PrioritySlider
-            value={prefs.priority}
-            onChange={(v) => setPrefs((p) => ({ ...p, priority: v as any }))}
-          />
-        </View>
-      )}
-
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.continueBtn}
@@ -420,22 +383,6 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const ps = StyleSheet.create({
-  wrap: { marginTop: 8 },
-  trackRow: { height: 44, justifyContent: 'center' },
-  trackBg: { position: 'absolute', top: 21, left: 24, right: 24, height: 2, backgroundColor: palette.gray[700], borderRadius: 1 },
-  dotsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 8 },
-  dotTouch: { padding: 8 },
-  dot: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: palette.gray[600], backgroundColor: palette.gray[900], alignItems: 'center', justifyContent: 'center' },
-  dotActive: { borderColor: palette.brand[500], backgroundColor: 'rgba(234,88,12,0.15)' },
-  dotInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: palette.brand[400] },
-  labelRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  label: { color: palette.gray[500], fontSize: 13, fontWeight: '600', flex: 1 },
-  labelCenter: { textAlign: 'center' },
-  labelRight: { textAlign: 'right' },
-  labelActive: { color: palette.brand[400] },
-});
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#09090B' },

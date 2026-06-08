@@ -1,78 +1,84 @@
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
-import { Button } from '../../components/ui/Button';
 import { theme, palette } from '../../theme';
+import { Envelope, FacebookLogo, GoogleLogo } from 'phosphor-react-native';
+import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Welcome'>;
 };
 
-const MinimalLogo = () => (
-  <Text style={styles.logoText}>IronLab</Text>
-);
+const { width, height } = Dimensions.get('window');
 
 export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      {/* We use a solid black background as fallback for the background image */}
-      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: palette.gray[950] }]} />
-      
-      {/* Since you don't have the exact asset yet, this sets up the structural background */}
-      <ImageBackground
-        source={{ uri: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1000&auto=format&fit=crop' }}
-        style={StyleSheet.absoluteFillObject}
-        imageStyle={{ opacity: 0.4 }}
-      />
+      {/* Warm radial glow — matches web hero atmosphere */}
+      <Svg width={width} height={height} style={StyleSheet.absoluteFillObject}>
+        <Defs>
+          <RadialGradient
+            id="heroGlow"
+            cx={width * 0.5}
+            cy={height * 0.52}
+            r={width * 0.8}
+            gradientUnits="userSpaceOnUse">
+            <Stop offset="0" stopColor="#7C2D12" stopOpacity="0.75" />
+            <Stop offset="0.45" stopColor="#431407" stopOpacity="0.4" />
+            <Stop offset="1" stopColor="#000000" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Ellipse
+          cx={width * 0.5}
+          cy={height * 0.52}
+          rx={width * 0.8}
+          ry={height * 0.55}
+          fill="url(#heroGlow)"
+        />
+      </Svg>
+
+      {/* Bottom fade */}
+      <View style={styles.bottomFade} />
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <MinimalLogo />
-          <Text style={[theme.typography.headingXl, styles.title]}>{t('auth.welcome')}</Text>
-          <Text style={[theme.typography.textLg, styles.subtitle]}>{t('auth.welcomeSubtitle')}</Text>
+          <Text style={styles.logoText}>IronLab</Text>
+          <Text style={styles.title}>{t('auth.welcome')}</Text>
+          <Text style={styles.subtitle}>{t('auth.welcomeSubtitle')}</Text>
         </View>
 
         <View style={styles.actionBlock}>
-          <Button
-            label={t('auth.signInWithGoogle')}
-            onPress={() => {}}
-            variant="solid"
-            color="gray"
-            style={styles.socialBtn}
-            textStyle={{ color: palette.gray[50] }}
-            // We mock a G icon letter here for now
-            icon={<Text style={{ color: '#4285F4', fontWeight: 'bold', marginRight: 8, fontSize: 18 }}>G</Text>}
-          />
-          <Button
-            label={t('auth.signInWithFacebook')}
-            onPress={() => {}}
-            variant="solid"
-            color="brand"
-            style={[styles.socialBtn, { backgroundColor: '#1877F2' }]} // Native facebook blue
-            textStyle={{ color: '#FFF' }}
-            icon={<Text style={{ color: '#FFF', fontWeight: 'bold', marginRight: 8, fontSize: 18 }}>f</Text>}
-          />
-          <Button
-            label={t('auth.signInWithEmail')}
+          <TouchableOpacity style={styles.socialBtn} onPress={() => {}} activeOpacity={0.75}>
+            <GoogleLogo size={20} color="#fff" weight="bold" />
+            <Text style={styles.socialBtnText}>{t('auth.signInWithGoogle')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.socialBtn} onPress={() => {}} activeOpacity={0.75}>
+            <FacebookLogo size={20} color="#fff" weight="fill" />
+            <Text style={styles.socialBtnText}>{t('auth.signInWithFacebook')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.socialBtn, styles.emailBtn]}
             onPress={() => navigation.navigate('Login')}
-            variant="solid"
-            color="brand"
-            style={styles.socialBtn}
-            textStyle={{ color: '#FFF' }}
-            icon={<Text style={{ color: '#FFF', marginRight: 8, fontSize: 18 }}>✉</Text>}
-          />
+            activeOpacity={0.75}>
+            <Envelope size={20} color="#fff" weight="bold" />
+            <Text style={styles.socialBtnText}>{t('auth.signInWithEmail')}</Text>
+          </TouchableOpacity>
 
           <View style={styles.footerRow}>
-            <Text style={[theme.typography.textMd, { color: palette.gray[400] }]}>
-              {t('auth.noAccount')}{' '}
-            </Text>
-            <Text
-              style={[theme.typography.textMd, styles.link]}
-              onPress={() => navigation.navigate('Register')}
-            >
+            <Text style={styles.footerText}>{t('auth.noAccount')} </Text>
+            <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
               {t('auth.signUp')}
             </Text>
           </View>
@@ -85,49 +91,84 @@ export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.gray[950],
+    backgroundColor: '#080808',
+  },
+  bottomFade: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 220,
+    backgroundColor: '#080808',
+    opacity: 0.85,
   },
   content: {
     flex: 1,
-    padding: theme.spacing.xl,
+    paddingHorizontal: theme.spacing['3xl'],
     justifyContent: 'space-between',
+    paddingBottom: 52,
   },
   header: {
-    marginTop: 80,
+    marginTop: 110,
     alignItems: 'center',
   },
   logoText: {
-    fontSize: 36,
+    fontSize: 40,
     fontWeight: '900',
     color: palette.brand[500],
-    letterSpacing: -1,
-    marginBottom: theme.spacing.xl,
+    letterSpacing: -1.5,
+    marginBottom: theme.spacing['3xl'],
   },
   title: {
+    fontSize: 26,
+    fontWeight: '700',
     color: palette.gray[50],
     textAlign: 'center',
-    fontWeight: 'bold',
+    letterSpacing: -0.4,
     marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    color: palette.gray[300],
+    fontSize: 15,
+    color: palette.gray[400],
     textAlign: 'center',
+    lineHeight: 22,
   },
   actionBlock: {
-    marginBottom: theme.spacing.xl,
     gap: theme.spacing.md,
   },
   socialBtn: {
-    marginBottom: theme.spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 52,
+    gap: 10,
+    borderRadius: theme.borderRadius['2xl'],
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.13)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  emailBtn: {
+    borderColor: palette.brand[700],
+    backgroundColor: `rgba(194, 65, 12, 0.15)`,
+  },
+  socialBtnText: {
+    color: palette.gray[50],
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.1,
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: theme.spacing.lg,
   },
+  footerText: {
+    color: palette.gray[500],
+    fontSize: 14,
+  },
   link: {
-    color: palette.brand[500],
-    fontWeight: 'bold',
-    textDecorationLine: 'underline',
+    color: palette.brand[400],
+    fontWeight: '700',
+    fontSize: 14,
   },
 });
