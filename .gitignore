@@ -7,3 +7,6 @@ android/
 .env
 .env.*
 !.env.example
+
+# Release APK (built locally for deploy, too large for GitHub)
+*.apk

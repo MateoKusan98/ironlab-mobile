@@ -7,7 +7,7 @@ import {
   ScrollView,
   Platform,
   Alert,
-  Dimensions,
+  ImageBackground,
   TouchableOpacity,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -20,14 +20,14 @@ import { theme, palette } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { authService } from '../../services/auth.service';
 import { Envelope, Eye, EyeSlash, GoogleLogo, Lock } from 'phosphor-react-native';
-import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { useSocialAuth } from '../../hooks/useSocialAuth';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 };
 
-const { width, height } = Dimensions.get('window');
+// Dark gym photo backdrop (matches WelcomeScreen)
+const GYM_BG = require('../../../assets/IRONLAB.png');
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -61,28 +61,13 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      {/* Warm radial glow */}
-      <Svg width={width} height={height} style={StyleSheet.absoluteFillObject} pointerEvents="none">
-        <Defs>
-          <RadialGradient
-            id="loginGlow"
-            cx={width * 0.5}
-            cy={height * 0.35}
-            r={width * 0.75}
-            gradientUnits="userSpaceOnUse">
-            <Stop offset="0" stopColor="#7C2D12" stopOpacity="0.5" />
-            <Stop offset="0.5" stopColor="#431407" stopOpacity="0.2" />
-            <Stop offset="1" stopColor="#000000" stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Ellipse
-          cx={width * 0.5}
-          cy={height * 0.35}
-          rx={width * 0.75}
-          ry={height * 0.45}
-          fill="url(#loginGlow)"
-        />
-      </Svg>
+      {/* Dark gym photo background */}
+      <ImageBackground
+        source={GYM_BG}
+        resizeMode="cover"
+        style={styles.bg}
+        imageStyle={styles.bgImage}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -171,6 +156,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: palette.gray[950],
+  },
+  bg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  bgImage: {
+    opacity: 0.55,
   },
   scrollContent: {
     flexGrow: 1,

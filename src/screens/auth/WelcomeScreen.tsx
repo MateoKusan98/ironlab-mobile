@@ -4,21 +4,21 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
+  ImageBackground,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 import { theme, palette } from '../../theme';
 import { Envelope, GoogleLogo } from 'phosphor-react-native';
-import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { useSocialAuth } from '../../hooks/useSocialAuth';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Welcome'>;
 };
 
-const { width, height } = Dimensions.get('window');
+// Dark gym photo backdrop
+const GYM_BG = require('../../../assets/IRONLAB.png');
 
 export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -26,30 +26,14 @@ export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Warm radial glow — matches web hero atmosphere */}
-      <Svg width={width} height={height} style={StyleSheet.absoluteFillObject}>
-        <Defs>
-          <RadialGradient
-            id="heroGlow"
-            cx={width * 0.5}
-            cy={height * 0.52}
-            r={width * 0.8}
-            gradientUnits="userSpaceOnUse">
-            <Stop offset="0" stopColor="#7C2D12" stopOpacity="0.75" />
-            <Stop offset="0.45" stopColor="#431407" stopOpacity="0.4" />
-            <Stop offset="1" stopColor="#000000" stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Ellipse
-          cx={width * 0.5}
-          cy={height * 0.52}
-          rx={width * 0.8}
-          ry={height * 0.55}
-          fill="url(#heroGlow)"
-        />
-      </Svg>
-
-      {/* Bottom fade */}
+      {/* Dark gym photo background */}
+      <ImageBackground
+        source={GYM_BG}
+        resizeMode="cover"
+        style={styles.bg}
+        imageStyle={styles.bgImage}
+      />
+      {/* Bottom fade keeps the action buttons readable over the photo */}
       <View style={styles.bottomFade} />
 
       <View style={styles.content}>
@@ -94,14 +78,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#080808',
   },
+  bg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  bgImage: {
+    opacity: 1,
+  },
   bottomFade: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 220,
+    height: 320,
     backgroundColor: '#080808',
-    opacity: 0.85,
+    opacity: 0.7,
   },
   content: {
     flex: 1,
