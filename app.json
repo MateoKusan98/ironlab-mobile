@@ -26,6 +26,8 @@
       "package": "com.ironlab.mobile",
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE"
       ]
     },
@@ -51,6 +53,16 @@
           "image": "./assets/icon.png",
           "imageWidth": 200
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraGradleProperties": {
+              "org.gradle.jvmargs": "-Xmx4g -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8"
+            }
+          }
+        }
       ]
     ],
     "extra": {
@@ -58,6 +70,12 @@
         "projectId": "7ae3f6fb-da0e-49cb-873e-c6a06bbfe850"
       }
     },
-    "owner": "tkemas"
+    "owner": "tkemas",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7ae3f6fb-da0e-49cb-873e-c6a06bbfe850"
+    }
   }
 }
