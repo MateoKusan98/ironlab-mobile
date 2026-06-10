@@ -11,11 +11,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Trophy, ArrowLeft } from 'phosphor-react-native';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, palette } from '../../theme';
 import { useBadges } from '../../hooks/useBadges';
-import { BADGE_CATALOG, BADGE_GROUPS, BadgeGroup, BadgeKey, BadgeMeta, badgesService } from '../../services/badges.service';
-import { BadgeUnlockCelebration } from '../../components/BadgeUnlockCelebration';
+import { BADGE_CATALOG, BADGE_GROUPS, BadgeGroup, BadgeKey, BadgeMeta } from '../../services/badges.service';
+import { useBadgeCelebration } from '../../contexts/BadgeCelebrationContext';
 import { Medallion, MedalTier, TIERS, TIER_ORDER } from '../../components/ui/Medallion';
 
 const LOCKED_IN_THRESHOLDS = [1000, 2500, 5000] as const;
@@ -33,21 +32,16 @@ function tierFor(b: { group: BadgeGroup; points: number }): MedalTier {
 
 export const BadgesScreen: React.FC = () => {
   const navigation = useNavigation();
-  const queryClient = useQueryClient();
   const { data, isLoading, refetch, isRefetching } = useBadges();
-  const [celebrationQueue, setCelebrationQueue] = useState<BadgeKey[]>([]);
+  const { refresh: refreshBadges } = useBadgeCelebration();
+  const [syncing, setSyncing] = useState(false);
 
-  const syncMutation = useMutation({
-    mutationFn: () => badgesService.syncBadges(),
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
-      if (result?.newBadges?.length) {
-        setCelebrationQueue(result.newBadges);
-      }
-    },
-  });
-
-  useEffect(() => { syncMutation.mutate(); }, []);
+  // Recompute badges on open. Any newly unlocked ones are celebrated globally
+  // by the provider, so the popup survives leaving this screen.
+  useEffect(() => {
+    setSyncing(true);
+    refreshBadges().finally(() => setSyncing(false));
+  }, [refreshBadges]);
 
   const unlockedSet = new Set<BadgeKey>(data?.unlockedBadges ?? []);
   const points = data?.achievementPoints ?? 0;
@@ -81,7 +75,7 @@ export const BadgesScreen: React.FC = () => {
         <View>
           <Text style={styles.title}>Badges</Text>
           <Text style={styles.subtitle}>
-            {unlockedCount} / {totalCount} unlocked{syncMutation.isPending ? '  •  syncing...' : ''}
+            {unlockedCount} / {totalCount} unlocked{syncing ? '  •  syncing...' : ''}
           </Text>
         </View>
       </View>
@@ -133,13 +127,6 @@ export const BadgesScreen: React.FC = () => {
             <Text style={styles.heroName}>{featured.badge.name}</Text>
             <Text style={styles.heroDesc}>{featured.badge.description}</Text>
           </View>
-        )}
-
-        {celebrationQueue.length > 0 && (
-          <BadgeUnlockCelebration
-            newBadgeKeys={celebrationQueue}
-            onDismiss={() => setCelebrationQueue([])}
-          />
         )}
 
         {/* Badge sections */}

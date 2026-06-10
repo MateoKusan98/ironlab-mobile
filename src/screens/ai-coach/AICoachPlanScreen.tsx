@@ -475,6 +475,12 @@ export const AICoachPlanScreen: React.FC = () => {
   }, [generating]);
 
   useEffect(() => {
+    // Hard gate: never load or auto-generate a plan without a completed AI profile.
+    // Any entry point that lands here without setup is sent through onboarding instead.
+    if (!user?.isAICoachSetupComplete) {
+      navigation.replace('AICoachWelcome');
+      return;
+    }
     aiCoachService.getPlan()
       .then(({ plan: p, generatedAt: ga, competitionDate: cd, competitionType: ct, activeInjuries: ai, injuryHandling: ih }) => {
         setCompDate(cd);

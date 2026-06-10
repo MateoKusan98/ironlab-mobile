@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useExerciseName } from '../../hooks/useExerciseName';
 import { sessionService, WorkoutSession } from '../../services/session.service';
 import { aiCoachService } from '../../services/ai-coach.service';
+import { useBadgeCelebration } from '../../contexts/BadgeCelebrationContext';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy } from 'phosphor-react-native';
 
 type SummaryRouteProp = RouteProp<RootStackParamList, 'SessionSummary'>;
@@ -38,6 +39,7 @@ export const SessionSummaryScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<SummaryRouteProp>();
   const { sessionId, durationMinutes, prs } = route.params;
+  const { refresh: refreshBadges } = useBadgeCelebration();
 
   const [session, setSession] = useState<WorkoutSession | null>(null);
   const [notes, setNotes] = useState('');
@@ -79,6 +81,9 @@ export const SessionSummaryScreen: React.FC = () => {
       return;
     }
     setSaving(false);
+    // Surface any badges this session unlocked. The provider lives above the
+    // navigator, so the celebration survives the reset() below.
+    void refreshBadges();
     setGenerating(true);
     try {
       await aiCoachService.postSession(sessionId);

@@ -140,9 +140,22 @@ export const HomeScreen: React.FC = () => {
 
   const openCreatineModal = (mode: 'setup' | 'daily') => {
     setCreatineMode(mode);
-    creatineSlide.setValue(300);
-    Animated.spring(creatineSlide, { toValue: 0, useNativeDriver: true, bounciness: 4 }).start();
   };
+
+  // Run the slide-up entrance *after* the modal mounts. Starting a native-driven
+  // animation synchronously in openCreatineModal (before the render commits) is
+  // unreliable on the New Architecture / release builds — the sheet's native node
+  // doesn't exist yet, so the animation is dropped and the sheet never appears.
+  useEffect(() => {
+    if (creatineMode === null) return;
+    creatineSlide.setValue(300);
+    let anim: Animated.CompositeAnimation | undefined;
+    const raf = requestAnimationFrame(() => {
+      anim = Animated.spring(creatineSlide, { toValue: 0, useNativeDriver: true, bounciness: 4 });
+      anim.start();
+    });
+    return () => { cancelAnimationFrame(raf); anim?.stop(); };
+  }, [creatineMode, creatineSlide]);
 
   const closeCreatineModal = (onDone?: () => void) => {
     Animated.timing(creatineSlide, { toValue: 300, duration: 220, useNativeDriver: true }).start(() => {
@@ -208,6 +221,12 @@ export const HomeScreen: React.FC = () => {
       plan: planData?.planText ?? undefined,
       nextSessionJson: planData?.nextSessionJson ?? undefined,
     });
+  };
+
+  // AI Coach is gated behind setup — never let the user reach the plan/generate
+  // screen without an AI profile. Route them through the setup flow instead.
+  const openAICoach = () => {
+    navigation.navigate(user?.isAICoachSetupComplete ? 'AICoachPlan' : 'AICoachWelcome');
   };
 
   return (
@@ -297,7 +316,7 @@ export const HomeScreen: React.FC = () => {
           ) : planLoading ? (
             <ActivityIndicator color={palette.brand[500]} style={{ marginVertical: 16 }} />
           ) : !hasTrainingSchedule ? (
-            <TouchableOpacity style={styles.setupPrompt} onPress={() => navigation.navigate('AICoachPlan')}>
+            <TouchableOpacity style={styles.setupPrompt} onPress={openAICoach}>
               <Text style={styles.setupPromptText}>{t('home.noSchedule')}</Text>
               <Text style={styles.setupPromptSub}>{t('home.generateFirst')}</Text>
             </TouchableOpacity>
@@ -328,7 +347,7 @@ export const HomeScreen: React.FC = () => {
               </TouchableOpacity>
             </>
           ) : (
-            <TouchableOpacity style={styles.setupPrompt} onPress={() => navigation.navigate('AICoachPlan')}>
+            <TouchableOpacity style={styles.setupPrompt} onPress={openAICoach}>
               <Text style={styles.setupPromptText}>{t('home.noPlan')}</Text>
               <Text style={styles.setupPromptSub}>{t('home.generateFirst')}</Text>
             </TouchableOpacity>
@@ -380,7 +399,7 @@ export const HomeScreen: React.FC = () => {
             <CalendarBlank size={26} weight="bold" color={palette.brand[400]} />
             <Text style={styles.quickLabel}>{t('nav.history')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('AICoachPlan')}>
+          <TouchableOpacity style={styles.quickCard} onPress={openAICoach}>
             <Robot size={26} weight="bold" color={palette.brand[400]} />
             <Text style={styles.quickLabel}>{t('home.aiCoach')}</Text>
           </TouchableOpacity>

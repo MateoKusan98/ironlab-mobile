@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ActivityIndicator, View } from 'react-native';
 import './src/i18n';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { BadgeCelebrationProvider } from './src/contexts/BadgeCelebrationContext';
 import { SplashScreen } from './src/screens/SplashScreen';
 import { useAuthStore } from './src/stores/auth.store';
 import { useSettingsStore } from './src/stores/settings.store';
@@ -48,7 +49,9 @@ export default function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <StatusBar style="light" />
-        <AppContent />
+        <BadgeCelebrationProvider>
+          <AppContent />
+        </BadgeCelebrationProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { nutritionService } from '../services/nutrition.service';
+import { useBadgeCelebration } from '../contexts/BadgeCelebrationContext';
 
 export const useFoodLogs = (date?: string) => {
   return useQuery({
@@ -55,6 +56,7 @@ export const useClientFoodLogs = (clientId: string, date?: string) => {
 
 export const useCreateFoodLog = () => {
   const queryClient = useQueryClient();
+  const { refresh: refreshBadges } = useBadgeCelebration();
 
   return useMutation({
     mutationFn: (formData: FormData) => nutritionService.createFoodLog(formData),
@@ -62,6 +64,8 @@ export const useCreateFoodLog = () => {
       queryClient.invalidateQueries({ queryKey: ['foodLogs'] });
       queryClient.invalidateQueries({ queryKey: ['nutritionSummary'] });
       queryClient.invalidateQueries({ queryKey: ['nutritionCalendar'] });
+      // Logging a meal can unlock nutrition badges (first meal, streaks, etc.).
+      void refreshBadges();
     },
   });
 };
