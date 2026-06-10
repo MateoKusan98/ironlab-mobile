@@ -188,8 +188,11 @@ export const sessionService = {
   completeSession: async (
     sessionId: string,
     input: { notes?: string; mood?: string; energyLevel?: number; durationMinutes?: number },
-  ): Promise<WorkoutSession> => {
-    const { data } = await api.patch<{ data: WorkoutSession }>(`/sessions/${sessionId}/complete`, input);
+  ): Promise<WorkoutSession & { pointsEarned: number }> => {
+    const { data } = await api.patch<{ data: WorkoutSession & { pointsEarned: number } }>(
+      `/sessions/${sessionId}/complete`,
+      input,
+    );
     return data.data;
   },
 

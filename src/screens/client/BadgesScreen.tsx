@@ -111,9 +111,15 @@ export const BadgesScreen: React.FC = () => {
             </Text>
           )}
 
-          <Text style={styles.pointsHint}>
-            +20 session · +5 readiness · +10 RPE detail · +5 technique notes · +5 meal (up to 6/day) · bonus points per badge unlocked
-          </Text>
+          <View style={styles.pointsHintBox}>
+            <Text style={styles.pointsHintTitle}>HOW POINTS ARE EARNED</Text>
+            <Text style={styles.pointsHint}>
+              You earn points every time you train and eat — badges are just a bonus on top.
+            </Text>
+            <Text style={styles.pointsHintList}>
+              +20 completing a session   ·   +5 logging readiness   ·   +10 RPE on your sets   ·   +5 technique notes   ·   +5 per meal (up to 6/day)   ·   bonus points each time a badge unlocks
+            </Text>
+          </View>
         </View>
 
         {/* Featured top medal */}
@@ -189,7 +195,15 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', borderRadius: 4, backgroundColor: palette.brand[500] },
   progressLabels: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   progressSub: { fontSize: 11, color: palette.gray[500] },
-  pointsHint: { fontSize: 11, color: palette.gray[600], lineHeight: 17 },
+  pointsHintBox: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: palette.gray[700],
+  },
+  pointsHintTitle: { fontSize: 10, fontWeight: '700', letterSpacing: 1.2, color: palette.brand[400], marginBottom: 6 },
+  pointsHint: { fontSize: 13, color: palette.gray[300], lineHeight: 19, fontWeight: '600', marginBottom: 8 },
+  pointsHintList: { fontSize: 11, color: palette.gray[500], lineHeight: 18 },
 
   // Featured hero
   heroCard: {

@@ -17,9 +17,10 @@ import { theme, palette } from '../../theme';
 import { useTranslation } from 'react-i18next';
 import { useExerciseName } from '../../hooks/useExerciseName';
 import { sessionService, WorkoutSession } from '../../services/session.service';
+import { projectSessionPoints } from '../../services/badges.service';
 import { aiCoachService } from '../../services/ai-coach.service';
 import { useBadgeCelebration } from '../../contexts/BadgeCelebrationContext';
-import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy } from 'phosphor-react-native';
+import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, Check } from 'phosphor-react-native';
 
 type SummaryRouteProp = RouteProp<RootStackParamList, 'SessionSummary'>;
 
@@ -136,6 +137,41 @@ export const SessionSummaryScreen: React.FC = () => {
             <Text style={styles.statLabel}>VOL (kg)</Text>
           </View>
         </View>
+
+        {/* Achievement points earned this session */}
+        {session && (() => {
+          const breakdown = projectSessionPoints(session);
+          return (
+            <View style={styles.pointsCard}>
+              <View style={styles.pointsHeader}>
+                <View>
+                  <Text style={styles.pointsLabel}>ACHIEVEMENT POINTS</Text>
+                  <Text style={styles.pointsSub}>Earned from this workout</Text>
+                </View>
+                <Text style={styles.pointsValue}>+{breakdown.total}</Text>
+              </View>
+              <View style={styles.pointsLines}>
+                {breakdown.lines.map((line) => (
+                  <View key={line.label} style={styles.pointsLineRow}>
+                    <View style={styles.pointsLineLeft}>
+                      {line.earned ? (
+                        <Check size={14} weight="bold" color={palette.brand[400]} />
+                      ) : (
+                        <View style={styles.pointsDot} />
+                      )}
+                      <Text style={[styles.pointsLineLabel, !line.earned && styles.pointsLineMuted]}>
+                        {line.label}
+                      </Text>
+                    </View>
+                    <Text style={[styles.pointsLinePts, !line.earned && styles.pointsLineMuted]}>
+                      +{line.points}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          );
+        })()}
 
         {/* PR Recap */}
         {prs && prs.length > 0 && (
@@ -257,6 +293,26 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 22, fontWeight: '800', color: palette.brand[400], marginBottom: 2 },
   statLabel: { fontSize: 9, fontWeight: '700', color: palette.gray[500], letterSpacing: 0.8 },
+
+  pointsCard: {
+    backgroundColor: palette.gray[800],
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: palette.brand[600] + '55',
+  },
+  pointsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  pointsLabel: { fontSize: 11, fontWeight: '700', color: palette.gray[400], letterSpacing: 1 },
+  pointsSub: { fontSize: 12, color: palette.gray[500], marginTop: 3 },
+  pointsValue: { fontSize: 30, fontWeight: '900', color: palette.brand[400] },
+  pointsLines: { gap: 8, borderTopWidth: 1, borderTopColor: palette.gray[700], paddingTop: 12 },
+  pointsLineRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pointsLineLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  pointsDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1.5, borderColor: palette.gray[600] },
+  pointsLineLabel: { fontSize: 13, color: theme.colors.text, fontWeight: '600' },
+  pointsLinePts: { fontSize: 13, color: palette.brand[400], fontWeight: '700' },
+  pointsLineMuted: { color: palette.gray[600] },
 
   card: {
     backgroundColor: palette.gray[800],

@@ -82,6 +82,45 @@ export const BADGE_CATALOG: BadgeMeta[] = [
   { key: 'LOCKED_IN_3',    name: 'This Is Your Life Now',    description: 'Reach 5000 achievement points',   icon: '🌀', group: 'dedication', points: 0 },
 ];
 
+// ─── Session activity points ─────────────────────────────────────────────────
+// Mirrors the backend (BadgesService.onSessionComplete). The server remains the
+// source of truth for the banked total; this lets the summary screen show what a
+// completed session is worth and *why*, so users see points come from training —
+// not only from badges.
+export const SESSION_POINTS = {
+  base: 20,       // every completed session
+  readiness: 5,   // any of bodyweight / energy / sleep logged
+  rpe: 10,        // ≥ 50% of completed sets carry an RPE
+  technique: 5,   // any completed set has a technique note
+} as const;
+
+export interface SessionPointsBreakdown {
+  total: number;
+  lines: Array<{ label: string; points: number; earned: boolean }>;
+}
+
+export function projectSessionPoints(session: {
+  bodyweight: number | null;
+  energyLevel: number | null;
+  sleepHours: number | null;
+  sets: Array<{ isCompleted: boolean; rpe: number | null; techniqueNotes: string | null }>;
+}): SessionPointsBreakdown {
+  const completed = session.sets.filter((s) => s.isCompleted);
+  const rpeCount = completed.filter((s) => s.rpe !== null && s.rpe !== undefined).length;
+  const hasReadiness = !!(session.bodyweight || session.energyLevel || session.sleepHours);
+  const hasRpe = completed.length > 0 && rpeCount / completed.length >= 0.5;
+  const hasNotes = completed.some((s) => !!s.techniqueNotes?.trim());
+
+  const lines = [
+    { label: 'Session completed', points: SESSION_POINTS.base, earned: true },
+    { label: 'Readiness logged', points: SESSION_POINTS.readiness, earned: hasReadiness },
+    { label: 'RPE on your sets', points: SESSION_POINTS.rpe, earned: hasRpe },
+    { label: 'Technique notes', points: SESSION_POINTS.technique, earned: hasNotes },
+  ];
+  const total = lines.reduce((sum, l) => sum + (l.earned ? l.points : 0), 0);
+  return { total, lines };
+}
+
 export const BADGE_GROUPS: Array<{ key: BadgeGroup; label: string }> = [
   { key: 'strength',   label: 'STRENGTH' },
   { key: 'grind',      label: 'GRIND' },
