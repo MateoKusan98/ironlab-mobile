@@ -172,9 +172,7 @@ export const AdminUsersScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <Text style={styles.title}>{t('admin.userManagement')}</Text>
         <Text style={styles.count}>{users.length}</Text>
       </View>

@@ -12,7 +12,7 @@ import { sessionService } from '../../services/session.service';
 import { useAuthStore } from '../../stores/auth.store';
 import {
   PersonSimpleRun, Bicycle, Waves, ArrowsClockwise, Lightning,
-  Stairs, PersonSimpleSwim, ArrowLeft, CheckCircle,
+  Stairs, PersonSimpleSwim, CheckCircle,
 } from 'phosphor-react-native';
 
 // MET values per activity (moderate-effort baseline)
@@ -144,9 +144,7 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ArrowLeft size={24} weight="bold" color="#FFF" />
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <Text style={styles.title}>{t('cardio.title')}</Text>
         <View style={{ width: 40 }} />
       </View>

@@ -5,9 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/AppNavigator';
+import { useFocusEffect } from '@react-navigation/native';
 import { nutritionService } from '../../services/nutrition.service';
 import { palette } from '../../theme';
 
@@ -31,7 +29,6 @@ type Meal = {
 
 export const MyMealsScreen: React.FC = () => {
   const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -119,9 +116,7 @@ export const MyMealsScreen: React.FC = () => {
   return (
     <SafeAreaView style={s.container}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Text style={s.backIcon}>‹</Text>
-        </TouchableOpacity>
+        <View style={s.backBtn} />
         <Text style={s.title}>{t('myMeals.title')}</Text>
         <View style={{ width: 40 }} />
       </View>

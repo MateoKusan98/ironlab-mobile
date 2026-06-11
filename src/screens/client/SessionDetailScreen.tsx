@@ -4,11 +4,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useExerciseName } from '../../hooks/useExerciseName';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -44,7 +43,6 @@ function groupSetsByExercise(sets: SessionSet[]): Array<{ name: string; sets: Se
 export const SessionDetailScreen: React.FC = () => {
   const { t } = useTranslation();
   const { exName } = useExerciseName();
-  const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'SessionDetail'>>();
   const { sessionId } = route.params;
 
@@ -85,9 +83,7 @@ export const SessionDetailScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>{dateLabel}</Text>
           {session.durationMinutes != null && (

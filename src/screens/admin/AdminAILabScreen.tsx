@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { adminAiService, AdminUserEntry, AdminUserState } from '../../services/ai-coach.service';
 import { palette, theme } from '../../theme';
@@ -193,7 +193,6 @@ const debug = StyleSheet.create({
 // ── Main Screen ───────────────────────────────────────────────────────────
 
 export const AdminAILabScreen: React.FC = () => {
-  const navigation = useNavigation();
   const route = useRoute<RouteProps>();
   const { userId: initialUserId, userName: initialUserName } = route.params ?? {};
 
@@ -291,9 +290,7 @@ export const AdminAILabScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <Text style={styles.title}>AI Lab</Text>
         {selectedUser && (
           <TouchableOpacity onPress={() => loadState(selectedUser.id)} style={styles.refreshBtn}>

@@ -22,7 +22,7 @@ import { theme, palette } from '../../theme';
 import { communityService, FeedPost, PostComment } from '../../services/community.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { PostVideo } from '../../components/PostVideo';
-import { ArrowLeft, Heart, PaperPlaneTilt, DotsThree, Trophy, Barbell, MagnifyingGlass } from 'phosphor-react-native';
+import { Heart, PaperPlaneTilt, DotsThree, Trophy, Barbell, MagnifyingGlass } from 'phosphor-react-native';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'PostDetail'>;
@@ -130,9 +130,7 @@ export const PostDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <ArrowLeft size={22} color={theme.colors.text} weight="bold" />
-          </TouchableOpacity>
+          <View style={styles.backBtn} />
           <Text style={styles.headerTitle}>{t('community.post')}</Text>
           <View style={{ width: 38 }} />
         </View>
@@ -166,9 +164,7 @@ export const PostDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ArrowLeft size={22} color={theme.colors.text} weight="bold" />
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <Text style={styles.headerTitle}>{t('community.post')}</Text>
         <View style={{ width: 38 }} />
       </View>

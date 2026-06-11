@@ -19,7 +19,7 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette } from '../../theme';
 import { messagingService, Message } from '../../services/messaging.service';
 import { useAuthStore } from '../../stores/auth.store';
-import { ArrowLeft, PaperPlaneTilt } from 'phosphor-react-native';
+import { PaperPlaneTilt } from 'phosphor-react-native';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Conversation'>;
@@ -31,7 +31,7 @@ const formatTime = (dateStr: string) => {
   return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 };
 
-export const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
+export const ConversationScreen: React.FC<Props> = ({ route }) => {
   const { t } = useTranslation();
   const { conversationId, otherUserName } = route.params;
   const { user } = useAuthStore();
@@ -115,9 +115,7 @@ export const ConversationScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ArrowLeft size={22} color={theme.colors.text} weight="bold" />
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <View style={styles.headerNameWrap}>
           <Text style={styles.headerName}>{otherUserName}</Text>
         </View>

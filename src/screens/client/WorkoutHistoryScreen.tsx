@@ -122,13 +122,7 @@ export const WorkoutHistoryScreen: React.FC = () => {
   const totalSetsThisWeek = allWeekSessions.reduce((sum, s) => sum + s.sets.filter((x) => x.isCompleted).length, 0);
   const prDays = Array.from(weekSessions.values()).filter((arr) => arr.some((s) => s.sets.some((x) => x.isPR))).length;
 
-  const headerLeft = navigation.canGoBack()
-    ? (
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-        <Text style={styles.backBtnText}>←</Text>
-      </TouchableOpacity>
-    )
-    : <UserAvatar user={user} size={36} />;
+  const headerLeft = <UserAvatar user={user} size={36} />;
 
   if (loading) {
     return (

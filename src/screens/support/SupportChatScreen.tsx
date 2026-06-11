@@ -88,7 +88,7 @@ const MessageBubble = ({ message }: { message: SupportMessage }) => {
   );
 };
 
-export const SupportChatScreen: React.FC<Props> = ({ navigation }) => {
+export const SupportChatScreen: React.FC<Props> = () => {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<SupportMessage[]>([
     { role: 'assistant', content: t('support.welcomeMessage') },
@@ -132,9 +132,7 @@ export const SupportChatScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>‹</Text>
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <View style={styles.headerCenter}>
           <View style={styles.headerAvatar}>
             <Robot size={22} weight="fill" color={palette.brand[400]} />

@@ -83,9 +83,7 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Text style={styles.backIcon}>←</Text>
-            </TouchableOpacity>
+            <View style={styles.backBtn} />
             <Text style={styles.headerTitle}>Block Structure</Text>
             <View style={{ width: 40 }} />
         </View>

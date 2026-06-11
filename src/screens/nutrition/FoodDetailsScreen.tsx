@@ -94,9 +94,7 @@ export const FoodDetailsScreen: React.FC = () => {
         <View style={styles.photoHeader}>
           <Image source={{ uri: displayData.imageUrl }} style={styles.mainImage} />
           <View style={styles.headerTop}>
-             <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-                <Text style={styles.backIcon}>‹</Text>
-             </TouchableOpacity>
+             <View style={{ width: 44 }} />
              <View style={styles.titleWrapper}>
                 <Text style={styles.headerTitle}>{t('foodDetails.title')}</Text>
              </View>

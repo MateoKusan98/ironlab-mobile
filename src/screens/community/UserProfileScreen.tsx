@@ -17,7 +17,7 @@ import { theme, palette } from '../../theme';
 import { communityService, FeedPost } from '../../services/community.service';
 import { messagingService } from '../../services/messaging.service';
 import { useAuthStore } from '../../stores/auth.store';
-import { ArrowLeft, ChatCircleDots, Heart, ChatCircle, Barbell, Trophy } from 'phosphor-react-native';
+import { ChatCircleDots, Heart, ChatCircle, Barbell, Trophy } from 'phosphor-react-native';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'UserProfile'>;
@@ -78,9 +78,7 @@ export const UserProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ArrowLeft size={22} color={theme.colors.text} weight="bold" />
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <Text style={styles.headerTitle}>{userName}</Text>
         <View style={{ width: 38 }} />
       </View>

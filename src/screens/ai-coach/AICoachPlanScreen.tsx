@@ -617,9 +617,7 @@ export const AICoachPlanScreen: React.FC = () => {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>{t('aiCoach.todaysSession')}</Text>
           {generatedAt && (

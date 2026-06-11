@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { ideasService, IdeaSubmission } from '../../services/ideas.service';
 import { theme, palette } from '../../theme';
 
@@ -32,7 +31,6 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export const AdminIdeasScreen: React.FC = () => {
-  const navigation = useNavigation();
   const [ideas, setIdeas] = useState<IdeaSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterStatus>('PENDING');
@@ -166,9 +164,7 @@ export const AdminIdeasScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <Text style={styles.title}>Community Ideas</Text>
         <Text style={styles.count}>{ideas.length}</Text>
       </View>

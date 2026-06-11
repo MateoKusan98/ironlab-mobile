@@ -9,8 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme, palette } from '../../../theme';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 import { ExerciseSearchModal } from './ExerciseSearchModal';
 
@@ -23,7 +22,6 @@ type RouteParams = {
 }
 
 export const ProgramCreatorDayScreen: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute<RouteProp<RouteParams, 'params'>>();
   const { blockIndex, weekIndex, dayIndex } = route.params;
 
@@ -71,9 +69,7 @@ export const ProgramCreatorDayScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Text style={styles.backIcon}>←</Text>
-            </TouchableOpacity>
+            <View style={styles.backBtn} />
             <View style={styles.headerTitles}>
                 <Text style={styles.headerTitle}>Day {day.dayNumber}</Text>
                 <Text style={styles.headerSubtitle}>Week {weekIndex + 1} · Block {blockIndex + 1}</Text>

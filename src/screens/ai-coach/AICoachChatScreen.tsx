@@ -105,7 +105,7 @@ const MessageBubble = ({ message, isUser }: { message: ChatMessage; isUser: bool
   );
 };
 
-export const AICoachChatScreen: React.FC<Props> = ({ navigation, route }) => {
+export const AICoachChatScreen: React.FC<Props> = ({ route }) => {
   const { t } = useTranslation();
   const preferences = route.params?.preferences as CoachPreferences | undefined;
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -158,9 +158,7 @@ export const AICoachChatScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
-          <Text style={styles.headerBackIcon}>‹</Text>
-        </TouchableOpacity>
+        <View style={styles.headerBack} />
         <View style={styles.headerCenter}>
           <View style={styles.headerAvatar}>
             <Text style={styles.headerAvatarIcon}>✚</Text>

@@ -97,9 +97,6 @@ export const CreateWorkoutScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scroll}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>← Back</Text>
-        </TouchableOpacity>
 
         <Text style={styles.title}>Create Workout</Text>
         <Text style={styles.subtitle}>For {params.clientName}</Text>

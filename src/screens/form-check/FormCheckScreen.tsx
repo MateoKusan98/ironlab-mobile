@@ -30,7 +30,6 @@ import {
   Video,
   ImageSquare,
   X,
-  ArrowLeft,
   CheckCircle,
   WarningCircle,
   XCircle,
@@ -360,9 +359,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ArrowLeft size={22} weight="bold" color={theme.colors.text} />
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <Text style={styles.headerTitle}>{t('formCheck.title')}</Text>
         <View style={{ width: 40 }} />
       </View>

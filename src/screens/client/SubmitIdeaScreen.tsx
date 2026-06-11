@@ -12,7 +12,6 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { ideasService, IdeaSubmission } from '../../services/ideas.service';
 import { theme, palette } from '../../theme';
 import { Lightbulb, CheckCircle } from 'phosphor-react-native';
@@ -20,7 +19,6 @@ import { Lightbulb, CheckCircle } from 'phosphor-react-native';
 const MAX_CHARS = 1000;
 
 export const SubmitIdeaScreen: React.FC = () => {
-  const navigation = useNavigation();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState<IdeaSubmission | null>(null);
@@ -82,9 +80,7 @@ export const SubmitIdeaScreen: React.FC = () => {
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Text style={styles.backArrow}>←</Text>
-            </TouchableOpacity>
+            <View style={styles.backBtn} />
             <Text style={styles.title}>Submit an Idea</Text>
           </View>
 

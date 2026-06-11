@@ -134,9 +134,7 @@ export const BrowseMealsScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Text style={styles.backIcon}>‹</Text>
-          </TouchableOpacity>
+          <View style={styles.backBtn} />
           <View style={styles.headerTextGroup}>
             <Text style={styles.headerTitle}>{t('browseMeals.title')}</Text>
             <Text style={styles.headerSubtitle}>{t('browseMeals.subtitle')}</Text>

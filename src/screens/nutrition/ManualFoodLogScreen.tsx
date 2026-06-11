@@ -238,9 +238,7 @@ export const ManualFoodLogScreen: React.FC = () => {
         style={{ flex: 1 }}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Text style={styles.backIcon}>‹</Text>
-          </TouchableOpacity>
+          <View style={styles.backBtn} />
           <Text style={styles.headerTitle}>{t('manualFood.headerTitle')}</Text>
           <View style={{ width: 40 }} />
         </View>

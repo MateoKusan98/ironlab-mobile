@@ -6,11 +6,9 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { Trophy, ArrowLeft } from 'phosphor-react-native';
+import { Trophy } from 'phosphor-react-native';
 import { theme, palette } from '../../theme';
 import { useBadges } from '../../hooks/useBadges';
 import { BADGE_CATALOG, BADGE_GROUPS, BadgeGroup, BadgeKey, BadgeMeta } from '../../services/badges.service';
@@ -31,7 +29,6 @@ function tierFor(b: { group: BadgeGroup; points: number }): MedalTier {
 }
 
 export const BadgesScreen: React.FC = () => {
-  const navigation = useNavigation();
   const { data, isLoading, refetch, isRefetching } = useBadges();
   const { refresh: refreshBadges } = useBadgeCelebration();
   const [syncing, setSyncing] = useState(false);
@@ -69,9 +66,7 @@ export const BadgesScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ArrowLeft size={22} color={theme.colors.text} weight="bold" />
-        </TouchableOpacity>
+        <View style={styles.backBtn} />
         <View>
           <Text style={styles.title}>Badges</Text>
           <Text style={styles.subtitle}>
