@@ -80,17 +80,6 @@ const getSections = (t: TFunction): Section[] => [
         min: 0, max: 40, unit: 'years', placeholder: '3',
       },
       {
-        id: 'bestSystems', label: t('aiCoachExtendedSetup.questionBestSystems'), type: 'multi',
-        options: [
-          { value: 'high_volume', label: t('aiCoachExtendedSetup.optionHighVolume') },
-          { value: 'high_intensity', label: t('aiCoachExtendedSetup.optionHighIntensity') },
-          { value: 'high_frequency', label: t('aiCoachExtendedSetup.optionHighFrequency') },
-          { value: 'linear_progression', label: t('aiCoachExtendedSetup.optionLinearProgression') },
-          { value: 'conjugate', label: t('aiCoachExtendedSetup.optionConjugate') },
-          { value: 'block_periodization', label: t('aiCoachExtendedSetup.optionBlockPeriodization') },
-        ],
-      },
-      {
         id: 'adaptationSpeed', label: t('aiCoachExtendedSetup.questionAdaptationSpeed'), type: 'single',
         allowDontKnow: true,
         options: [
@@ -354,14 +343,6 @@ const getSections = (t: TFunction): Section[] => [
           { value: 'maintain', label: t('aiCoachExtendedSetup.optionMaintain'), icon: '➡️' },
           { value: 'bulk', label: t('aiCoachExtendedSetup.optionBulk'), icon: '📈' },
         ],
-      },
-      {
-        id: 'dailyProteinTarget', label: t('aiCoachExtendedSetup.questionDailyProteinTarget'), type: 'number',
-        min: 50, max: 400, unit: 'g', placeholder: '180', optional: true,
-      },
-      {
-        id: 'weightClassTarget', label: t('aiCoachExtendedSetup.questionWeightClassTarget'), type: 'text', optional: true,
-        placeholder: t('aiCoachExtendedSetup.questionWeightClassTargetPlaceholder'),
       },
     ],
   },
@@ -872,27 +853,27 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
                       📅  Days: {suggestions.trainingDays.map((d) => d.slice(0, 3).charAt(0).toUpperCase() + d.slice(1, 3)).join(', ')}
                     </Text>
                   )}
-                  {suggestions.sessionsPerWeek && (
+                  {!!suggestions.sessionsPerWeek && (
                     <Text style={s.suggestionItem}>
                       🔁  Frequency: ~{suggestions.sessionsPerWeek}x / week
                     </Text>
                   )}
-                  {suggestions.avgSessionMinutes && (
+                  {!!suggestions.avgSessionMinutes && (
                     <Text style={s.suggestionItem}>
                       ⏱  Avg session: {suggestions.avgSessionMinutes} min
                     </Text>
                   )}
-                  {suggestions.squatFrequencyPerWeek && (
+                  {!!suggestions.squatFrequencyPerWeek && (
                     <Text style={s.suggestionItem}>
                       🦵  Squat: ~{suggestions.squatFrequencyPerWeek}x / week
                     </Text>
                   )}
-                  {suggestions.benchFrequencyPerWeek && (
+                  {!!suggestions.benchFrequencyPerWeek && (
                     <Text style={s.suggestionItem}>
                       💪  Bench: ~{suggestions.benchFrequencyPerWeek}x / week
                     </Text>
                   )}
-                  {suggestions.deadliftFrequencyPerWeek && (
+                  {!!suggestions.deadliftFrequencyPerWeek && (
                     <Text style={s.suggestionItem}>
                       🏋️  Deadlift: ~{suggestions.deadliftFrequencyPerWeek}x / week
                     </Text>

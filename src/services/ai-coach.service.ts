@@ -110,8 +110,8 @@ export const aiCoachService = {
     return data.data;
   },
 
-  generatePlan: async (readiness?: { mood?: string; energyLevel?: number; sleepHours?: number }): Promise<string> => {
-    const { data } = await api.post<{ data: { plan: string } }>('/ai-coach/generate-plan', readiness ?? {});
+  generatePlan: async (readiness?: { mood?: string; energyLevel?: number; sleepHours?: number }, note?: string): Promise<string> => {
+    const { data } = await api.post<{ data: { plan: string } }>('/ai-coach/generate-plan', { ...readiness ?? {}, ...(note ? { note } : {}) });
     return data.data.plan;
   },
 

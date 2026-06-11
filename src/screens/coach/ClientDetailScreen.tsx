@@ -87,7 +87,7 @@ export const ClientDetailScreen: React.FC = () => {
                 <Text style={styles.cardDetail}>
                   Weight: {log.actualWeight ?? 'N/A'}kg • Reps: {log.repsCompleted ?? 'N/A'}
                 </Text>
-                {log.techniqueRating && (
+                {!!log.techniqueRating && (
                   <Text style={styles.cardDetail}>Technique: {'⭐'.repeat(log.techniqueRating)}</Text>
                 )}
                 {log.notes && <Text style={styles.cardNotes}>{log.notes}</Text>}

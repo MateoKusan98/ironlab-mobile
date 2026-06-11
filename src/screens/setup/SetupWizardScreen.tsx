@@ -1,17 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  KeyboardAvoidingView, 
-  ScrollView, 
-  Platform, 
-  TouchableOpacity, 
-  Alert, 
-  Dimensions, 
-  NativeSyntheticEvent, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Dimensions,
+  NativeSyntheticEvent,
   NativeScrollEvent,
-  FlatList,
   TextInput as RNTextInput,
   Image,
   ActivityIndicator,
@@ -24,7 +21,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button';
-import { TextInput } from '../../components/ui/TextInput';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { theme, palette } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
@@ -169,7 +165,6 @@ export const SetupWizardScreen: React.FC = () => {
   const [step, setStep] = useState<number>(0);
   
   // State for forms
-  const [fullName, setFullName] = useState('');
   const [dob, setDob] = useState({ month: 'Sep', day: 8, year: 2001 });
   const [gender, setGender] = useState<string>('Other');
   const [otherGenderText, setOtherGenderText] = useState('');
@@ -241,7 +236,6 @@ export const SetupWizardScreen: React.FC = () => {
       const genderStr = gender === 'Other' ? (otherGenderText || 'Other') : gender;
 
       const updatedUser = await usersService.updateProfile({
-        name: fullName,
         dob: dobStr,
         gender: genderStr,
         weight,
@@ -262,7 +256,7 @@ export const SetupWizardScreen: React.FC = () => {
   };
 
   const nextStep = () => {
-    if (step < 7) setStep(step + 1);
+    if (step < 6) setStep(step + 1);
     else completeSetup();
   };
 
@@ -396,23 +390,6 @@ export const SetupWizardScreen: React.FC = () => {
     );
   };
 
-  const renderNameStep = () => (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      {renderTopNav(25)}
-      <ScrollView contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.titleBig}>{t('setup.whatsYourName')}</Text>
-        <View style={styles.inputWrapper}>
-          <TextInput placeholder={t('auth.namePlaceholder')} value={fullName} onChangeText={setFullName} autoCapitalize="words" />
-        </View>
-        <View style={styles.regulatoryInfo}>
-          <View style={styles.iconWrapper}><Text>👤</Text></View>
-          <Text style={styles.regulatoryText}>{t('setup.regulatoryName')}</Text>
-        </View>
-        <Button label={t('setup.continueBtn')} onPress={nextStep} variant="solid" color="brand" disabled={fullName.trim().length === 0} style={{ marginTop: theme.spacing['2xl'] }} />
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
-
   const renderDOBStep = () => {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const days = generateRange(1, 31);
@@ -421,7 +398,7 @@ export const SetupWizardScreen: React.FC = () => {
 
     return (
       <View style={[styles.container, { paddingHorizontal: 0 }]}>
-        {renderTopNav(37)}
+        {renderTopNav(25)}
         <View style={styles.stepContent}>
           <Text style={styles.titleBig}>{t('setup.whenBorn')}</Text>
           
@@ -489,7 +466,7 @@ export const SetupWizardScreen: React.FC = () => {
 
   const renderGenderStep = () => (
     <ScrollView style={styles.container}>
-      {renderTopNav(50)}
+      {renderTopNav(40)}
       <View style={styles.stepContent}>
         <Text style={styles.titleBig}>{t('setup.whatsGender')}</Text>
         <Text style={[styles.subtitle, { marginBottom: 32 }]}>{t('setup.genderRegulatory')}</Text>
@@ -529,7 +506,7 @@ export const SetupWizardScreen: React.FC = () => {
 
   const renderWeightStep = () => (
     <View style={styles.container}>
-      {renderTopNav(62)}
+      {renderTopNav(58)}
       <View style={styles.stepContent}>
         <Text style={styles.titleBig}>{t('setup.whatsWeight')}</Text>
         <View style={styles.unitToggle}>
@@ -568,7 +545,7 @@ export const SetupWizardScreen: React.FC = () => {
     const descs = [t('setup.descBeginner'), t('setup.descActive'), t('setup.descFit'), t('setup.descAthletic'), t('setup.descElite')];
     return (
       <View style={styles.container}>
-        {renderTopNav(87)}
+        {renderTopNav(90)}
         <View style={styles.stepContent}>
           <Text style={styles.titleBig}>{t('setup.fitnessLevel')}</Text>
           <Text style={styles.levelIndicator}>LEVEL {fitnessLevel + 1}</Text>
@@ -596,12 +573,11 @@ export const SetupWizardScreen: React.FC = () => {
     <View style={styles.container}>
       {step === 0 && renderIntro()}
       {step === 1 && renderAvatarStep()}
-      {step === 2 && renderNameStep()}
-      {step === 3 && renderDOBStep()}
-      {step === 4 && renderGenderStep()}
-      {step === 5 && renderWeightStep()}
-      {step === 6 && renderHeightStep()}
-      {step === 7 && renderFitnessLevelStep()}
+      {step === 2 && renderDOBStep()}
+      {step === 3 && renderGenderStep()}
+      {step === 4 && renderWeightStep()}
+      {step === 5 && renderHeightStep()}
+      {step === 6 && renderFitnessLevelStep()}
     </View>
   );
 };
@@ -630,10 +606,6 @@ const styles = StyleSheet.create({
   progressBarWrapper: { flex: 1, paddingHorizontal: 20 },
   stepContent: { flexGrow: 1, paddingHorizontal: 20, justifyContent: 'center' },
   titleBig: { color: '#FFF', fontSize: 32, fontWeight: '900', textAlign: 'center', marginBottom: 24 },
-  inputWrapper: { marginBottom: 24 },
-  regulatoryInfo: { alignItems: 'center', paddingHorizontal: 20 },
-  iconWrapper: { width: 40, height: 40, borderRadius: 8, backgroundColor: palette.gray[900], justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-  regulatoryText: { color: palette.gray[400], textAlign: 'center', fontSize: 13 },
   
   // Picker & Ruler
   wheelHighlightBoxed: { 

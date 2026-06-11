@@ -22,9 +22,12 @@ import { aiCoachService } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
 import { UserAvatar } from '../../components/ui/UserAvatar';
-import { Trophy } from 'phosphor-react-native';
+import { Trophy, PersonSimpleRun } from 'phosphor-react-native';
 
 const DAYS_KEYS = ['history.monday', 'history.tuesday', 'history.wednesday', 'history.thursday', 'history.friday', 'history.saturday', 'history.sunday'] as const;
+
+// Cardio types whose i18n key differs from the stored value
+const CARDIO_I18N_KEY: Record<string, string> = { jump_rope: 'jumpRope' };
 
 function getWeekBounds(offset: number, locale: string): { start: Date; end: Date; labelKey: 'thisWeek' | 'lastWeek' | null; labelDate: string } {
   const now = new Date();
@@ -110,6 +113,8 @@ export const WorkoutHistoryScreen: React.FC = () => {
   useEffect(() => { load(); }, [load]);
 
   const DAYS = DAYS_KEYS.map((k) => t(k));
+  const cardioLabel = (type: string | null) =>
+    type ? t(`cardio.${CARDIO_I18N_KEY[type] ?? type}`) : t('cardio.title');
   const { start, end, labelKey, labelDate } = getWeekBounds(weekOffset, locale);
   const label = labelKey ? t(`history.${labelKey}`) : labelDate;
   const weekSessions = getSessionsForWeek(sessions, start, end);
@@ -222,9 +227,49 @@ export const WorkoutHistoryScreen: React.FC = () => {
             .sort((a, b) => a[0] - b[0])
             .flatMap(([, daySessions]) =>
               daySessions.map((session) => {
-                const stats = sessionStats(session);
                 const sessionDate = new Date(session.completedAt ?? session.startedAt);
                 const dayLabel = safeLocaleDateString(sessionDate, locale, { weekday: 'long', month: 'short', day: 'numeric' });
+
+                // Cardio sessions have no sets — render a dedicated card instead of
+                // the strength layout (which would show "0 exercises · 0 sets").
+                if (session.sessionType === 'cardio') {
+                  const cardioStats = [
+                    session.cardioDistanceKm ? `${session.cardioDistanceKm} km` : null,
+                    session.cardioCaloriesBurned ? `${session.cardioCaloriesBurned} kcal` : null,
+                    session.cardioAvgHeartRate ? `${session.cardioAvgHeartRate} bpm` : null,
+                  ].filter(Boolean) as string[];
+                  return (
+                    <View key={session.id} style={[styles.sessionCard, styles.cardioCard]}>
+                      <View style={styles.cardTop}>
+                        <View style={styles.cardTopLeft}>
+                          <Text style={styles.cardDay}>{dayLabel}</Text>
+                          {!!session.durationMinutes && (
+                            <Text style={styles.cardDuration}>{session.durationMinutes} min</Text>
+                          )}
+                        </View>
+                        <View style={styles.cardioPill}>
+                          <PersonSimpleRun size={13} weight="bold" color={palette.brand[400]} />
+                          <Text style={styles.cardioPillText}>{cardioLabel(session.cardioType)}</Text>
+                        </View>
+                      </View>
+                      {cardioStats.length > 0 && (
+                        <View style={styles.cardStats}>
+                          {cardioStats.map((s, i) => (
+                            <React.Fragment key={s}>
+                              {i > 0 && <Text style={styles.cardStatDot}>·</Text>}
+                              <Text style={styles.cardStat}>{s}</Text>
+                            </React.Fragment>
+                          ))}
+                        </View>
+                      )}
+                      {session.notes && (
+                        <Text style={styles.cardNotes}>"{session.notes}"</Text>
+                      )}
+                    </View>
+                  );
+                }
+
+                const stats = sessionStats(session);
                 return (
                   <TouchableOpacity
                     key={session.id}
@@ -403,6 +448,20 @@ const styles = StyleSheet.create({
     borderColor: '#92400e',
     backgroundColor: '#78350f18',
   },
+  cardioCard: {
+    borderColor: palette.brand[800],
+    backgroundColor: 'rgba(234,88,12,0.06)',
+  },
+  cardioPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(234,88,12,0.12)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  cardioPillText: { fontSize: 12, fontWeight: '700', color: palette.brand[400] },
   cardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -9,6 +9,7 @@ import {
   Animated,
   Alert,
   Modal,
+  TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -461,6 +462,8 @@ export const AICoachPlanScreen: React.FC = () => {
   const [activeInjuries, setActiveInjuries] = useState<Array<{ id: string; exerciseName: string | null; description: string }>>([]);
   const [injuryHandling, setInjuryHandling] = useState<string | null>(null);
   const [injuryModalVisible, setInjuryModalVisible] = useState(false);
+  const [showRegenInput, setShowRegenInput] = useState(false);
+  const [regenNote, setRegenNote] = useState('');
   const dotAnim = useRef(new Animated.Value(0)).current;
 
   // Pulsing dots while generating
@@ -533,32 +536,47 @@ export const AICoachPlanScreen: React.FC = () => {
       await aiCoachService.setInjuryPreference(handling);
       setInjuryHandling(handling);
       setInjuryModalVisible(false);
-      // Auto-regenerate so the new protocol is applied immediately
       setGenerating(true);
       const newPlan = await aiCoachService.generatePlan();
       setPlan(newPlan);
       setGeneratedAt(new Date().toISOString());
-    } catch {
+      const today = new Date().toISOString().split('T')[0];
+      await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
+      setRegenUsedToday(true);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 429) {
+        const today = new Date().toISOString().split('T')[0];
+        await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
+        setRegenUsedToday(true);
+      }
       Alert.alert('Error', 'Could not save injury preference.');
     } finally {
       setGenerating(false);
     }
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (note?: string) => {
     const today = new Date().toISOString().split('T')[0];
     if (regenUsedToday) {
       Alert.alert(t('aiCoach.regenLimitTitle'), t('aiCoach.regenLimitMsg'));
       return;
     }
+    setShowRegenInput(false);
+    setRegenNote('');
     setGenerating(true);
     try {
-      const newPlan = await aiCoachService.generatePlan();
+      const newPlan = await aiCoachService.generatePlan(undefined, note?.trim() || undefined);
       setPlan(newPlan);
       setGeneratedAt(new Date().toISOString());
       await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
       setRegenUsedToday(true);
     } catch (err: any) {
+      const status = (err as any)?.response?.status;
+      if (status === 429) {
+        await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
+        setRegenUsedToday(true);
+      }
       const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
       Alert.alert('Could not generate plan', String(Array.isArray(msg) ? msg.join('\n') : msg));
     } finally {
@@ -636,14 +654,45 @@ export const AICoachPlanScreen: React.FC = () => {
         )}
         <TouchableOpacity
           style={[styles.regenBtn, regenUsedToday && styles.regenBtnDisabled]}
-          onPress={handleGenerate}
+          onPress={() => {
+            if (regenUsedToday) {
+              Alert.alert(t('aiCoach.regenLimitTitle'), t('aiCoach.regenLimitMsg'));
+              return;
+            }
+            setShowRegenInput(s => !s);
+            if (showRegenInput) setRegenNote('');
+          }}
           disabled={generating || regenUsedToday}
         >
           <Text style={[styles.regenBtnText, regenUsedToday && styles.regenBtnTextDisabled]}>
-            {regenUsedToday ? t('aiCoach.regenUsed') : t('aiCoach.newPlan')}
+            {regenUsedToday ? t('aiCoach.regenUsed') : showRegenInput ? t('aiCoach.regenCancel') : t('aiCoach.newPlan')}
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Regen note input — shown when user taps New Plan */}
+      {showRegenInput && !regenUsedToday && (
+        <View style={styles.noteRow}>
+          <TextInput
+            style={styles.noteInput}
+            placeholder={t('aiCoach.regenNotePlaceholder')}
+            placeholderTextColor={palette.gray[600]}
+            value={regenNote}
+            onChangeText={setRegenNote}
+            maxLength={200}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={() => handleGenerate(regenNote)}
+          />
+          <TouchableOpacity
+            style={styles.noteGenerateBtn}
+            onPress={() => handleGenerate(regenNote)}
+            disabled={generating}
+          >
+            <Text style={styles.noteGenerateBtnText}>{t('aiCoach.regenConfirm')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Injury banner — shown whenever there are active injuries */}
       {activeInjuries.length > 0 && (
@@ -719,6 +768,24 @@ const styles = StyleSheet.create({
   regenBtnDisabled: { borderColor: palette.gray[800], opacity: 0.45 },
   regenBtnText: { fontSize: 12, color: palette.gray[400], fontWeight: '600' },
   regenBtnTextDisabled: { color: palette.gray[600] },
+
+  noteRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingHorizontal: 16, paddingVertical: 10,
+    backgroundColor: palette.gray[900],
+    borderBottomWidth: 1, borderBottomColor: palette.gray[800],
+  },
+  noteInput: {
+    flex: 1, fontSize: 13, color: theme.colors.text,
+    backgroundColor: palette.gray[800], borderRadius: 8,
+    paddingHorizontal: 12, paddingVertical: 8,
+    borderWidth: 1, borderColor: palette.gray[700],
+  },
+  noteGenerateBtn: {
+    backgroundColor: palette.brand[600], borderRadius: 8,
+    paddingHorizontal: 14, paddingVertical: 9,
+  },
+  noteGenerateBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
 
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 16 },

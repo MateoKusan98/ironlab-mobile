@@ -114,18 +114,16 @@ const describeArc = (fromDeg: number, toDeg: number) => {
 };
 
 const ArcSlider = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => {
-  // Store SVG page origin measured once on layout — avoids async race in PanResponder
-  const originRef = useRef({ x: 0, y: 0 });
-  const containerRef = useRef<View>(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const startTouchRef = useRef({ x: 0, y: 0 });
 
   const activeAngle = angleForLevel(value);
   const thumbPt = pointOnArc(activeAngle);
 
-  const resolveLevel = (pageX: number, pageY: number) => {
-    const touchX = pageX - originRef.current.x;
-    const touchY = pageY - originRef.current.y;
-    const dx = touchX - CX;
-    const dy = touchY - CY;
+  const resolveLevel = (x: number, y: number) => {
+    const dx = x - CX;
+    const dy = y - CY;
     let angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
     if (angleDeg < 0) angleDeg += 360;
     const clamped = Math.max(START_ANGLE, Math.min(END_ANGLE, angleDeg));
@@ -138,26 +136,25 @@ const ArcSlider = ({ value, onChange }: { value: number; onChange: (v: number) =
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (e) => {
-        onChange(resolveLevel(e.nativeEvent.pageX, e.nativeEvent.pageY));
+        const { locationX, locationY } = e.nativeEvent;
+        startTouchRef.current = { x: locationX, y: locationY };
+        onChangeRef.current(resolveLevel(locationX, locationY));
       },
-      onPanResponderMove: (e) => {
-        onChange(resolveLevel(e.nativeEvent.pageX, e.nativeEvent.pageY));
+      onPanResponderMove: (_e, gestureState) => {
+        const x = startTouchRef.current.x + gestureState.dx;
+        const y = startTouchRef.current.y + gestureState.dy;
+        onChangeRef.current(resolveLevel(x, y));
       },
     }),
   ).current;
 
   return (
     <View
-      ref={containerRef}
       style={{ width: ARC_SIZE, height: SVG_H }}
       collapsable={false}
-      onLayout={() => {
-        containerRef.current?.measure((_fx, _fy, _w, _h, px, py) => {
-          originRef.current = { x: px, y: py };
-        });
-      }}
+      {...panResponder.panHandlers}
     >
-      <Svg width={ARC_SIZE} height={SVG_H}>
+      <Svg width={ARC_SIZE} height={SVG_H} pointerEvents="none">
         <Path d={describeArc(START_ANGLE, END_ANGLE)} stroke="#2A2A2A" strokeWidth={10} fill="none" strokeLinecap="round" />
         <Path d={describeArc(START_ANGLE, activeAngle)} stroke="#EA580C" strokeWidth={10} fill="none" strokeLinecap="round" />
         {[1, 2, 3, 4, 5].map((lvl) => {
@@ -170,13 +167,7 @@ const ArcSlider = ({ value, onChange }: { value: number; onChange: (v: number) =
           );
         })}
       </Svg>
-      {/* Draggable thumb — spans full container to capture all touch */}
-      <View
-        {...panResponder.panHandlers}
-        style={[StyleSheet.absoluteFillObject]}
-        pointerEvents="box-only"
-      />
-      {/* Visual thumb — non-interactive, sits on top */}
+      {/* Visual thumb — non-interactive */}
       <View style={[arcStyles.thumb, { left: thumbPt.x - 24, top: thumbPt.y - 24 }]} pointerEvents="none">
         {/* 4-arrow drag icon */}
         <View style={arcStyles.dragIcon}>
@@ -355,7 +346,10 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
 
       {step === 2 && (
         <View style={styles.stepContainer}>
-          <Text style={styles.question}>{t('aiCoachSetup.questionIntensity')}</Text>
+          <Text style={[styles.question, styles.questionCompact]}>{t('aiCoachSetup.questionIntensity')}</Text>
+          <View style={styles.intensityInfo}>
+            <Text style={styles.intensityInfoText}>{t('aiCoachSetup.intensityExplainer')}</Text>
+          </View>
           <Text style={styles.dragHint}>{t('aiCoachSetup.dragHint')}</Text>
           <View style={{ position: 'relative' }}>
             <ArcSlider
@@ -405,8 +399,9 @@ const styles = StyleSheet.create({
   skipBtn: { color: palette.gray[400], fontSize: 14, width: 40, textAlign: 'right' },
   logo: { paddingHorizontal: 24, paddingTop: 32, paddingBottom: 8 },
   logoIcon: { fontSize: 32, color: palette.brand[500] },
-  stepContainer: { flex: 1, paddingHorizontal: 24, paddingTop: 16 },
+  stepContainer: { flex: 1, paddingHorizontal: 24, paddingTop: 16, overflow: 'hidden' },
   question: { fontSize: 28, fontWeight: '800', color: '#FFF', lineHeight: 36, marginBottom: 40 },
+  questionCompact: { marginBottom: 16 },
   optionList: { gap: 12 },
   optionCard: {
     backgroundColor: palette.gray[900],
@@ -442,6 +437,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
   },
+  intensityInfo: {
+    backgroundColor: 'rgba(234, 88, 12, 0.08)',
+    borderLeftWidth: 3,
+    borderLeftColor: palette.brand[500],
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  intensityInfoText: { color: palette.gray[300], fontSize: 13, lineHeight: 20 },
   dragHint: { color: palette.gray[600], fontSize: 13, marginBottom: 4 },
   intensityReadout: { position: 'absolute', bottom: 60, right: 0, alignItems: 'flex-end' },
   intensityBigNum: { fontSize: 96, fontWeight: '900', color: '#FFF', lineHeight: 100 },

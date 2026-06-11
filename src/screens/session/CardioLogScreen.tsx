@@ -10,6 +10,7 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import { palette } from '../../theme';
 import { sessionService } from '../../services/session.service';
 import { useAuthStore } from '../../stores/auth.store';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   PersonSimpleRun, PersonSimpleWalk, Bicycle, ArrowsClockwise, Lightning,
   Stairs, PersonSimpleSwim, CheckCircle,
@@ -72,6 +73,7 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const today = new Date().toISOString().split('T')[0];
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
 
   const weightKg = (() => {
     if (!user?.weight) return 70;
@@ -165,6 +167,7 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
         cardioInclinePercent: incline ? parseFloat(incline) : undefined,
         notes: notes || undefined,
       });
+      queryClient.invalidateQueries({ queryKey: ['nutritionSummary'] });
       navigation.goBack();
     } catch {
       Alert.alert(t('common.error'), t('cardio.saveError'));

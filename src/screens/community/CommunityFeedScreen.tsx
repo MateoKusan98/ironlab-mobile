@@ -80,19 +80,19 @@ const WorkoutMeta = ({ metadata }: { metadata: Record<string, any> }) => {
   const { t } = useTranslation();
   return (
   <View style={styles.workoutMeta}>
-    {metadata.exercises && (
+    {!!metadata.exercises && (
       <View style={styles.metaRow}>
         <Text style={styles.metaLabel}>{t('community.exercises')}</Text>
         <Text style={styles.metaValue}>{metadata.exercises}</Text>
       </View>
     )}
-    {metadata.volume && (
+    {!!metadata.volume && (
       <View style={styles.metaRow}>
         <Text style={styles.metaLabel}>{t('community.volume')}</Text>
         <Text style={styles.metaValue}>{metadata.volume} kg</Text>
       </View>
     )}
-    {metadata.duration && (
+    {!!metadata.duration && (
       <View style={styles.metaRow}>
         <Text style={styles.metaLabel}>{t('community.duration')}</Text>
         <Text style={styles.metaValue}>{metadata.duration} min</Text>
