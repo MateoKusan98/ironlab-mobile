@@ -11,12 +11,13 @@ import { palette } from '../../theme';
 import { sessionService } from '../../services/session.service';
 import { useAuthStore } from '../../stores/auth.store';
 import {
-  PersonSimpleRun, Bicycle, Waves, ArrowsClockwise, Lightning,
+  PersonSimpleRun, PersonSimpleWalk, Bicycle, ArrowsClockwise, Lightning,
   Stairs, PersonSimpleSwim, CheckCircle,
 } from 'phosphor-react-native';
 
-// MET values per activity (moderate-effort baseline)
 const ACTIVITY_MET: Record<string, number> = {
+  walking:     3.5,
+  treadmill:   7.0,
   running:     9.8,
   cycling:     7.5,
   swimming:    6.0,
@@ -28,16 +29,34 @@ const ACTIVITY_MET: Record<string, number> = {
   other:       6.0,
 };
 
-function estimateCalories(activityType: string, durationMin: number, weightKg: number): number {
+// ACSM metabolic formula for treadmill (returns kcal)
+function estimateTreadmillCalories(speedKmh: number, inclinePct: number, durationMin: number, weightKg: number): number {
+  const vMpm = speedKmh * (1000 / 60); // km/h → m/min
+  const grade = inclinePct / 100;
+  const vo2 = speedKmh <= 8
+    ? 0.1 * vMpm + 1.8 * vMpm * grade + 3.5
+    : 0.2 * vMpm + 0.9 * vMpm * grade + 3.5;
+  const met = Math.max(1, vo2 / 3.5);
+  return Math.round(met * weightKg * (durationMin / 60));
+}
+
+function estimateCalories(activityType: string, durationMin: number, weightKg: number, speedKmh?: number, inclinePct?: number): number {
+  if (activityType === 'treadmill') {
+    return estimateTreadmillCalories(speedKmh ?? 6, inclinePct ?? 0, durationMin, weightKg);
+  }
   const met = ACTIVITY_MET[activityType] ?? 6.0;
   return Math.round(met * weightKg * (durationMin / 60));
 }
+
+const I18N_KEY: Record<string, string> = { jump_rope: 'jumpRope' };
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'CardioLog'>;
 };
 
 const CARDIO_TYPE_ICONS = [
+  { value: 'walking',     Icon: PersonSimpleWalk },
+  { value: 'treadmill',   Icon: PersonSimpleRun },
   { value: 'running',     Icon: PersonSimpleRun },
   { value: 'cycling',     Icon: Bicycle },
   { value: 'swimming',    Icon: PersonSimpleSwim },
@@ -62,7 +81,7 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
 
   const CARDIO_TYPES = CARDIO_TYPE_ICONS.map((item) => ({
     ...item,
-    label: t(`cardio.${item.value === 'jump_rope' ? 'jumpRope' : item.value}`),
+    label: t(`cardio.${I18N_KEY[item.value] ?? item.value}`),
   }));
 
   const [cardioType, setCardioType] = useState('');
@@ -71,31 +90,45 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
   const [caloriesIsAuto, setCaloriesIsAuto] = useState(false);
   const [distance, setDistance] = useState('');
   const [heartRate, setHeartRate] = useState('');
+  const [speed, setSpeed] = useState('');
+  const [incline, setIncline] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Auto-calculate calories whenever activity or duration changes (unless user manually set them)
+  const isTreadmill = cardioType === 'treadmill';
+
+  const recalcCalories = (type: string, dur: string, spd: string, inc: string) => {
+    const dNum = parseInt(dur);
+    if (!type || !(dNum > 0)) return;
+    const sNum = spd ? parseFloat(spd) : undefined;
+    const iNum = inc ? parseFloat(inc) : undefined;
+    setCalories(String(estimateCalories(type, dNum, weightKg, sNum, iNum)));
+  };
+
   useEffect(() => {
     if (!caloriesIsAuto) return;
-    const durationNum = parseInt(duration);
-    if (cardioType && durationNum > 0) {
-      setCalories(String(estimateCalories(cardioType, durationNum, weightKg)));
-    }
-  }, [cardioType, duration, caloriesIsAuto, weightKg]);
+    recalcCalories(cardioType, duration, speed, incline);
+  }, [cardioType, duration, speed, incline, caloriesIsAuto, weightKg]);
 
   const handleActivitySelect = (value: string) => {
     setCardioType(value);
-    // Kick into auto mode on first activity pick if user hasn't typed calories yet
-    if (!calories || caloriesIsAuto) {
-      setCaloriesIsAuto(true);
-    }
+    if (value !== 'treadmill') { setSpeed(''); setIncline(''); }
+    if (!calories || caloriesIsAuto) setCaloriesIsAuto(true);
   };
 
   const handleDurationChange = (val: string) => {
     setDuration(val);
-    if (!calories || caloriesIsAuto) {
-      setCaloriesIsAuto(true);
-    }
+    if (!calories || caloriesIsAuto) setCaloriesIsAuto(true);
+  };
+
+  const handleSpeedChange = (val: string) => {
+    setSpeed(val);
+    if (!calories || caloriesIsAuto) setCaloriesIsAuto(true);
+  };
+
+  const handleInclineChange = (val: string) => {
+    setIncline(val);
+    if (!calories || caloriesIsAuto) setCaloriesIsAuto(true);
   };
 
   const handleCaloriesChange = (val: string) => {
@@ -105,10 +138,7 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
 
   const resetToEstimate = () => {
     setCaloriesIsAuto(true);
-    const durationNum = parseInt(duration);
-    if (cardioType && durationNum > 0) {
-      setCalories(String(estimateCalories(cardioType, durationNum, weightKg)));
-    }
+    recalcCalories(cardioType, duration, speed, incline);
   };
 
   const handleSave = async () => {
@@ -131,6 +161,8 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
         cardioCaloriesBurned: calories ? parseInt(calories) : undefined,
         cardioDistanceKm: distance ? parseFloat(distance) : undefined,
         cardioAvgHeartRate: heartRate ? parseInt(heartRate) : undefined,
+        cardioSpeedKmh: speed ? parseFloat(speed) : undefined,
+        cardioInclinePercent: incline ? parseFloat(incline) : undefined,
         notes: notes || undefined,
       });
       navigation.goBack();
@@ -184,6 +216,43 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.unit}>min</Text>
           </View>
 
+          {/* Treadmill: speed + incline */}
+          {isTreadmill && (
+            <>
+              <View style={styles.treadmillRow}>
+                <View style={styles.treadmillField}>
+                  <Text style={styles.label}>{t('cardio.speed')} <Text style={styles.optional}>({t('common.optional')})</Text></Text>
+                  <View style={styles.inputRow}>
+                    <TextInput
+                      style={styles.input}
+                      value={speed}
+                      onChangeText={handleSpeedChange}
+                      keyboardType="decimal-pad"
+                      placeholder="6.0"
+                      placeholderTextColor={palette.gray[600]}
+                    />
+                    <Text style={styles.unit}>km/h</Text>
+                  </View>
+                </View>
+                <View style={styles.treadmillField}>
+                  <Text style={styles.label}>{t('cardio.incline')} <Text style={styles.optional}>({t('common.optional')})</Text></Text>
+                  <View style={styles.inputRow}>
+                    <TextInput
+                      style={styles.input}
+                      value={incline}
+                      onChangeText={handleInclineChange}
+                      keyboardType="decimal-pad"
+                      placeholder="0"
+                      placeholderTextColor={palette.gray[600]}
+                    />
+                    <Text style={styles.unit}>%</Text>
+                  </View>
+                </View>
+              </View>
+              <Text style={styles.hint}>{t('cardio.treadmillHint')}</Text>
+            </>
+          )}
+
           {/* Calories burned */}
           <View style={styles.labelRow}>
             <Text style={[styles.label, { marginTop: 0, marginBottom: 0 }]}>
@@ -212,7 +281,10 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
           </View>
           <Text style={styles.hint}>
             {caloriesIsAuto
-              ? t('cardio.estimatedCalories', { activity: cardioType || t('cardio.activity') })
+              ? t(isTreadmill && (speed || incline)
+                  ? 'cardio.estimatedCaloriesAcsm'
+                  : 'cardio.estimatedCalories',
+                { activity: cardioType || t('cardio.activity') })
               : t('cardio.caloriesHint')}
           </Text>
 
@@ -315,6 +387,9 @@ const styles = StyleSheet.create({
   },
   typeLabel: { fontSize: 11, color: palette.gray[500], fontWeight: '600', textAlign: 'center' },
   typeLabelSelected: { color: palette.brand[400] },
+
+  treadmillRow: { flexDirection: 'row', gap: 12 },
+  treadmillField: { flex: 1 },
 
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   input: {

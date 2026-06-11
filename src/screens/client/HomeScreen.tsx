@@ -22,8 +22,9 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useFoodLogs } from '../../hooks/useNutrition';
 import { theme, palette } from '../../theme';
 import { aiCoachService, NextSession } from '../../services/ai-coach.service';
-import { sessionService } from '../../services/session.service';
+import { sessionService, TodaySummary } from '../../services/session.service';
 import { proposalsService, AIProposal } from '../../services/proposals.service';
+import { devTimeService, DevTimeStatus } from '../../services/dev-time.service';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
 import { UserAvatar } from '../../components/ui/UserAvatar';
@@ -38,10 +39,20 @@ import {
   Robot,
   Timer,
   Pill,
+  ChartLineUp,
+  Lightning,
+  Heartbeat,
 } from 'phosphor-react-native';
 
 const CREATINE_ENABLED_KEY = '@ironlab_creatine_enabled';
 const CREATINE_DATE_KEY = '@ironlab_creatine_date';
+
+const CARDIO_LABELS: Record<string, string> = {
+  running: 'Running', cycling: 'Cycling', swimming: 'Swimming',
+  rowing: 'Rowing', hiit: 'HIIT', stairmaster: 'Stairmaster',
+  elliptical: 'Elliptical', jump_rope: 'Jump Rope', other: 'Cardio',
+};
+const cardioLabel = (type: string) => CARDIO_LABELS[type] ?? type;
 
 const STEP_GOAL = 10_000;
 const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -96,20 +107,24 @@ export const HomeScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [proposal, setProposal] = useState<AIProposal | null>(null);
   const [proposalLoading, setProposalLoading] = useState(false);
+  const [devTime, setDevTime] = useState<DevTimeStatus | null>(null);
   const [creatineMode, setCreatineMode] = useState<'setup' | 'daily' | null>(null);
   const creatineSlide = useRef(new Animated.Value(300)).current;
+  const [todaySummary, setTodaySummary] = useState<TodaySummary | null>(null);
 
   const loadDashboard = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const [plan, active, pending] = await Promise.all([
+      const [plan, active, pending, summary] = await Promise.all([
         aiCoachService.getPlan().catch(() => null),
         sessionService.getActiveSession().catch(() => null),
         proposalsService.getPending().catch(() => null),
+        sessionService.getTodaySummary(today).catch(() => null),
       ]);
       setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan } : null);
       setActiveSessionId(active?.id ?? null);
       setProposal(pending);
+      setTodaySummary(summary);
     } finally {
       setPlanLoading(false);
       setRefreshing(false);
@@ -194,10 +209,28 @@ export const HomeScreen: React.FC = () => {
     closeCreatineModal();
   };
 
+  const loadDevTime = useCallback(async () => {
+    try {
+      const status = await devTimeService.getStatus();
+      setDevTime(status.virtual ? status : null);
+    } catch {
+      setDevTime(null);
+    }
+  }, []);
+
+  const handleDevTimeReset = async () => {
+    try {
+      await devTimeService.reset();
+      setDevTime(null);
+      loadDashboard(true);
+    } catch {}
+  };
+
   useFocusEffect(useCallback(() => {
     loadDashboard();
     checkCreatine();
-  }, [loadDashboard, checkCreatine]));
+    loadDevTime();
+  }, [loadDashboard, checkCreatine, loadDevTime]));
 
   const handleRefresh = () => {
     loadDashboard(true);
@@ -246,6 +279,14 @@ export const HomeScreen: React.FC = () => {
           </View>
         }
       />
+      {devTime && (
+        <TouchableOpacity style={styles.devTimeBanner} onLongPress={handleDevTimeReset} activeOpacity={0.7}>
+          <Text style={styles.devTimeBannerText}>
+            DEV · {new Date(devTime.currentDate).toDateString()} · Long-press to reset
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <ScrollView
         style={styles.scroll}
         refreshControl={
@@ -393,6 +434,68 @@ export const HomeScreen: React.FC = () => {
           </View>
         )}
 
+        {/* Today's Recap Card */}
+        {(todaySummary?.strength || (todaySummary?.cardio?.length ?? 0) > 0) && (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <ChartLineUp size={22} weight="bold" color={palette.brand[400]} />
+              <Text style={styles.cardTitle}>Today's Recap</Text>
+              {(todaySummary?.strength?.prsCount ?? 0) > 0 && (
+                <View style={styles.prBadge}>
+                  <Lightning size={10} weight="fill" color="#fbbf24" />
+                  <Text style={styles.prBadgeText}>
+                    {todaySummary!.strength!.prsCount} PR{todaySummary!.strength!.prsCount > 1 ? 's' : ''}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {todaySummary?.strength && (
+              <>
+                <View style={styles.recapSectionRow}>
+                  <Barbell size={13} weight="bold" color={palette.gray[500]} />
+                  <Text style={styles.recapSectionLabel}>STRENGTH</Text>
+                  <Text style={styles.recapSectionMeta}>
+                    {todaySummary.strength.totalVolumeKg.toLocaleString()} kg
+                    {todaySummary.strength.durationMinutes ? `  ·  ${todaySummary.strength.durationMinutes} min` : ''}
+                  </Text>
+                </View>
+                {todaySummary.strength.exercises.map((ex) => (
+                  <View key={ex.name} style={styles.exerciseRow}>
+                    <Text style={styles.exerciseName} numberOfLines={1}>{ex.name}</Text>
+                    <Text style={styles.exerciseSet}>{ex.bestWeight} kg × {ex.bestReps}</Text>
+                    {ex.deltaKg !== null ? (
+                      <Text style={[
+                        styles.exerciseDelta,
+                        ex.deltaKg > 0 ? styles.deltaUp : ex.deltaKg < 0 ? styles.deltaDown : styles.deltaFlat,
+                      ]}>
+                        {ex.deltaKg > 0 ? `↑ +${ex.deltaKg}` : ex.deltaKg < 0 ? `↓ ${ex.deltaKg}` : '→'}
+                      </Text>
+                    ) : (
+                      <Text style={styles.deltaNew}>new</Text>
+                    )}
+                    {ex.isPR && <Lightning size={11} weight="fill" color="#fbbf24" style={{ marginLeft: 3 }} />}
+                  </View>
+                ))}
+              </>
+            )}
+
+            {(todaySummary?.cardio?.length ?? 0) > 0 && todaySummary!.cardio.map((c, i) => (
+              <View key={i} style={[styles.cardioRow, todaySummary?.strength ? styles.cardioRowTop : undefined]}>
+                <Heartbeat size={13} weight="bold" color={palette.gray[500]} />
+                <Text style={styles.cardioType}>{cardioLabel(c.cardioType)}</Text>
+                <Text style={styles.cardioMeta}>
+                  {[
+                    c.durationMinutes ? `${c.durationMinutes} min` : null,
+                    c.distanceKm ? `${c.distanceKm} km` : null,
+                    c.caloriesBurned ? `${c.caloriesBurned} kcal` : null,
+                  ].filter(Boolean).join('  ·  ')}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Quick nav */}
         <View style={styles.quickRow}>
           <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('WorkoutHistory')}>
@@ -451,6 +554,19 @@ export const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   scroll: { flex: 1, paddingHorizontal: 16 },
+
+  devTimeBanner: {
+    backgroundColor: '#7c3aed',
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  devTimeBannerText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
 
   headerBtnRow: { flexDirection: 'row', gap: 8 },
   headerBtn: {
@@ -578,6 +694,58 @@ proposalHeaderText: { flex: 1 },
   proposalBtnAccept: { backgroundColor: palette.brand[600] },
   proposalBtnDeclineText: { fontSize: 13, fontWeight: '700', color: palette.gray[300] },
   proposalBtnAcceptText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+
+  // Today's Recap card
+  prBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#78350f40',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: '#b45309',
+  },
+  prBadgeText: { fontSize: 10, fontWeight: '800', color: '#fbbf24', letterSpacing: 0.3 },
+
+  recapSectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 8,
+    marginTop: 2,
+  },
+  recapSectionLabel: { fontSize: 10, fontWeight: '800', color: palette.gray[500], letterSpacing: 0.8, flex: 1 },
+  recapSectionMeta: { fontSize: 11, color: palette.gray[500] },
+
+  exerciseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+    gap: 8,
+  },
+  exerciseName: { flex: 1, fontSize: 13, fontWeight: '600', color: theme.colors.text },
+  exerciseSet: { fontSize: 13, color: palette.gray[300], minWidth: 80, textAlign: 'right' },
+  exerciseDelta: { fontSize: 12, fontWeight: '700', minWidth: 58, textAlign: 'right' },
+  deltaUp: { color: '#4ade80' },
+  deltaDown: { color: '#f87171' },
+  deltaFlat: { color: palette.gray[500] },
+  deltaNew: { fontSize: 11, fontWeight: '700', color: palette.brand[400], minWidth: 58, textAlign: 'right' },
+
+  cardioRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+  },
+  cardioRowTop: {
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  cardioType: { fontSize: 13, fontWeight: '600', color: theme.colors.text },
+  cardioMeta: { flex: 1, fontSize: 12, color: palette.gray[400], textAlign: 'right' },
 
   quickRow: { flexDirection: 'row', gap: 10, marginBottom: 32 },
   quickCard: {

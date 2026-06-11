@@ -54,6 +54,8 @@ export interface LogCardioInput {
   cardioCaloriesBurned?: number;
   cardioDistanceKm?: number;
   cardioAvgHeartRate?: number;
+  cardioSpeedKmh?: number;
+  cardioInclinePercent?: number;
   notes?: string;
 }
 
@@ -77,6 +79,38 @@ export interface AddSetInput {
   rpe?: number;
   isCompleted?: boolean;
   techniqueNotes?: string;
+}
+
+export interface ExerciseSummary {
+  name: string;
+  bestWeight: number;
+  bestReps: number;
+  previousBestWeight: number | null;
+  previousDate: string | null;
+  deltaKg: number | null;
+  isPR: boolean;
+  order: number;
+}
+
+export interface TodaySummary {
+  date: string;
+  strength: {
+    sessionCount: number;
+    totalVolumeKg: number;
+    totalSets: number;
+    durationMinutes: number | null;
+    prsCount: number;
+    mood: string | null;
+    energyLevel: number | null;
+    exercises: ExerciseSummary[];
+  } | null;
+  cardio: Array<{
+    cardioType: string;
+    durationMinutes: number | null;
+    distanceKm: number | null;
+    caloriesBurned: number | null;
+    avgHeartRate: number | null;
+  }>;
 }
 
 export interface MainLiftData {
@@ -217,6 +251,11 @@ export const sessionService = {
 
   getCardioSessions: async (limit = 20): Promise<WorkoutSession[]> => {
     const { data } = await api.get<{ data: WorkoutSession[] }>(`/sessions/cardio?limit=${limit}`);
+    return data.data;
+  },
+
+  getTodaySummary: async (date: string): Promise<TodaySummary> => {
+    const { data } = await api.get<{ data: TodaySummary }>(`/sessions/today-summary?date=${date}`);
     return data.data;
   },
 };

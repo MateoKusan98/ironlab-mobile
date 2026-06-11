@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -21,6 +22,8 @@ import { theme, palette } from '../../theme';
 import { sessionService } from '../../services/session.service';
 import { aiCoachService } from '../../services/ai-coach.service';
 import { Moon, Minus, ThumbsUp, Fire, Lightning } from 'phosphor-react-native';
+
+const READINESS_DATE_KEY = '@ironlab_readiness_date';
 
 type PlannedExercise = NonNullable<RootStackParamList['ActiveWorkout']['plannedExercises']>[number];
 
@@ -78,6 +81,7 @@ export const StartSessionScreen: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'StartSession'>>();
 
   const [step, setStep] = useState<1 | 2>(1);
+  const [initializing, setInitializing] = useState(true);
   const [bodyweight, setBodyweight] = useState('');
   const [sleepHours, setSleepHours] = useState('');
   const [energyLevel, setEnergyLevel] = useState(3);
@@ -85,7 +89,6 @@ export const StartSessionScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
   const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[]>(() => {
-    // Prefer pre-parsed JSON from server — fall back to regex parsing only if needed
     if (route.params?.nextSessionJson?.exercises?.length) {
       return route.params.nextSessionJson.exercises;
     }
@@ -97,13 +100,45 @@ export const StartSessionScreen: React.FC = () => {
   const [cycleInfo, setCycleInfo] = useState<{ week: number; session: number; total: number } | null>(null);
   const [errors, setErrors] = useState<{ sleep?: string; bodyweight?: string }>({});
 
+  const applyPlanResult = (result: Awaited<ReturnType<typeof aiCoachService.getPlan>>) => {
+    if (result.nextSessionJson?.exercises?.length) {
+      setPlannedExercises(result.nextSessionJson.exercises);
+    } else if (result.plan) {
+      setPlannedExercises(parsePlanExercises(result.plan));
+    }
+    if (result.trainingWeek && result.sessionInWeek && result.sessionsPerCycle) {
+      setCycleInfo({ week: result.trainingWeek, session: result.sessionInWeek, total: result.sessionsPerCycle });
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
-    sessionService.getLastReadiness().then((readiness) => {
-      if (cancelled) return;
-      if (readiness.lastBodyweight != null) setBodyweight(String(readiness.lastBodyweight));
-      if (readiness.avgSleepHours != null) setSleepHours(String(readiness.avgSleepHours));
-    }).catch(() => {});
+    const today = new Date().toISOString().split('T')[0];
+
+    const init = async () => {
+      // Pre-fill from last session
+      sessionService.getLastReadiness().then((r) => {
+        if (cancelled) return;
+        if (r.lastBodyweight != null) setBodyweight(String(r.lastBodyweight));
+        if (r.avgSleepHours != null) setSleepHours(String(r.avgSleepHours));
+      }).catch(() => {});
+
+      // Skip readiness if already submitted today — go straight to the workout view
+      const lastReadinessDate = await AsyncStorage.getItem(READINESS_DATE_KEY).catch(() => null);
+      if (!cancelled && lastReadinessDate === today) {
+        setPlanLoading(true);
+        try {
+          const result = await aiCoachService.getPlan();
+          if (!cancelled) applyPlanResult(result);
+        } catch { } finally {
+          if (!cancelled) { setPlanLoading(false); setStep(2); }
+        }
+      }
+
+      if (!cancelled) setInitializing(false);
+    };
+
+    init();
     return () => { cancelled = true; };
   }, []);
 
@@ -124,19 +159,31 @@ export const StartSessionScreen: React.FC = () => {
   const handleSeeWorkout = async () => {
     if (!validate()) return;
     setPlanLoading(true);
+    const today = new Date().toISOString().split('T')[0];
+
     try {
-      const { plan, nextSessionJson, trainingWeek, sessionInWeek, sessionsPerCycle } = await aiCoachService.getPlan();
-      // Always prefer the server-parsed JSON — never re-parse raw text (language changes break regex)
-      if (nextSessionJson?.exercises?.length) {
-        setPlannedExercises(nextSessionJson.exercises);
-      } else if (plan) {
-        setPlannedExercises(parsePlanExercises(plan));
+      // Mark readiness as done for today so the screen is skipped on re-entry
+      await AsyncStorage.setItem(READINESS_DATE_KEY, today).catch(() => {});
+
+      // Check if a plan was already generated today
+      let result = await aiCoachService.getPlan();
+      const planFromToday = result.generatedAt ? result.generatedAt.startsWith(today) : false;
+
+      if (!planFromToday) {
+        // Generate fresh plan using today's readiness data
+        await aiCoachService.generatePlan({
+          mood,
+          energyLevel,
+          sleepHours: sleepHours ? parseFloat(sleepHours) : undefined,
+        });
+        // Re-fetch to get nextSessionJson and cycle metadata
+        result = await aiCoachService.getPlan();
       }
-      if (trainingWeek && sessionInWeek && sessionsPerCycle) {
-        setCycleInfo({ week: trainingWeek, session: sessionInWeek, total: sessionsPerCycle });
-      }
-    } catch {
-      // keep whatever was set from params
+
+      applyPlanResult(result);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
+      Alert.alert(t('common.error'), String(Array.isArray(msg) ? msg.join('\n') : msg));
     } finally {
       setPlanLoading(false);
       setStep(2);
@@ -191,6 +238,14 @@ export const StartSessionScreen: React.FC = () => {
     }
     await doCreateSession();
   };
+
+  if (initializing) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator color={palette.brand[500]} style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

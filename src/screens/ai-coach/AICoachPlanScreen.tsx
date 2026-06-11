@@ -10,6 +10,7 @@ import {
   Alert,
   Modal,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -441,6 +442,8 @@ const CompBanner: React.FC<{
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
+const REGEN_DATE_KEY = '@ironlab_regen_date';
+
 export const AICoachPlanScreen: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavProp>();
@@ -450,6 +453,7 @@ export const AICoachPlanScreen: React.FC = () => {
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [regenUsedToday, setRegenUsedToday] = useState(false);
   const [debugVisible, setDebugVisible] = useState(false);
   const [compDate, setCompDate] = useState<string | null>(null);
   const [compType, setCompType] = useState<string | null>(null);
@@ -475,38 +479,30 @@ export const AICoachPlanScreen: React.FC = () => {
   }, [generating]);
 
   useEffect(() => {
-    // Hard gate: never load or auto-generate a plan without a completed AI profile.
-    // Any entry point that lands here without setup is sent through onboarding instead.
     if (!user?.isAICoachSetupComplete) {
       navigation.replace('AICoachWelcome');
       return;
     }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Check if manual regen was already used today
+    AsyncStorage.getItem(REGEN_DATE_KEY).then((d) => {
+      if (d === today) setRegenUsedToday(true);
+    }).catch(() => {});
+
+    // Load existing plan — no auto-generation here
     aiCoachService.getPlan()
       .then(({ plan: p, generatedAt: ga, competitionDate: cd, competitionType: ct, activeInjuries: ai, injuryHandling: ih }) => {
         setCompDate(cd);
         setCompType(ct);
         setActiveInjuries(ai ?? []);
         setInjuryHandling(ih);
-        if (p) {
-          setPlan(p);
-          setGeneratedAt(ga);
-          setLoading(false);
-        } else {
-          setLoading(false);
-          setGenerating(true);
-          aiCoachService.generatePlan()
-            .then((newPlan) => {
-              setPlan(newPlan);
-              setGeneratedAt(new Date().toISOString());
-            })
-            .catch((err) => {
-              const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
-              Alert.alert('Plan generation failed', String(Array.isArray(msg) ? msg.join('\n') : msg));
-            })
-            .finally(() => setGenerating(false));
-        }
+        setPlan(p);
+        setGeneratedAt(ga);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const handleSaveCompDate = async (date: string, type: 'meet' | 'pr_test') => {
@@ -550,11 +546,18 @@ export const AICoachPlanScreen: React.FC = () => {
   };
 
   const handleGenerate = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    if (regenUsedToday) {
+      Alert.alert(t('aiCoach.regenLimitTitle'), t('aiCoach.regenLimitMsg'));
+      return;
+    }
     setGenerating(true);
     try {
       const newPlan = await aiCoachService.generatePlan();
       setPlan(newPlan);
       setGeneratedAt(new Date().toISOString());
+      await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
+      setRegenUsedToday(true);
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
       Alert.alert('Could not generate plan', String(Array.isArray(msg) ? msg.join('\n') : msg));
@@ -585,9 +588,9 @@ export const AICoachPlanScreen: React.FC = () => {
           ) : (
             <>
               <Text style={styles.generatingTitle}>{t('aiCoach.noSession')}</Text>
-              <Text style={styles.generatingSubtitle}>Tap below and M-7EO will design today's workout for you.</Text>
-              <TouchableOpacity style={styles.generateBtn} onPress={handleGenerate}>
-                <Text style={styles.generateBtnText}>{t('aiCoach.generateBtn')}</Text>
+              <Text style={styles.generatingSubtitle}>{t('aiCoach.startSessionFirst')}</Text>
+              <TouchableOpacity style={styles.generateBtn} onPress={() => navigation.navigate('StartSession', {})}>
+                <Text style={styles.generateBtnText}>{t('aiCoach.startWorkoutBtn')}</Text>
               </TouchableOpacity>
             </>
           )}
@@ -631,8 +634,14 @@ export const AICoachPlanScreen: React.FC = () => {
             <MagnifyingGlass size={18} weight="bold" color={palette.gray[400]} />
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.regenBtn} onPress={handleGenerate} disabled={generating}>
-          <Text style={styles.regenBtnText}>{t('aiCoach.newPlan')}</Text>
+        <TouchableOpacity
+          style={[styles.regenBtn, regenUsedToday && styles.regenBtnDisabled]}
+          onPress={handleGenerate}
+          disabled={generating || regenUsedToday}
+        >
+          <Text style={[styles.regenBtnText, regenUsedToday && styles.regenBtnTextDisabled]}>
+            {regenUsedToday ? t('aiCoach.regenUsed') : t('aiCoach.newPlan')}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -707,7 +716,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 7,
     borderRadius: 8, borderWidth: 1, borderColor: palette.gray[700],
   },
+  regenBtnDisabled: { borderColor: palette.gray[800], opacity: 0.45 },
   regenBtnText: { fontSize: 12, color: palette.gray[400], fontWeight: '600' },
+  regenBtnTextDisabled: { color: palette.gray[600] },
 
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 16 },
