@@ -115,6 +115,8 @@
     "startSession": "Start Session",
     "freeSession": "FREE SESSION",
     "noPlansLoaded": "No plan loaded — log freely as you go.",
+    "planNotLoaded": "Plan not available",
+    "planNotLoadedSub": "M-7EO couldn't load a plan. Go back and generate one first.",
     "todaysProgram": "TODAY'S PROGRAM",
     "readinessRequired": "Required — enter hours slept (e.g. 7.5)",
     "bodyweightRequired": "Required — enter your bodyweight",
@@ -238,7 +240,9 @@
     "regenConfirm": "Generate",
     "regenNotePlaceholder": "Any requests? e.g. skip squats, only 45 min",
     "startSessionFirst": "Start a workout and M-7EO will build your session based on how you feel today.",
-    "startWorkoutBtn": "Start Today's Workout →"
+    "startWorkoutBtn": "Start Today's Workout →",
+    "generateFirstPlan": "Generate your first plan — M-7EO will build your session based on your profile.",
+    "generatePlanBtn": "Generate Plan →"
   },
   "profile": {
     "title": "Profile",

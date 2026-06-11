@@ -494,7 +494,6 @@ export const AICoachPlanScreen: React.FC = () => {
       if (d === today) setRegenUsedToday(true);
     }).catch(() => {});
 
-    // Load existing plan — no auto-generation here
     aiCoachService.getPlan()
       .then(({ plan: p, generatedAt: ga, competitionDate: cd, competitionType: ct, activeInjuries: ai, injuryHandling: ih }) => {
         setCompDate(cd);
@@ -503,6 +502,7 @@ export const AICoachPlanScreen: React.FC = () => {
         setInjuryHandling(ih);
         setPlan(p);
         setGeneratedAt(ga);
+        if (!p) navigation.replace('StartSession', {});
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -592,30 +592,20 @@ export const AICoachPlanScreen: React.FC = () => {
     );
   }
 
-  if (generating || !plan) {
+  if (generating) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.generatingContainer}>
           <Robot size={56} weight="fill" color={palette.brand[400]} style={{ marginBottom: 16 }} />
-          {generating ? (
-            <>
-              <Text style={styles.generatingTitle}>{t('aiCoach.generating')}</Text>
-              <Text style={styles.generatingSubtitle}>{t('aiCoach.buildingWorkout')}</Text>
-              <ActivityIndicator color={palette.brand[500]} style={{ marginTop: 24 }} size="large" />
-            </>
-          ) : (
-            <>
-              <Text style={styles.generatingTitle}>{t('aiCoach.noSession')}</Text>
-              <Text style={styles.generatingSubtitle}>{t('aiCoach.startSessionFirst')}</Text>
-              <TouchableOpacity style={styles.generateBtn} onPress={() => navigation.navigate('StartSession', {})}>
-                <Text style={styles.generateBtnText}>{t('aiCoach.startWorkoutBtn')}</Text>
-              </TouchableOpacity>
-            </>
-          )}
+          <Text style={styles.generatingTitle}>{t('aiCoach.generating')}</Text>
+          <Text style={styles.generatingSubtitle}>{t('aiCoach.buildingWorkout')}</Text>
+          <ActivityIndicator color={palette.brand[500]} style={{ marginTop: 24 }} size="large" />
         </View>
       </SafeAreaView>
     );
   }
+
+  if (!plan) return null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

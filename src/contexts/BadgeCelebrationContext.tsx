@@ -123,7 +123,13 @@ export const BadgeCelebrationProvider: React.FC<{ children: React.ReactNode }> =
     } catch {
       // Network hiccup — the next refresh / screen visit will catch up.
     }
-    await queryClient.invalidateQueries({ queryKey: ['badges'] });
+    // refetchQueries resolves only after the fetch completes, so reconcile()
+    // sees the updated data by the time refresh() returns.
+    try {
+      await queryClient.refetchQueries({ queryKey: ['badges'] });
+    } catch {
+      // Swallow — stale data is fine; next reconcile will catch up.
+    }
   }, [queryClient]);
 
   return (

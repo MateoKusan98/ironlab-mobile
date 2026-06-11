@@ -115,6 +115,8 @@
     "startSession": "Fillo sesionin →",
     "freeSession": "SESION I LIRË",
     "noPlansLoaded": "Asnjë plan i ngarkuar — regjistro lirisht.",
+    "planNotLoaded": "Plani nuk është i disponueshëm",
+    "planNotLoadedSub": "M-7EO nuk mund të ngarkonte planin. Kthehu dhe gjenero një plan.",
     "todaysProgram": "PROGRAMI I SOTËM",
     "readinessRequired": "Obligator — shkruani orët e gjumit (p.sh. 7.5)",
     "bodyweightRequired": "Obligator — shkruani peshën trupore",

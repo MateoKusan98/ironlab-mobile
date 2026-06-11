@@ -115,6 +115,8 @@
     "startSession": "Začni trening",
     "freeSession": "PROST TRENING",
     "noPlansLoaded": "Ni naloženega načrta — prosto beležite.",
+    "planNotLoaded": "Načrt ni na voljo",
+    "planNotLoadedSub": "M-7EO ni mogel naložiti načrta. Pojdi nazaj in ga najprej ustvari.",
     "todaysProgram": "DANAŠNJI PROGRAM",
     "readinessRequired": "Obvezno — vnesite ure spanja (npr. 7.5)",
     "bodyweightRequired": "Obvezno — vnesite telesno težo",
@@ -236,6 +238,8 @@
     "regenLimitMsg": "Plan lahko regeneriraš enkrat na dan. Vrni se jutri.",
     "startSessionFirst": "Začni trening in M-7EO bo zgradil tvojo sejo glede na to, kako se počutiš danes.",
     "startWorkoutBtn": "Začni današnji trening →",
+    "generateFirstPlan": "Ustvari prvi načrt — M-7EO bo zgradil sejo na podlagi tvojega profila.",
+    "generatePlanBtn": "Ustvari načrt →",
     "regenCancel": "Prekliči",
     "regenConfirm": "Generiraj",
     "regenNotePlaceholder": "Zahteve? npr. brez počepov, samo 45 min"

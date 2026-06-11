@@ -115,6 +115,8 @@
     "startSession": "Počni trening →",
     "freeSession": "SLOBODAN TRENING",
     "noPlansLoaded": "Nema učitanog plana — beležite slobodno.",
+    "planNotLoaded": "Plan nije dostupan",
+    "planNotLoadedSub": "M-7EO nije mogao da učita plan. Vrati se i prvo generiši plan.",
     "todaysProgram": "DANAŠNJI PROGRAM",
     "readinessRequired": "Obavezno — unesite sate sna (npr. 7.5)",
     "bodyweightRequired": "Obavezno — unesite telesnu masu",

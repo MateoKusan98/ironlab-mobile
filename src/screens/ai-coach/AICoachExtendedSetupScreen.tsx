@@ -717,7 +717,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
         navigation.goBack();
       } else {
         if (user) setUser({ ...user, isAICoachSetupComplete: true });
-        navigation.replace('AICoachPlan', undefined);
+        navigation.replace('StartSession', {});
       }
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';

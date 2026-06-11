@@ -82,15 +82,14 @@ export const SessionSummaryScreen: React.FC = () => {
       return;
     }
     setSaving(false);
-    // Surface any badges this session unlocked. The provider lives above the
-    // navigator, so the celebration survives the reset() below.
-    void refreshBadges();
     setGenerating(true);
-    try {
-      await aiCoachService.postSession(sessionId);
-    } catch {
-      // AI failure is non-fatal — navigate anyway
-    }
+    // Run badge refresh and AI call in parallel so the popup is queued and
+    // rendered before navigation starts (avoids iOS dropping modals that appear
+    // mid-transition).
+    await Promise.allSettled([
+      refreshBadges(),
+      aiCoachService.postSession(sessionId),
+    ]);
     navigation.reset({ index: 0, routes: [{ name: 'ClientApp' }] });
   };
 

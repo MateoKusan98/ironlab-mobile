@@ -60,7 +60,7 @@ export const WorkoutScreen: React.FC = () => {
         <Text style={styles.sectionTitle}>Start Training</Text>
 
         {/* Start Session Banner */}
-        <TouchableOpacity style={styles.startSessionBanner} onPress={() => navigation.navigate('StartSession', {})}>
+        <TouchableOpacity style={styles.startSessionBanner} onPress={() => navigation.navigate('StartSession', { freeSession: true })}>
           <View style={[styles.bannerIconWrap, { backgroundColor: palette.brand[600] + '33' }]}>
             <Lightning size={22} weight="fill" color={palette.brand[400]} />
           </View>

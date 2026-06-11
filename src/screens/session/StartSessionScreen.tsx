@@ -367,10 +367,15 @@ export const StartSessionScreen: React.FC = () => {
                   </View>
                 ))}
               </View>
-            ) : (
+            ) : route.params?.freeSession ? (
               <View style={styles.card}>
                 <Text style={styles.cardLabel}>{t('session.freeSession')}</Text>
                 <Text style={styles.noplanText}>{t('session.noPlansLoaded')}</Text>
+              </View>
+            ) : (
+              <View style={styles.card}>
+                <Text style={styles.cardLabel}>{t('session.planNotLoaded')}</Text>
+                <Text style={styles.noplanText}>{t('session.planNotLoadedSub')}</Text>
               </View>
             )}
 

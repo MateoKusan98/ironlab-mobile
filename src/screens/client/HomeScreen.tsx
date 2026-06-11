@@ -506,7 +506,7 @@ export const HomeScreen: React.FC = () => {
             <Robot size={26} weight="bold" color={palette.brand[400]} />
             <Text style={styles.quickLabel}>{t('home.aiCoach')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('StartSession', {})}>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('StartSession', { freeSession: true })}>
             <Barbell size={26} weight="bold" color={palette.brand[400]} />
             <Text style={styles.quickLabel}>{t('home.logWorkout')}</Text>
           </TouchableOpacity>
