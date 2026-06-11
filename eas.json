@@ -3,6 +3,19 @@
     "version": ">= 16.0.0"
   },
   "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://ironlab-backend-production.up.railway.app/api",
+        "EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID": "186413260022-ti9f7cimn0psh4nado4793def0bgn1ft.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "186413260022-0i2nf209mcu8vblsso9ai11e841kt396.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "186413260022-fs3fs2me6tkspfuqi69tdm8ojt89ftqa.apps.googleusercontent.com"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "env": {
