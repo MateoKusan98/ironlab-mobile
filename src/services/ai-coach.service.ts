@@ -6,6 +6,7 @@ export interface NextSessionExercise {
   reps: number;
   weight: number;
   rpe?: number;
+  weightPerc?: number;
   cue?: string;
 }
 

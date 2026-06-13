@@ -270,7 +270,7 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleFinish = () => {
-    navigation.navigate('AICoachExtendedSetup', { preferences: prefs });
+    navigation.replace('AICoachExtendedSetup', { preferences: prefs });
   };
 
   const progressWidth = progressAnim.interpolate({

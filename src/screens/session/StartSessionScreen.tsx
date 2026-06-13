@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -22,8 +21,6 @@ import { theme, palette } from '../../theme';
 import { sessionService } from '../../services/session.service';
 import { aiCoachService } from '../../services/ai-coach.service';
 import { Moon, Minus, ThumbsUp, Fire, Lightning } from 'phosphor-react-native';
-
-const READINESS_DATE_KEY = '@ironlab_readiness_date';
 
 type PlannedExercise = NonNullable<RootStackParamList['ActiveWorkout']['plannedExercises']>[number];
 
@@ -123,17 +120,6 @@ export const StartSessionScreen: React.FC = () => {
         if (r.avgSleepHours != null) setSleepHours(String(r.avgSleepHours));
       }).catch(() => {});
 
-      // Skip readiness if already submitted today — go straight to the workout view
-      const lastReadinessDate = await AsyncStorage.getItem(READINESS_DATE_KEY).catch(() => null);
-      if (!cancelled && lastReadinessDate === today) {
-        setPlanLoading(true);
-        try {
-          const result = await aiCoachService.getPlan();
-          if (!cancelled) applyPlanResult(result);
-        } catch { } finally {
-          if (!cancelled) { setPlanLoading(false); setStep(2); }
-        }
-      }
 
       if (!cancelled) setInitializing(false);
     };
@@ -162,9 +148,6 @@ export const StartSessionScreen: React.FC = () => {
     const today = new Date().toISOString().split('T')[0];
 
     try {
-      // Mark readiness as done for today so the screen is skipped on re-entry
-      await AsyncStorage.setItem(READINESS_DATE_KEY, today).catch(() => {});
-
       // Check if a plan was already generated today
       let result = await aiCoachService.getPlan();
       const planFromToday = result.generatedAt ? result.generatedAt.startsWith(today) : false;
@@ -361,7 +344,7 @@ export const StartSessionScreen: React.FC = () => {
                   <View key={i} style={styles.planRow}>
                     <Text style={styles.planExName}>{exName(ex.name)}</Text>
                     <Text style={styles.planExDetail}>
-                      {ex.sets}×{ex.reps} @ {ex.weight > 0 ? `${ex.weight}kg` : 'BW'}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}
+                      {ex.sets}×{ex.reps} @ {ex.weight > 0 ? `${ex.weight}kg` : 'BW'}{ex.weightPerc ? ` · ${ex.weightPerc}% 1RM` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}
                     </Text>
                     {ex.cue ? <Text style={styles.planExCue}>"{ex.cue}"</Text> : null}
                   </View>

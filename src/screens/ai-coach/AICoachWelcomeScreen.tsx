@@ -114,7 +114,7 @@ export const AICoachWelcomeScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.subtitle}>{t('aiCoachWelcome.subtitle')}</Text>
         <TouchableOpacity
           style={styles.ctaButton}
-          onPress={() => navigation.navigate('AICoachSetup')}
+          onPress={() => navigation.replace('AICoachSetup')}
           activeOpacity={0.85}
         >
           <Text style={styles.ctaText}>{t('aiCoachWelcome.getStarted')}</Text>

@@ -15,7 +15,8 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserAvatar } from '../../components/ui/UserAvatar';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
-import { Bell, PersonSimpleRun, Lightning, Robot, CalendarBlank, ChartBar, ArrowRight, Camera } from 'phosphor-react-native';
+import { Bell, PersonSimpleRun, Lightning, Robot, CalendarBlank, ChartBar, ArrowRight, Camera, Flask } from 'phosphor-react-native';
+import { UserRole } from '@shared';
 
 // const CATEGORIES = [
 //   { id: '1', label: 'HIIT', Icon: Fire, color: '#1A3322', iconColor: '#f97316' },
@@ -115,6 +116,25 @@ export const WorkoutScreen: React.FC = () => {
             <Text style={styles.quickSub}>Volume & PRs</Text>
           </TouchableOpacity>
         </View>
+
+        {(user?.role === UserRole.ROLE_ADMIN || user?.role === UserRole.ROLE_SUPER_ADMIN) && (
+          <>
+            <Text style={styles.sectionTitle}>Admin</Text>
+            <TouchableOpacity
+              style={styles.aiLabBanner}
+              onPress={() => navigation.navigate('AdminAILab', {})}
+            >
+              <View style={[styles.bannerIconWrap, { backgroundColor: '#7c3aed22' }]}>
+                <Flask size={22} weight="fill" color="#a78bfa" />
+              </View>
+              <View style={styles.bannerText}>
+                <Text style={styles.bannerTitle}>AI Coach Lab</Text>
+                <Text style={styles.bannerSub}>Test & time-travel coach state for any user</Text>
+              </View>
+              <ArrowRight size={18} weight="bold" color={palette.gray[500]} />
+            </TouchableOpacity>
+          </>
+        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -240,4 +260,16 @@ const styles = StyleSheet.create({
   },
   quickLabel: { fontSize: 14, fontWeight: '700', color: '#fff' },
   quickSub: { fontSize: 12, color: palette.gray[500] },
+
+  aiLabBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#18181B',
+    borderRadius: 16,
+    padding: 18,
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#3b1f6a',
+    gap: 14,
+  },
 });
