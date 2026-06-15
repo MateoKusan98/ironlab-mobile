@@ -75,6 +75,12 @@ export const AdminUsersScreen: React.FC = () => {
             try {
               const { user, accessToken } = await usersService.impersonate(item.id);
               await startImpersonation(user, accessToken);
+              // Drop straight into the impersonated user's dashboard and clear the
+              // admin stack so swiping back can't return to admin screens mid-session.
+              navigation.reset({
+                index: 0,
+                routes: [{ name: user.isSetupComplete ? 'ClientApp' : 'Setup' }],
+              });
             } catch {
               Alert.alert(t('common.error'), t('admin.impersonateFailed'));
             }
@@ -208,7 +214,9 @@ export const AdminUsersScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <View style={styles.backBtn} />
+        <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()} hitSlop={10}>
+          <Text style={styles.closeIcon}>✕</Text>
+        </TouchableOpacity>
         <Text style={styles.title}>{t('admin.userManagement')}</Text>
         <Text style={styles.count}>{users.length}</Text>
       </View>
@@ -300,8 +308,8 @@ function SetupBadge({ label, done }: { label: string; done: boolean }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn: { padding: 4, marginRight: 10 },
-  backArrow: { fontSize: 22, color: theme.colors.text },
+  closeBtn: { padding: 4, marginRight: 10 },
+  closeIcon: { fontSize: 20, color: theme.colors.text, fontWeight: '600' },
   title: { flex: 1, fontSize: 20, fontWeight: '700', color: theme.colors.text },
   count: { fontSize: 13, color: palette.gray[500], backgroundColor: palette.gray[800], paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
 
