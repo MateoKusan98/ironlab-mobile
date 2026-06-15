@@ -546,24 +546,31 @@ export const SetupWizardScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         {renderTopNav(90)}
-        <View style={styles.stepContent}>
-          <Text style={styles.titleBig}>{t('setup.fitnessLevel')}</Text>
-          <Text style={styles.levelIndicator}>LEVEL {fitnessLevel + 1}</Text>
-          <View style={styles.sliderWrapper}>
-             <View style={styles.sliderBarBackground}>
-               {[0,1,2,3,4].map((i) => (
-                 <TouchableOpacity key={i} style={[styles.sliderSegment, { backgroundColor: fitnessLevel >= i ? (i === 0 ? '#EF4444' : i === 1 ? '#F97316' : i === 2 ? '#FBBF24' : '#84CC16') : palette.gray[800] }]} onPress={() => setFitnessLevel(i)}>
-                    {fitnessLevel === i && <View style={styles.sliderThumbLocal}><Text style={{ color: '#FFF', fontWeight: 'bold' }}>||</Text></View>}
-                 </TouchableOpacity>
-               ))}
-             </View>
+        <View style={styles.stepContentFlex}>
+          <ScrollView
+            contentContainerStyle={styles.stepScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.titleBig}>{t('setup.fitnessLevel')}</Text>
+            <Text style={styles.levelIndicator}>LEVEL {fitnessLevel + 1}</Text>
+            <View style={styles.sliderWrapper}>
+               <View style={styles.sliderBarBackground}>
+                 {[0,1,2,3,4].map((i) => (
+                   <TouchableOpacity key={i} style={[styles.sliderSegment, { backgroundColor: fitnessLevel >= i ? (i === 0 ? '#EF4444' : i === 1 ? '#F97316' : i === 2 ? '#FBBF24' : '#84CC16') : palette.gray[800] }]} onPress={() => setFitnessLevel(i)}>
+                      {fitnessLevel === i && <View style={styles.sliderThumbLocal}><Text style={{ color: '#FFF', fontWeight: 'bold' }}>||</Text></View>}
+                   </TouchableOpacity>
+                 ))}
+               </View>
+            </View>
+            <View style={{ alignItems: 'center', marginTop: 40 }}>
+              <Text style={styles.fitnessTitle}>{levels[fitnessLevel]}</Text>
+              <Text style={styles.fitnessDesc}>{descs[fitnessLevel]}</Text>
+              <Text style={styles.dragHint}>{t('setup.dragToAdjust')}</Text>
+            </View>
+          </ScrollView>
+          <View style={[styles.stepFooter, { paddingBottom: insets.bottom + 16 }]}>
+            <Button label={t('setup.continueBtn')} onPress={nextStep} variant="solid" color="brand" />
           </View>
-          <View style={{ alignItems: 'center', marginTop: 60, marginBottom: 'auto' }}>
-            <Text style={styles.fitnessTitle}>{levels[fitnessLevel]}</Text>
-            <Text style={styles.fitnessDesc}>{descs[fitnessLevel]}</Text>
-            <Text style={styles.dragHint}>{t('setup.dragToAdjust')}</Text>
-          </View>
-          <Button label={t('setup.continueBtn')} onPress={nextStep} variant="solid" color="brand" />
         </View>
       </View>
     );
@@ -605,6 +612,9 @@ const styles = StyleSheet.create({
   navTextSkip: { color: '#FFF', fontWeight: 'bold' },
   progressBarWrapper: { flex: 1, paddingHorizontal: 20 },
   stepContent: { flexGrow: 1, paddingHorizontal: 20, justifyContent: 'center' },
+  stepContentFlex: { flex: 1, paddingHorizontal: 20 },
+  stepScrollContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 },
+  stepFooter: { paddingTop: 12 },
   titleBig: { color: '#FFF', fontSize: 32, fontWeight: '900', textAlign: 'center', marginBottom: 24 },
   
   // Picker & Ruler
