@@ -1,7 +1,13 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../stores/auth.store';
+import { logService } from './log.service';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || `http://localhost:3020/api`;
+
+// The bare refresh call below has no client timeout, so if its network leg stalls
+// the whole request chain hangs with no error. This watchdog is the only signal we
+// get for that case — it logs a breadcrumb without altering behaviour.
+const STALL_MS = 12000;
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -11,13 +17,32 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor: attach access token
+// Turn an axios failure into a structured log entry.
+function logApiError(error: AxiosError) {
+  const cfg = (error.config ?? {}) as InternalAxiosRequestConfig & { metadata?: { startTime: number } };
+  const durationMs = cfg.metadata?.startTime ? Date.now() - cfg.metadata.startTime : undefined;
+  const status = error.response?.status;
+  const serverMsg = (error.response?.data as any)?.message;
+  const detail = Array.isArray(serverMsg) ? serverMsg.join(', ') : serverMsg ?? error.message;
+  logService.capture({
+    level: 'error',
+    source: 'api',
+    message: `${error.code ?? 'API_ERROR'}: ${detail}`,
+    route: cfg.url,
+    method: cfg.method?.toUpperCase(),
+    statusCode: status,
+    context: { durationMs, code: error.code },
+  });
+}
+
+// Request interceptor: attach access token + stamp start time for duration metrics
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = useAuthStore.getState().accessToken;
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    (config as any).metadata = { startTime: Date.now() };
     return config;
   },
   (error) => Promise.reject(error),
@@ -47,6 +72,14 @@ api.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Impersonation sessions have no refresh token by design — when the
+      // short-lived access token lapses, exit back to the admin session
+      // instead of attempting a refresh or logging out entirely.
+      if (useAuthStore.getState().impersonator) {
+        await useAuthStore.getState().stopImpersonation();
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -65,9 +98,24 @@ api.interceptors.response.use(
 
       const refreshToken = useAuthStore.getState().refreshToken;
       if (!refreshToken) {
+        logApiError(error);
         useAuthStore.getState().logout();
         return Promise.reject(error);
       }
+
+      // Watchdog: the refresh call has no timeout, so a stalled network leg here
+      // hangs the original request forever with no error. Leave a breadcrumb if it
+      // takes too long — this is the silent "infinite Saving" signature.
+      const refreshStall = setTimeout(() => {
+        logService.capture({
+          level: 'stalled',
+          source: 'stall',
+          message: `Token refresh stalled >${STALL_MS}ms — original request (${originalRequest.method?.toUpperCase()} ${originalRequest.url}) is hanging`,
+          route: '/auth/refresh',
+          method: 'POST',
+          context: { stallMs: STALL_MS, blockedRequest: originalRequest.url },
+        });
+      }, STALL_MS);
 
       try {
         const { data } = await axios.post(`${API_URL}/auth/refresh`, {
@@ -85,14 +133,24 @@ api.interceptors.response.use(
         }
         return api(originalRequest);
       } catch (refreshError) {
+        logService.capture({
+          level: 'error',
+          source: 'api',
+          message: `Token refresh failed: ${(refreshError as AxiosError)?.message ?? 'unknown'} — user logged out`,
+          route: '/auth/refresh',
+          method: 'POST',
+          statusCode: (refreshError as AxiosError)?.response?.status,
+        });
         processQueue(refreshError, null);
         useAuthStore.getState().logout();
         return Promise.reject(refreshError);
       } finally {
+        clearTimeout(refreshStall);
         isRefreshing = false;
       }
     }
 
+    logApiError(error);
     return Promise.reject(error);
   },
 );

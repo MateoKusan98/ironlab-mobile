@@ -60,8 +60,29 @@ function InitialsAvatar({ name, size = 40 }: { name: string; size?: number }) {
 export const AdminUsersScreen: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
-  const { user: viewer } = useAuthStore();
+  const { user: viewer, startImpersonation } = useAuthStore();
   const isSuperAdmin = viewer?.role === UserRole.ROLE_SUPER_ADMIN;
+
+  const handleImpersonate = (item: AdminUserEntry) => {
+    Alert.alert(
+      t('admin.impersonateConfirmTitle'),
+      t('admin.impersonateConfirmBody', { name: item.name }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('admin.impersonate'),
+          onPress: async () => {
+            try {
+              const { user, accessToken } = await usersService.impersonate(item.id);
+              await startImpersonation(user, accessToken);
+            } catch {
+              Alert.alert(t('common.error'), t('admin.impersonateFailed'));
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const [users, setUsers] = useState<AdminUserEntry[]>([]);
   const [usageMap, setUsageMap] = useState<Map<string, UsageStatEntry>>(new Map());
@@ -108,6 +129,11 @@ export const AdminUsersScreen: React.FC = () => {
   const renderUser = ({ item }: { item: AdminUserEntry }) => {
     const usage = isSuperAdmin ? usageMap.get(item.id) : undefined;
     const roleColor = ROLE_COLORS[item.role] ?? palette.gray[400];
+    const canImpersonate =
+      isSuperAdmin &&
+      item.id !== viewer?.id &&
+      item.role !== UserRole.ROLE_ADMIN &&
+      item.role !== UserRole.ROLE_SUPER_ADMIN;
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
@@ -159,12 +185,22 @@ export const AdminUsersScreen: React.FC = () => {
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.aiLabBtn}
-          onPress={() => navigation.navigate('AdminAILab', { userId: item.id, userName: item.name })}
-        >
-          <Text style={styles.aiLabBtnText}>{t('admin.aiLab')}</Text>
-        </TouchableOpacity>
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={[styles.aiLabBtn, styles.actionBtn]}
+            onPress={() => navigation.navigate('AdminAILab', { userId: item.id, userName: item.name })}
+          >
+            <Text style={styles.aiLabBtnText}>{t('admin.aiLab')}</Text>
+          </TouchableOpacity>
+          {canImpersonate && (
+            <TouchableOpacity
+              style={[styles.impersonateBtn, styles.actionBtn]}
+              onPress={() => handleImpersonate(item)}
+            >
+              <Text style={styles.impersonateBtnText}>{t('admin.impersonate')}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     );
   };
@@ -323,6 +359,10 @@ const styles = StyleSheet.create({
   usageLabel: { fontSize: 9, color: palette.gray[500], marginTop: 1 },
   noUsage: { fontSize: 11, color: palette.gray[600], paddingVertical: 6 },
 
-  aiLabBtn: { marginTop: 10, backgroundColor: palette.brand[600] + '22', borderWidth: 1, borderColor: palette.brand[600] + '66', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
+  actionRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  actionBtn: { flex: 1 },
+  aiLabBtn: { backgroundColor: palette.brand[600] + '22', borderWidth: 1, borderColor: palette.brand[600] + '66', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   aiLabBtnText: { fontSize: 12, fontWeight: '700', color: palette.brand[300], letterSpacing: 0.5 },
+  impersonateBtn: { backgroundColor: palette.warning[600] + '22', borderWidth: 1, borderColor: palette.warning[600] + '66', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
+  impersonateBtnText: { fontSize: 12, fontWeight: '700', color: palette.warning[400], letterSpacing: 0.5 },
 });

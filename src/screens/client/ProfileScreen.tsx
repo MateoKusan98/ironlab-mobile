@@ -29,7 +29,7 @@ import { nutritionService } from '../../services/nutrition.service';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from '../../i18n';
-import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots } from 'phosphor-react-native';
+import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug } from 'phosphor-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBadges } from '../../hooks/useBadges';
 import { rankForPoints } from '../../services/rank';
@@ -657,6 +657,16 @@ export const ProfileScreen: React.FC = () => {
               <View style={{ marginLeft: 10 }}>
                 <Text style={[styles.adminButtonText, { color: palette.warning[300] }]}>Community Ideas</Text>
                 <Text style={styles.adminButtonSub}>Review and acknowledge user submissions</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.adminButton, { marginTop: 8 }]}
+              onPress={() => navigation.navigate('AdminLogs')}
+            >
+              <Bug size={18} weight="fill" color={palette.error[300]} />
+              <View style={{ marginLeft: 10 }}>
+                <Text style={[styles.adminButtonText, { color: palette.error[300] }]}>Error Logs</Text>
+                <Text style={styles.adminButtonSub}>Client errors & stalls by email</Text>
               </View>
             </TouchableOpacity>
           </>

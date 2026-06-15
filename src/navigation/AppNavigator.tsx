@@ -1,8 +1,10 @@
 import React from 'react';
+import { View } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '../stores/auth.store';
 import { UserRole } from '@shared';
+import { ImpersonationBanner } from '../components/ImpersonationBanner';
 import { AuthStack } from './AuthStack';
 import { SetupWizardScreen } from '../screens/setup/SetupWizardScreen';
 import { ClientTabs } from './ClientTabs';
@@ -50,6 +52,7 @@ export type RootStackParamList = {
   AdminUsers: undefined;
   AdminAILab: { userId?: string; userName?: string };
   AdminIdeas: undefined;
+  AdminLogs: undefined;
   SubmitIdea: undefined;
 };
 
@@ -104,6 +107,7 @@ import { FormCheckScreen } from '../screens/form-check/FormCheckScreen';
 import { AdminUsersScreen } from '../screens/admin/AdminUsersScreen';
 import { AdminAILabScreen } from '../screens/admin/AdminAILabScreen';
 import { AdminIdeasScreen } from '../screens/admin/AdminIdeasScreen';
+import { AdminLogsScreen } from '../screens/admin/AdminLogsScreen';
 import { SubmitIdeaScreen } from '../screens/client/SubmitIdeaScreen';
 import { BadgesScreen } from '../screens/client/BadgesScreen';
 import { CreatePostScreen } from '../screens/community/CreatePostScreen';
@@ -117,6 +121,7 @@ export const AppNavigator: React.FC = () => {
 
   return (
     <NavigationContainer theme={navTheme}>
+      <View style={{ flex: 1 }}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           <Stack.Screen name="Auth" component={AuthStack} />
@@ -176,6 +181,7 @@ export const AppNavigator: React.FC = () => {
             <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />
             <Stack.Screen name="AdminAILab" component={AdminAILabScreen} />
             <Stack.Screen name="AdminIdeas" component={AdminIdeasScreen} />
+            <Stack.Screen name="AdminLogs" component={AdminLogsScreen} />
             <Stack.Screen name="SubmitIdea" component={SubmitIdeaScreen} />
             <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'modal' }} />
             <Stack.Screen name="PostDetail" component={PostDetailScreen} />
@@ -185,6 +191,8 @@ export const AppNavigator: React.FC = () => {
           </>
         )}
       </Stack.Navigator>
+      <ImpersonationBanner />
+      </View>
     </NavigationContainer>
   );
 };

@@ -1072,6 +1072,10 @@
     "noUsersFound": "No users found.",
     "noAiUsage": "No AI usage yet",
     "aiLab": "AI Lab",
+    "impersonate": "Impersonate",
+    "impersonateConfirmTitle": "Impersonate user?",
+    "impersonateConfirmBody": "You'll act as {{name}} until you exit. Their data and actions will be affected as if they did them.",
+    "impersonateFailed": "Could not start impersonation.",
     "couldNotLoadUsers": "Could not load users.",
     "totalTokens": "Total tokens",
     "totalCalls": "Total calls",
@@ -1088,5 +1092,9 @@
     "badgeUnlocked": "BADGE UNLOCKED",
     "nextBadge": "NEXT BADGE  →",
     "letsGo": "LET'S GO! 💪"
+  },
+  "impersonation": {
+    "viewingAs": "Viewing as {{name}}",
+    "exit": "Exit"
   }
 }

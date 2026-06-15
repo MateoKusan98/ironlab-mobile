@@ -69,6 +69,13 @@ export const usersService = {
     return data.data;
   },
 
+  impersonate: async (userId: string): Promise<{ user: UserResponse; accessToken: string }> => {
+    const { data } = await api.post<ApiResponse<{ user: UserResponse; accessToken: string }>>(
+      `/auth/impersonate/${userId}`,
+    );
+    return data.data;
+  },
+
   getUsageStats: async (since?: string): Promise<{ perUser: UsageStatEntry[]; totals: { tokens: number; costUsd: number; calls: number } }> => {
     const { data } = await api.get<ApiResponse<{ perUser: UsageStatEntry[]; totals: any }>>('/ai-coach/admin/usage-stats', {
       params: since ? { since } : undefined,
