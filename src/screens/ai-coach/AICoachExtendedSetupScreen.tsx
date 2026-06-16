@@ -589,6 +589,16 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  // Keys the form actually edits — used to filter the prefill so we never load
+  // (and later echo back) internal entity columns the save DTO rejects.
+  const EDITABLE_KEYS = useRef(
+    new Set<string>([
+      ...SECTIONS.flatMap((sec) => sec.questions.map((qq) => String(qq.id))),
+      'sessionDurationMinutes',
+      'preferredIntensity',
+    ]),
+  ).current;
+
   // Pre-populate answers from saved profile when opened in edit mode
   useEffect(() => {
     if (!editMode) return;
@@ -596,6 +606,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
       if (!profile) return;
       const loaded: Record<string, any> = {};
       (Object.entries(profile) as [string, any][]).forEach(([k, v]) => {
+        if (!EDITABLE_KEYS.has(k)) return; // skip id/userId/timestamps/internal columns
         if (v !== null && v !== undefined && v !== '') loaded[k] = v;
       });
       setAnswers(loaded);
@@ -702,6 +713,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
       if (preferences?.intensity) profileData.preferredIntensity = preferences.intensity;
 
       Object.entries(answers).forEach(([key, val]) => {
+        if (!EDITABLE_KEYS.has(key)) return; // never send internal/non-DTO columns
         if (val !== '' && val !== null && val !== undefined && val !== '__unknown__') {
           if (numericFields.includes(key)) {
             (profileData as any)[key] = typeof val === 'number' ? val : parseFloat(val);
