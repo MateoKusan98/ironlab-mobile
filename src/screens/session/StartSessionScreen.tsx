@@ -20,7 +20,15 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette } from '../../theme';
 import { sessionService } from '../../services/session.service';
 import { aiCoachService } from '../../services/ai-coach.service';
+import { useAuthStore } from '../../stores/auth.store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Moon, Minus, ThumbsUp, Fire, Lightning } from 'phosphor-react-native';
+
+// Tracks which generated workout a readiness check was already submitted for.
+// Keyed per-user; value pins the plan's `generatedAt` so the readiness step is
+// skipped until a NEW workout is generated (e.g. after completing a session).
+const readinessAppliedKey = (uid: string) => `readiness:applied:${uid}`;
+type ReadinessMarker = { planAt: string; mood?: string; energyLevel?: number; sleepHours?: string; bodyweight?: string };
 
 type PlannedExercise = NonNullable<RootStackParamList['ActiveWorkout']['plannedExercises']>[number];
 
@@ -76,6 +84,7 @@ export const StartSessionScreen: React.FC = () => {
   const ENERGY_LABELS = ['', t('session.energyLabels.1'), t('session.energyLabels.2'), t('session.energyLabels.3'), t('session.energyLabels.4'), t('session.energyLabels.5')];
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'StartSession'>>();
+  const uid = useAuthStore((s) => s.user?.id);
 
   const [step, setStep] = useState<1 | 2>(1);
   const [initializing, setInitializing] = useState(true);
@@ -110,16 +119,31 @@ export const StartSessionScreen: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const today = new Date().toISOString().split('T')[0];
 
     const init = async () => {
-      // Pre-fill from last session
-      sessionService.getLastReadiness().then((r) => {
-        if (cancelled) return;
-        if (r.lastBodyweight != null) setBodyweight(String(r.lastBodyweight));
-        if (r.avgSleepHours != null) setSleepHours(String(r.avgSleepHours));
-      }).catch(() => {});
+      const [readiness, plan, markerRaw] = await Promise.all([
+        sessionService.getLastReadiness().catch(() => null),
+        aiCoachService.getPlan().catch(() => null),
+        uid ? AsyncStorage.getItem(readinessAppliedKey(uid)).catch(() => null) : Promise.resolve(null),
+      ]);
+      if (cancelled) return;
 
+      // Pre-fill from last session
+      if (readiness?.lastBodyweight != null) setBodyweight(String(readiness.lastBodyweight));
+      if (readiness?.avgSleepHours != null) setSleepHours(String(readiness.avgSleepHours));
+
+      // If a readiness check was already submitted for the current pending workout,
+      // skip straight to the workout — only re-show it once a new workout is generated.
+      const marker: ReadinessMarker | null = markerRaw ? JSON.parse(markerRaw) : null;
+      const hasPlan = !!(plan?.plan || plan?.nextSessionJson?.exercises?.length);
+      if (!route.params?.freeSession && plan && hasPlan && marker && plan.generatedAt && marker.planAt === plan.generatedAt) {
+        applyPlanResult(plan);
+        if (marker.mood) setMood(marker.mood);
+        if (typeof marker.energyLevel === 'number') setEnergyLevel(marker.energyLevel);
+        if (marker.sleepHours) setSleepHours(marker.sleepHours);
+        if (marker.bodyweight) setBodyweight(marker.bodyweight);
+        setStep(2);
+      }
 
       if (!cancelled) setInitializing(false);
     };
@@ -164,6 +188,13 @@ export const StartSessionScreen: React.FC = () => {
       }
 
       applyPlanResult(result);
+
+      // Pin this readiness check to the resulting workout so it isn't shown again
+      // until a new workout is generated (it can be redone once a new one exists).
+      if (uid && result.generatedAt) {
+        const marker: ReadinessMarker = { planAt: result.generatedAt, mood, energyLevel, sleepHours, bodyweight };
+        await AsyncStorage.setItem(readinessAppliedKey(uid), JSON.stringify(marker)).catch(() => {});
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
       Alert.alert(t('common.error'), String(Array.isArray(msg) ? msg.join('\n') : msg));

@@ -445,6 +445,23 @@ export const ActiveWorkoutScreen: React.FC = () => {
     }
   };
 
+  const uncompleteSet = async (exIdx: number, setIdx: number) => {
+    const set = exercises[exIdx].sets[setIdx];
+
+    Vibration.vibrate(30);
+    setRestSecs(0);
+    updateSetField(exIdx, setIdx, 'isCompleted', false);
+
+    if (set.id) {
+      try {
+        await sessionService.updateSet(set.id, { isCompleted: false });
+      } catch {
+        updateSetField(exIdx, setIdx, 'isCompleted', true);
+        Alert.alert('Error', 'Could not update set. Check connection.');
+      }
+    }
+  };
+
   const toggleExpand = (exIdx: number) => {
     setExercises((prev) =>
       prev.map((ex, i) => i === exIdx ? { ...ex, isExpanded: !ex.isExpanded } : ex)
@@ -702,9 +719,9 @@ export const ActiveWorkoutScreen: React.FC = () => {
                         />
 
                         {set.isCompleted ? (
-                          <View style={styles.doneCheck}>
+                          <TouchableOpacity style={styles.doneCheck} onPress={() => uncompleteSet(exIdx, setIdx)}>
                             <Text style={styles.doneCheckText}>✓</Text>
-                          </View>
+                          </TouchableOpacity>
                         ) : (
                           <TouchableOpacity style={styles.logBtn} onPress={() => completeSet(exIdx, setIdx)}>
                             <Text style={styles.logBtnText}>✓</Text>
