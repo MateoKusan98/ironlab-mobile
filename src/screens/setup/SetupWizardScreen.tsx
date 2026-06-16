@@ -548,6 +548,7 @@ export const SetupWizardScreen: React.FC = () => {
         {renderTopNav(90)}
         <View style={styles.stepContentFlex}>
           <ScrollView
+            style={styles.stepScroll}
             contentContainerStyle={styles.stepScrollContent}
             showsVerticalScrollIndicator={false}
           >
@@ -613,6 +614,7 @@ const styles = StyleSheet.create({
   progressBarWrapper: { flex: 1, paddingHorizontal: 20 },
   stepContent: { flexGrow: 1, paddingHorizontal: 20, justifyContent: 'center' },
   stepContentFlex: { flex: 1, paddingHorizontal: 20 },
+  stepScroll: { flex: 1 },
   stepScrollContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 },
   stepFooter: { paddingTop: 12 },
   titleBig: { color: '#FFF', fontSize: 32, fontWeight: '900', textAlign: 'center', marginBottom: 24 },
