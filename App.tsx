@@ -6,6 +6,7 @@ import { ActivityIndicator, View } from 'react-native';
 import './src/i18n';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { BadgeCelebrationProvider } from './src/contexts/BadgeCelebrationContext';
+import { WhatsNewProvider } from './src/contexts/WhatsNewContext';
 import { SplashScreen } from './src/screens/SplashScreen';
 import { useAuthStore } from './src/stores/auth.store';
 import { useSettingsStore } from './src/stores/settings.store';
@@ -69,7 +70,9 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <StatusBar style="light" />
         <BadgeCelebrationProvider>
-          <AppContent />
+          <WhatsNewProvider>
+            <AppContent />
+          </WhatsNewProvider>
         </BadgeCelebrationProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
