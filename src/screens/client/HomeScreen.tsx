@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   Animated,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -67,17 +68,31 @@ function useStepCounter() {
     const init = async () => {
       try {
         const ok = await Pedometer.isAvailableAsync();
-        setAvailable(ok);
-        if (!ok) return;
-        const start = new Date();
-        start.setHours(0, 0, 0, 0);
-        const result = await Pedometer.getStepCountAsync(start, new Date());
-        baseRef.current = result.steps;
-        setSteps(result.steps);
+        if (!ok) { setAvailable(false); return; }
+
+        // Motion / activity-recognition permission is required on both
+        // platforms (and is a runtime "dangerous" permission on Android).
+        const perm = await Pedometer.requestPermissionsAsync();
+        if (!perm.granted) { setAvailable(false); return; }
+        setAvailable(true);
+
+        // getStepCountAsync is iOS-only — on Android it throws, which would
+        // otherwise abort before the live subscription is set up.
+        if (Platform.OS === 'ios') {
+          const start = new Date();
+          start.setHours(0, 0, 0, 0);
+          const result = await Pedometer.getStepCountAsync(start, new Date());
+          baseRef.current = result.steps;
+          setSteps(result.steps);
+        }
+
+        // Live updates work on both platforms (counts steps since this point).
         sub = Pedometer.watchStepCount((update) => {
           setSteps(baseRef.current + update.steps);
         });
-      } catch { /* sensor unavailable */ }
+      } catch {
+        setAvailable(false);
+      }
     };
     init();
     return () => { sub?.remove(); };

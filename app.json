@@ -14,7 +14,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.ironlab.mobile",
       "infoPlist": {
-        "NSUserNotificationUsageDescription": "IronLab sends workout reminders and PR alerts."
+        "NSUserNotificationUsageDescription": "IronLab sends workout reminders and PR alerts.",
+        "NSMotionUsageDescription": "IronLab uses motion data to count your daily steps."
       }
     },
     "android": {
@@ -27,8 +28,7 @@
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
-        "android.permission.RECEIVE_BOOT_COMPLETED",
-        "android.permission.VIBRATE"
+        "android.permission.ACTIVITY_RECOGNITION"
       ]
     },
     "plugins": [
