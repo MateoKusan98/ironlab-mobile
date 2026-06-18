@@ -47,6 +47,8 @@ import {
 
 const CREATINE_ENABLED_KEY = '@ironlab_creatine_enabled';
 const CREATINE_DATE_KEY = '@ironlab_creatine_date';
+const STEPS_DATE_KEY = '@ironlab_steps_date';
+const STEPS_COUNT_KEY = '@ironlab_steps_count';
 
 const CARDIO_LABELS: Record<string, string> = {
   running: 'Running', cycling: 'Cycling', swimming: 'Swimming',
@@ -65,6 +67,7 @@ function useStepCounter() {
 
   useEffect(() => {
     let sub: ReturnType<typeof Pedometer.watchStepCount> | null = null;
+    const today = new Date().toISOString().split('T')[0];
     const init = async () => {
       try {
         const ok = await Pedometer.isAvailableAsync();
@@ -76,19 +79,38 @@ function useStepCounter() {
         if (!perm.granted) { setAvailable(false); return; }
         setAvailable(true);
 
-        // getStepCountAsync is iOS-only — on Android it throws, which would
-        // otherwise abort before the live subscription is set up.
         if (Platform.OS === 'ios') {
+          // iOS can query the OS for today's steps since midnight — this is
+          // authoritative and already survives app restarts.
           const start = new Date();
           start.setHours(0, 0, 0, 0);
           const result = await Pedometer.getStepCountAsync(start, new Date());
           baseRef.current = result.steps;
           setSteps(result.steps);
+        } else {
+          // Android has no historical query, and watchStepCount only counts
+          // from the subscription point — so it resets to 0 on every restart.
+          // Restore today's running total from storage; start fresh on a new day.
+          const [savedDate, savedCount] = await Promise.all([
+            AsyncStorage.getItem(STEPS_DATE_KEY),
+            AsyncStorage.getItem(STEPS_COUNT_KEY),
+          ]);
+          const restored = savedDate === today ? (parseInt(savedCount ?? '0', 10) || 0) : 0;
+          baseRef.current = restored;
+          setSteps(restored);
         }
 
         // Live updates work on both platforms (counts steps since this point).
         sub = Pedometer.watchStepCount((update) => {
-          setSteps(baseRef.current + update.steps);
+          const total = baseRef.current + update.steps;
+          setSteps(total);
+          // Persist Android's total so it's remembered across restarts.
+          if (Platform.OS !== 'ios') {
+            AsyncStorage.multiSet([
+              [STEPS_DATE_KEY, today],
+              [STEPS_COUNT_KEY, String(total)],
+            ]).catch(() => {});
+          }
         });
       } catch {
         setAvailable(false);

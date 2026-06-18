@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   Vibration,
   ActivityIndicator,
   Linking,
+  AppState,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +23,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette } from '../../theme';
 import { sessionService } from '../../services/session.service';
+import { scheduleRestTimerAlert, cancelRestTimerAlert } from '../../services/pushNotification.service';
 import { useSettingsStore } from '../../stores/settings.store';
 import { classifyExercise } from '../../utils/exerciseType';
 import { useExerciseName } from '../../hooks/useExerciseName';
@@ -226,6 +228,11 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const isolationRestSecs = useSettingsStore((s) => s.isolationRestSecs);
   const startTime = useRef(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  // Absolute wall-clock time (ms) the rest period ends, so the countdown stays
+  // accurate across app backgrounding (JS timers freeze in the background).
+  const restEndAtRef = useRef<number | null>(null);
+  // Id of the scheduled OS notification that beeps when rest ends.
+  const restNotifIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
@@ -234,17 +241,71 @@ export const ActiveWorkoutScreen: React.FC = () => {
     return () => clearInterval(timerRef.current);
   }, []);
 
-  // Rest timer countdown
+  // Start a rest period: track the end time and schedule a background-safe
+  // notification (sound + vibration) for when it elapses.
+  const startRest = useCallback((seconds: number) => {
+    if (seconds <= 0) return;
+    restEndAtRef.current = Date.now() + seconds * 1000;
+    setRestSecs(seconds);
+    cancelRestTimerAlert(restNotifIdRef.current);
+    restNotifIdRef.current = null;
+    scheduleRestTimerAlert(seconds).then((id) => {
+      restNotifIdRef.current = id;
+    });
+  }, []);
+
+  // Cancel the rest period entirely (skip / un-complete a set).
+  const stopRest = useCallback(() => {
+    restEndAtRef.current = null;
+    setRestSecs(null);
+    cancelRestTimerAlert(restNotifIdRef.current);
+    restNotifIdRef.current = null;
+  }, []);
+
+  // Add/subtract time, recomputed from the live remaining seconds.
+  const adjustRest = useCallback((delta: number) => {
+    const remaining = restEndAtRef.current
+      ? Math.max(0, Math.round((restEndAtRef.current - Date.now()) / 1000))
+      : 0;
+    const next = remaining + delta;
+    if (next <= 0) stopRest();
+    else startRest(next);
+  }, [startRest, stopRest]);
+
+  // Rest timer countdown — derives remaining seconds from the absolute end time
+  // so it self-corrects after the app returns from the background.
   useEffect(() => {
     if (restSecs === null) return;
     if (restSecs <= 0) {
       Vibration.vibrate([0, 200, 100, 200, 100, 400]);
+      // Don't cancel the notification here — let it fire so the sound plays even
+      // if the screen is in the foreground (the handler suppresses its banner).
+      restEndAtRef.current = null;
+      restNotifIdRef.current = null;
       setRestSecs(null);
       return;
     }
-    const id = setTimeout(() => setRestSecs((s) => (s !== null ? s - 1 : null)), 1000);
+    const id = setTimeout(() => {
+      const remaining = restEndAtRef.current
+        ? Math.max(0, Math.round((restEndAtRef.current - Date.now()) / 1000))
+        : 0;
+      setRestSecs(remaining);
+    }, 1000);
     return () => clearTimeout(id);
   }, [restSecs]);
+
+  // Re-sync the visible countdown when returning from the background.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && restEndAtRef.current !== null) {
+        setRestSecs(Math.max(0, Math.round((restEndAtRef.current - Date.now()) / 1000)));
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
+  // Clear any pending rest alert if the screen is torn down.
+  useEffect(() => () => { cancelRestTimerAlert(restNotifIdRef.current); }, []);
 
   // Always fetch the session to restore the clock and any logged sets.
   // Falls back to plannedExercises if the session has no sets yet (e.g. resumed before logging anything).
@@ -404,7 +465,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
     Vibration.vibrate(40);
     const restDuration = classifyExercise(ex.name) === 'compound' ? compoundRestSecs : isolationRestSecs;
-    setRestSecs(restDuration);
+    startRest(restDuration);
     updateSetField(exIdx, setIdx, 'isCompleted', true);
 
     try {
@@ -449,7 +510,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
     const set = exercises[exIdx].sets[setIdx];
 
     Vibration.vibrate(30);
-    setRestSecs(0);
+    stopRest();
     updateSetField(exIdx, setIdx, 'isCompleted', false);
 
     if (set.id) {
@@ -607,13 +668,13 @@ export const ActiveWorkoutScreen: React.FC = () => {
                 </View>
               </View>
               <View style={styles.restControls}>
-                <TouchableOpacity style={styles.restBtn} onPress={() => setRestSecs((s) => s !== null ? Math.max(0, s - 15) : null)}>
+                <TouchableOpacity style={styles.restBtn} onPress={() => adjustRest(-15)}>
                   <Text style={styles.restBtnText}>−15</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.restBtn} onPress={() => setRestSecs((s) => s !== null ? s + 15 : null)}>
+                <TouchableOpacity style={styles.restBtn} onPress={() => adjustRest(15)}>
                   <Text style={styles.restBtnText}>+15</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.restSkipBtn} onPress={() => setRestSecs(null)}>
+                <TouchableOpacity style={styles.restSkipBtn} onPress={stopRest}>
                   <Text style={styles.restSkipText}>Skip</Text>
                 </TouchableOpacity>
               </View>
