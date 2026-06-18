@@ -17,7 +17,7 @@ export const ImpersonationBanner: React.FC = () => {
   if (!impersonator) return null;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 6 }]} pointerEvents="box-none">
+    <View style={[styles.container, { paddingTop: insets.top + 6 }]}>
       <Text style={styles.label} numberOfLines={1}>
         {t('impersonation.viewingAs', { name: user?.name ?? '' })}
       </Text>
@@ -30,11 +30,9 @@ export const ImpersonationBanner: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 9999,
+    // In normal layout flow (not an absolute overlay) so it pushes the screen
+    // below it down instead of covering the header. See AppNavigator, which
+    // zeroes the top safe-area inset for the content while this bar is shown.
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,

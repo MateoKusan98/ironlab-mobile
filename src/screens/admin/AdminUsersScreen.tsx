@@ -74,13 +74,16 @@ export const AdminUsersScreen: React.FC = () => {
           onPress: async () => {
             try {
               const { user, accessToken } = await usersService.impersonate(item.id);
-              await startImpersonation(user, accessToken);
-              // Drop straight into the impersonated user's dashboard and clear the
-              // admin stack so swiping back can't return to admin screens mid-session.
+              // Leave this admin screen BEFORE swapping the active session. Otherwise
+              // the store update re-renders this screen as a non-admin and its load
+              // effect re-fetches the user list with the impersonated (trainee) token,
+              // which 403s. Resetting first unmounts the screen so that never fires.
+              // Also clears the admin stack so swiping back can't return mid-session.
               navigation.reset({
                 index: 0,
                 routes: [{ name: user.isSetupComplete ? 'ClientApp' : 'Setup' }],
               });
+              await startImpersonation(user, accessToken);
             } catch {
               Alert.alert(t('common.error'), t('admin.impersonateFailed'));
             }

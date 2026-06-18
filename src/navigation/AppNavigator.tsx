@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { useAuthStore } from '../stores/auth.store';
 import { UserRole } from '@shared';
 import { ImpersonationBanner } from '../components/ImpersonationBanner';
@@ -117,11 +118,26 @@ import { MessagesScreen } from '../screens/messaging/MessagesScreen';
 import { ConversationScreen } from '../screens/messaging/ConversationScreen';
 
 export const AppNavigator: React.FC = () => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, impersonator } = useAuthStore();
 
   return (
     <NavigationContainer theme={navTheme}>
       <View style={{ flex: 1 }}>
+      {/* Sits in normal flow above the navigator so it pushes screens down. */}
+      <ImpersonationBanner />
+      <SafeAreaInsetsContext.Consumer>
+        {(insets) => (
+          <SafeAreaInsetsContext.Provider
+            value={{
+              // While the bar is shown it covers the status-bar area, so zero the
+              // content's top inset to avoid a double gap; pass through otherwise.
+              top: impersonator ? 0 : insets?.top ?? 0,
+              bottom: insets?.bottom ?? 0,
+              left: insets?.left ?? 0,
+              right: insets?.right ?? 0,
+            }}
+          >
+            <View style={{ flex: 1 }}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           <Stack.Screen name="Auth" component={AuthStack} />
@@ -191,7 +207,10 @@ export const AppNavigator: React.FC = () => {
           </>
         )}
       </Stack.Navigator>
-      <ImpersonationBanner />
+            </View>
+          </SafeAreaInsetsContext.Provider>
+        )}
+      </SafeAreaInsetsContext.Consumer>
       </View>
     </NavigationContainer>
   );
