@@ -138,7 +138,10 @@ export const HomeScreen: React.FC = () => {
     nextSessionJson: NextSession | null;
     trainingDays: string[] | null;
     planText: string | null;
+    missedSession: { day: string; lifts: string[] } | null;
+    catchUpRecommendation: 'make_up' | 'skip' | null;
   } | null>(null);
+  const [catchUpDismissed, setCatchUpDismissed] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -158,7 +161,7 @@ export const HomeScreen: React.FC = () => {
         proposalsService.getPending().catch(() => null),
         sessionService.getTodaySummary(today).catch(() => null),
       ]);
-      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan } : null);
+      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation } : null);
       setActiveSessionId(active?.id ?? null);
       setProposal(pending);
       setTodaySummary(summary);
@@ -279,6 +282,17 @@ export const HomeScreen: React.FC = () => {
   const nextSession = planData?.nextSessionJson;
   const hasTrainingSchedule = (planData?.trainingDays?.length ?? 0) > 0;
 
+  // Missed-session catch-up: server detects a scheduled day earlier this week with
+  // no logged session and recommends make-up vs skip (48h-spacing rule).
+  const missed = planData?.missedSession ?? null;
+  const catchUpRec = planData?.catchUpRecommendation ?? null;
+  const showCatchUp = !!missed && !catchUpDismissed && !activeSessionId;
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  const startMakeUpWorkout = () => {
+    navigation.navigate('StartSession', { makeUp: true });
+  };
+
   const startTodayWorkout = () => {
     if (activeSessionId) {
       navigation.navigate('ActiveWorkout', {
@@ -363,6 +377,43 @@ export const HomeScreen: React.FC = () => {
                   ? <ActivityIndicator color="#fff" size="small" />
                   : <Text style={styles.proposalBtnAcceptText}>{t('home.soundsGood')}</Text>
                 }
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Missed-session catch-up — offer to make up the missed day or skip it */}
+        {showCatchUp && missed && (
+          <View style={styles.catchUpCard}>
+            <Text style={styles.catchUpLabel}>{t('home.catchUp.label', { defaultValue: 'MISSED SESSION' })}</Text>
+            <Text style={styles.catchUpTitle}>
+              {t('home.catchUp.title', {
+                defaultValue: 'You missed {{day}} ({{lifts}})',
+                day: cap(missed.day),
+                lifts: missed.lifts.length ? missed.lifts.join(' + ') : t('home.catchUp.accessory', { defaultValue: 'accessory work' }),
+              })}
+            </Text>
+            <Text style={styles.catchUpSub}>
+              {catchUpRec === 'skip'
+                ? t('home.catchUp.skipHint', { defaultValue: "Heads up — it's too close to your next session, so skipping is the safer call." })
+                : t('home.catchUp.makeUpHint', { defaultValue: "It won't clash with your next session — a good one to make up." })}
+            </Text>
+            <View style={styles.catchUpActions}>
+              <TouchableOpacity
+                style={[styles.catchUpBtn, catchUpRec === 'skip' ? styles.catchUpBtnGhost : styles.catchUpBtnPrimary]}
+                onPress={startMakeUpWorkout}
+              >
+                <Text style={catchUpRec === 'skip' ? styles.catchUpBtnGhostText : styles.catchUpBtnPrimaryText}>
+                  {t('home.catchUp.doToday', { defaultValue: "Do it today" })}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.catchUpBtn, catchUpRec === 'skip' ? styles.catchUpBtnPrimary : styles.catchUpBtnGhost]}
+                onPress={() => setCatchUpDismissed(true)}
+              >
+                <Text style={catchUpRec === 'skip' ? styles.catchUpBtnPrimaryText : styles.catchUpBtnGhostText}>
+                  {t('home.catchUp.skip', { defaultValue: 'Skip it' })}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -731,6 +782,25 @@ proposalHeaderText: { flex: 1 },
   proposalBtnAccept: { backgroundColor: palette.brand[600] },
   proposalBtnDeclineText: { fontSize: 13, fontWeight: '700', color: palette.gray[300] },
   proposalBtnAcceptText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+
+  // Missed-session catch-up card
+  catchUpCard: {
+    backgroundColor: '#2a1e08',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: palette.warning[700],
+  },
+  catchUpLabel: { fontSize: 10, fontWeight: '800', color: palette.warning[400], letterSpacing: 1, marginBottom: 4 },
+  catchUpTitle: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 4 },
+  catchUpSub: { fontSize: 13, color: palette.gray[300], lineHeight: 19, marginBottom: 14 },
+  catchUpActions: { flexDirection: 'row', gap: 10 },
+  catchUpBtn: { flex: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  catchUpBtnPrimary: { backgroundColor: palette.brand[600] },
+  catchUpBtnPrimaryText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  catchUpBtnGhost: { backgroundColor: palette.gray[700] },
+  catchUpBtnGhostText: { fontSize: 13, fontWeight: '700', color: palette.gray[300] },
 
   // Today's Recap card
   prBadge: {
