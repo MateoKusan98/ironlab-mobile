@@ -439,11 +439,12 @@ const MultiChoice = ({ options, value, onChange }: { options: Option[]; value: s
   </View>
 );
 
-const NumberInput = ({ value, onChange, unit, placeholder }: { value: string; onChange: (v: string) => void; unit?: string; placeholder?: string; min?: number; max?: number }) => (
+const NumberInput = ({ value, onChange, unit, placeholder }: { value: string | number; onChange: (v: string) => void; unit?: string; placeholder?: string; min?: number; max?: number }) => (
   <View style={q.numberRow}>
     <TextInput
       style={q.numberInput}
-      value={value}
+      // TextInput needs a string; int columns prefill as JS numbers (decimals arrive as strings), so coerce.
+      value={String(value ?? '')}
       onChangeText={onChange}
       keyboardType="numeric"
       placeholder={placeholder ?? '0'}

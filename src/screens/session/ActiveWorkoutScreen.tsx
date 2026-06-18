@@ -446,10 +446,16 @@ export const ActiveWorkoutScreen: React.FC = () => {
   };
 
   const updateSetField = (exIdx: number, setIdx: number, field: keyof LocalSet, value: string | boolean) => {
+    setSetState(exIdx, setIdx, { [field]: value });
+  };
+
+  // Merge a partial update into one set. Use this (not updateSetField) when
+  // changing multiple fields at once or non-string/boolean fields like `prs`.
+  const setSetState = (exIdx: number, setIdx: number, patch: Partial<LocalSet>) => {
     setExercises((prev) => {
       const updated = [...prev];
       const ex = { ...updated[exIdx] };
-      ex.sets = ex.sets.map((s, i) => i === setIdx ? { ...s, [field]: value } : s);
+      ex.sets = ex.sets.map((s, i) => i === setIdx ? { ...s, ...patch } : s);
       updated[exIdx] = ex;
       return updated;
     });
@@ -508,16 +514,20 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
   const uncompleteSet = async (exIdx: number, setIdx: number) => {
     const set = exercises[exIdx].sets[setIdx];
+    const prevPrs = set.prs;
 
     Vibration.vibrate(30);
     stopRest();
-    updateSetField(exIdx, setIdx, 'isCompleted', false);
+    // Un-completing also clears any PR this set earned — the backend drops the
+    // PR flag, so mirror that locally to hide the trophy (and keep it out of the
+    // end-of-session summary).
+    setSetState(exIdx, setIdx, { isCompleted: false, prs: undefined });
 
     if (set.id) {
       try {
         await sessionService.updateSet(set.id, { isCompleted: false });
       } catch {
-        updateSetField(exIdx, setIdx, 'isCompleted', true);
+        setSetState(exIdx, setIdx, { isCompleted: true, prs: prevPrs });
         Alert.alert('Error', 'Could not update set. Check connection.');
       }
     }

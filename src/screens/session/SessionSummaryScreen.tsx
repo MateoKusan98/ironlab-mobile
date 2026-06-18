@@ -8,6 +8,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -106,7 +108,14 @@ export const SessionSummaryScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+      >
 
         {/* Header */}
         <View style={styles.trophyBlock}>
@@ -269,6 +278,7 @@ export const SessionSummaryScreen: React.FC = () => {
         </TouchableOpacity>
 
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
