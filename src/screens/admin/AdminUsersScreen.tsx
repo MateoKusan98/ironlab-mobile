@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  InteractionManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -83,7 +84,9 @@ export const AdminUsersScreen: React.FC = () => {
                 index: 0,
                 routes: [{ name: user.isSetupComplete ? 'ClientApp' : 'Setup' }],
               });
-              await startImpersonation(user, accessToken);
+              InteractionManager.runAfterInteractions(async () => {
+                await startImpersonation(user, accessToken);
+              });
             } catch {
               Alert.alert(t('common.error'), t('admin.impersonateFailed'));
             }
