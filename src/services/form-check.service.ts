@@ -1,5 +1,11 @@
 import { api } from './api';
 
+// These endpoints upload media AND run AI/ffmpeg server-side before responding,
+// so they take far longer than the api client's 15s default. Video is the
+// heaviest (≤60MB upload + frame extraction + GPT-4o vision on 8 frames).
+const UPLOAD_TIMEOUT_MS = 60000;
+const VIDEO_ANALYZE_TIMEOUT_MS = 120000;
+
 export interface FormCheckBreakdown {
   category: string;
   rating: 'Good' | 'Needs Work' | 'Critical';
@@ -46,6 +52,7 @@ export const formCheckService = {
 
     const { data } = await api.post('/form-check/ai-analyze', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: VIDEO_ANALYZE_TIMEOUT_MS,
     });
     return data.data;
   },
@@ -66,6 +73,7 @@ export const formCheckService = {
 
     const { data } = await api.post('/form-check/ai-analyze-video', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: VIDEO_ANALYZE_TIMEOUT_MS,
     });
     return data.data;
   },
@@ -89,6 +97,7 @@ export const formCheckService = {
 
     const { data } = await api.post('/form-check/submit', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: UPLOAD_TIMEOUT_MS,
     });
     return data.data;
   },

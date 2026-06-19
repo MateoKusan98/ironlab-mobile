@@ -83,6 +83,8 @@ export const communityService = {
 
     const { data } = await api.post<ApiResponse<FeedPost>>('/community/form-check', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      // Video posts (≤30s) can be large; don't let the 15s api default abort the upload.
+      timeout: 60000,
     });
     return data.data;
   },
