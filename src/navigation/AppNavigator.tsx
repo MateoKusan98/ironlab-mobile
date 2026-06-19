@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { useAuthStore } from '../stores/auth.store';
+import { registerPushToken } from '../services/pushNotification.service';
 import { UserRole } from '@shared';
 import { ImpersonationBanner } from '../components/ImpersonationBanner';
 import { AuthStack } from './AuthStack';
@@ -119,6 +120,14 @@ import { ConversationScreen } from '../screens/messaging/ConversationScreen';
 
 export const AppNavigator: React.FC = () => {
   const { isAuthenticated, user, impersonator } = useAuthStore();
+
+  // Once the user is logged in (fresh login or a restored session), register this
+  // device's Expo push token with the backend so it can send push notifications.
+  useEffect(() => {
+    if (isAuthenticated) {
+      registerPushToken();
+    }
+  }, [isAuthenticated]);
 
   return (
     <NavigationContainer theme={navTheme}>
