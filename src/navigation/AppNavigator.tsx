@@ -45,7 +45,7 @@ export type RootStackParamList = {
   WorkoutHistory: undefined;
   Stats: undefined;
   SessionDetail: { sessionId: string };
-  StartSession: { plan?: string; nextSessionJson?: import('../services/ai-coach.service').NextSession | null; freeSession?: boolean; makeUp?: boolean };
+  StartSession: { plan?: string; nextSessionJson?: import('../services/ai-coach.service').NextSession | null; freeSession?: boolean; makeUp?: boolean; skipNext?: boolean };
   ActiveWorkout: { sessionId: string; plannedExercises?: Array<{ name: string; sets: number; reps: number; weight: number; rpe?: number; weightPerc?: number; cue?: string }> };
   SessionSummary: { sessionId: string; durationMinutes: number; prs?: Array<{ type: string; label: string; value: number; previous: number | null; exerciseName: string }> };
   CardioLog: undefined;

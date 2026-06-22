@@ -102,7 +102,19 @@
     "aiCoach": "AI Coach",
     "coachSuggestion": "COACH SUGGESTION",
     "soundsGood": "Sounds good 👍",
-    "notForMe": "Not for me"
+    "notForMe": "Not for me",
+    "trainEarly": {
+      "cta": "Train anyway",
+      "title": "Today's a rest day",
+      "body": "This pulls {{day}}'s session forward. Train now?",
+      "confirm": "Train now"
+    },
+    "skipAhead": {
+      "cta": "Skip → do {{day}} instead",
+      "title": "Skip today's session?",
+      "body": "You'll do {{day}}'s workout instead.",
+      "confirm": "Do {{day}} instead"
+    }
   },
   "session": {
     "readinessCheck": "Readiness Check",

@@ -112,8 +112,8 @@ export const aiCoachService = {
     return data.data;
   },
 
-  generatePlan: async (readiness?: { mood?: string; energyLevel?: number; sleepHours?: number }, note?: string, makeUp?: boolean): Promise<string> => {
-    const { data } = await api.post<{ data: { plan: string } }>('/ai-coach/generate-plan', { ...readiness ?? {}, ...(note ? { note } : {}), ...(makeUp ? { makeUp: true } : {}) });
+  generatePlan: async (readiness?: { mood?: string; energyLevel?: number; sleepHours?: number }, note?: string, makeUp?: boolean, skipNext?: boolean): Promise<string> => {
+    const { data } = await api.post<{ data: { plan: string } }>('/ai-coach/generate-plan', { ...readiness ?? {}, ...(note ? { note } : {}), ...(makeUp ? { makeUp: true } : {}), ...(skipNext ? { skipNext: true } : {}) });
     return data.data.plan;
   },
 
@@ -141,6 +141,8 @@ export const aiCoachService = {
     sessionsPerCycle: number | null;
     missedSession: { day: string; lifts: string[] } | null;
     catchUpRecommendation: 'make_up' | 'skip' | null;
+    nextScheduledDay: string | null;
+    skipAheadDay: string | null;
   }> => {
     const { data } = await api.get<{ data: {
       plan: string | null;
@@ -156,6 +158,8 @@ export const aiCoachService = {
       sessionsPerCycle: number | null;
       missedSession: { day: string; lifts: string[] } | null;
       catchUpRecommendation: 'make_up' | 'skip' | null;
+      nextScheduledDay: string | null;
+      skipAheadDay: string | null;
     } }>('/ai-coach/plan');
     return data.data;
   },
@@ -296,5 +300,16 @@ export const adminAiService = {
   getDebugPrompt: async (userId: string): Promise<{ systemPrompt: string; userMessage: string; layers: Record<string, string | null> }> => {
     const { data } = await api.get<{ data: { systemPrompt: string; userMessage: string; layers: Record<string, string | null> } }>(`/ai-coach/admin/lab/${userId}/debug-prompt`);
     return data.data;
+  },
+
+  // The editable source profile behind the context message. Numeric columns are
+  // returned as strings (see backend getProfile projection), arrays/booleans as-is.
+  getProfile: async (userId: string): Promise<Record<string, any> | null> => {
+    const { data } = await api.get<{ data: Record<string, any> | null }>(`/ai-coach/admin/lab/${userId}/profile`);
+    return data.data;
+  },
+
+  saveProfile: async (userId: string, updates: Record<string, any>): Promise<void> => {
+    await api.post(`/ai-coach/admin/lab/${userId}/profile`, updates);
   },
 };

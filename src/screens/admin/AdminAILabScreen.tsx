@@ -5,6 +5,7 @@ import {
   Modal,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -14,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { adminAiService, AdminUserEntry, AdminUserState } from '../../services/ai-coach.service';
+import { KeyboardAwareScreen } from '../../components/ui';
 import { palette, theme } from '../../theme';
 
 type RouteProps = RouteProp<RootStackParamList, 'AdminAILab'>;
@@ -190,6 +192,288 @@ const debug = StyleSheet.create({
   code: { fontSize: 11, color: palette.gray[300], fontFamily: 'monospace', lineHeight: 17 },
 });
 
+// ── Profile Editor Modal ───────────────────────────────────────────────────
+// Lets an admin fix bad onboarding input. Fields mirror the backend's editable
+// projection (CLIENT_PROFILE_FIELDS); the context message sent to GPT is
+// recomputed from these on the next plan generation.
+
+type FieldType = 'text' | 'multiline' | 'number' | 'bool' | 'enum' | 'csv' | 'days';
+interface FieldSpec { key: string; label: string; type: FieldType; group: string; options?: string[]; hint?: string }
+
+const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+const PROFILE_FIELDS: FieldSpec[] = [
+  // Goal
+  { key: 'primaryGoal', label: 'Primary goal', type: 'text', group: 'Goal' },
+  { key: 'specificGoal', label: 'Specific goal', type: 'multiline', group: 'Goal' },
+  { key: 'timeline', label: 'Timeline', type: 'text', group: 'Goal' },
+  { key: 'priorityHierarchy', label: 'Priority hierarchy', type: 'multiline', group: 'Goal' },
+  { key: 'successMetrics', label: 'Success metrics', type: 'multiline', group: 'Goal' },
+  // Training history
+  { key: 'yearsTraining', label: 'Years training', type: 'number', group: 'Training History' },
+  { key: 'experienceLevel', label: 'Experience level', type: 'enum', group: 'Training History', options: ['novice', 'beginner', 'intermediate', 'advanced'] },
+  { key: 'bestSystems', label: 'Best systems', type: 'csv', group: 'Training History', hint: 'comma-separated' },
+  { key: 'failedSystems', label: 'Failed systems', type: 'csv', group: 'Training History', hint: 'comma-separated' },
+  { key: 'adaptationSpeed', label: 'Adaptation speed', type: 'text', group: 'Training History' },
+  // Strength
+  { key: 'squatMax', label: 'Squat 1RM (kg)', type: 'number', group: 'Strength' },
+  { key: 'benchMax', label: 'Bench 1RM (kg)', type: 'number', group: 'Strength' },
+  { key: 'deadliftMax', label: 'Deadlift 1RM (kg)', type: 'number', group: 'Strength' },
+  { key: 'ohpMax', label: 'OHP 1RM (kg)', type: 'number', group: 'Strength' },
+  { key: 'squatERM', label: 'Squat eRM (kg)', type: 'number', group: 'Strength' },
+  { key: 'benchERM', label: 'Bench eRM (kg)', type: 'number', group: 'Strength' },
+  { key: 'deadliftERM', label: 'Deadlift eRM (kg)', type: 'number', group: 'Strength' },
+  { key: 'ohpERM', label: 'OHP eRM (kg)', type: 'number', group: 'Strength' },
+  { key: 'prTrend', label: 'PR trend', type: 'multiline', group: 'Strength' },
+  // Technical
+  { key: 'squatWeakPoint', label: 'Squat weak point', type: 'text', group: 'Technical' },
+  { key: 'benchWeakPoint', label: 'Bench weak point', type: 'text', group: 'Technical' },
+  { key: 'deadliftWeakPoint', label: 'Deadlift weak point', type: 'text', group: 'Technical' },
+  { key: 'mobilityLimitations', label: 'Mobility limitations', type: 'csv', group: 'Technical', hint: 'comma-separated' },
+  { key: 'preferredSquatStance', label: 'Preferred squat stance', type: 'text', group: 'Technical' },
+  // Recovery
+  { key: 'avgSleepHours', label: 'Avg sleep hours', type: 'number', group: 'Recovery' },
+  { key: 'sleepQuality', label: 'Sleep quality', type: 'text', group: 'Recovery' },
+  { key: 'jobStressLevel', label: 'Job stress (1–5)', type: 'number', group: 'Recovery' },
+  { key: 'physicalLabor', label: 'Physical labor job', type: 'bool', group: 'Recovery' },
+  { key: 'weeklyCardioSessions', label: 'Weekly cardio sessions', type: 'number', group: 'Recovery' },
+  { key: 'otherSports', label: 'Other sports', type: 'csv', group: 'Recovery', hint: 'comma-separated' },
+  { key: 'otherSportsFrequency', label: 'Other sports frequency', type: 'text', group: 'Recovery' },
+  { key: 'injuryHistory', label: 'Injury history', type: 'multiline', group: 'Recovery' },
+  { key: 'recoverySpeed', label: 'Recovery speed', type: 'text', group: 'Recovery' },
+  // Constraints
+  { key: 'trainingDaysPerWeek', label: 'Training days / week', type: 'number', group: 'Constraints' },
+  { key: 'trainingDays', label: 'Training days', type: 'days', group: 'Constraints' },
+  { key: 'sessionDurationMinutes', label: 'Session duration (min)', type: 'number', group: 'Constraints' },
+  { key: 'equipmentAccess', label: 'Equipment access', type: 'multiline', group: 'Constraints' },
+  // Exercise response
+  { key: 'responseType', label: 'Response type', type: 'multiline', group: 'Exercise Response' },
+  { key: 'deadliftRecoveryCost', label: 'Deadlift recovery cost', type: 'text', group: 'Exercise Response' },
+  { key: 'painfulExercises', label: 'Painful exercises', type: 'multiline', group: 'Exercise Response' },
+  { key: 'preferredExercises', label: 'Preferred exercises', type: 'multiline', group: 'Exercise Response' },
+  // Nutrition
+  { key: 'currentPhase', label: 'Current phase', type: 'text', group: 'Nutrition' },
+  { key: 'dailyProteinTarget', label: 'Daily protein (g)', type: 'number', group: 'Nutrition' },
+  { key: 'weightClassTarget', label: 'Weight class target', type: 'text', group: 'Nutrition' },
+  { key: 'nutritionTrackingEnabled', label: 'Nutrition tracking enabled', type: 'bool', group: 'Nutrition' },
+  // Psychology
+  { key: 'prefersStructure', label: 'Prefers structure', type: 'bool', group: 'Psychology' },
+  { key: 'missedLiftResponse', label: 'Missed-lift response', type: 'multiline', group: 'Psychology' },
+  { key: 'overshootsEffort', label: 'Overshoots effort', type: 'bool', group: 'Psychology' },
+  { key: 'motivationConsistency', label: 'Motivation consistency', type: 'multiline', group: 'Psychology' },
+  // Tracking
+  { key: 'trackingHabits', label: 'Tracking habits', type: 'csv', group: 'Tracking', hint: 'comma-separated' },
+  { key: 'historicalWorkoutData', label: 'Historical workout data', type: 'multiline', group: 'Tracking' },
+  // Big 3 frequency
+  { key: 'squatFrequencyPerWeek', label: 'Squat freq / week', type: 'number', group: 'Big 3 Frequency' },
+  { key: 'benchFrequencyPerWeek', label: 'Bench freq / week', type: 'number', group: 'Big 3 Frequency' },
+  { key: 'deadliftFrequencyPerWeek', label: 'Deadlift freq / week', type: 'number', group: 'Big 3 Frequency' },
+  // Periodization
+  { key: 'preferredPeakingStyle', label: 'Preferred peaking style', type: 'text', group: 'Periodization' },
+  { key: 'meetExperience', label: 'Meet experience', type: 'number', group: 'Periodization' },
+  { key: 'deloadResponse', label: 'Deload response', type: 'multiline', group: 'Periodization' },
+  { key: 'taperSensitivity', label: 'Taper sensitivity', type: 'text', group: 'Periodization' },
+  // Philosophy
+  { key: 'trainingFocus', label: 'Training focus', type: 'enum', group: 'Philosophy', options: ['hypertrophy', 'powerbuilding', 'strength'] },
+  { key: 'preferredIntensity', label: 'Preferred intensity (1–5)', type: 'number', group: 'Philosophy' },
+];
+
+function profileToForm(profile: Record<string, any> | null): Record<string, any> {
+  const form: Record<string, any> = {};
+  for (const f of PROFILE_FIELDS) {
+    const raw = profile?.[f.key];
+    if (f.type === 'bool') form[f.key] = raw === true || raw === 1 || raw === '1';
+    else if (f.type === 'csv' || f.type === 'days') form[f.key] = Array.isArray(raw) ? raw : [];
+    else form[f.key] = raw == null ? '' : String(raw);
+  }
+  return form;
+}
+
+function formToPayload(form: Record<string, any>): Record<string, any> {
+  const payload: Record<string, any> = {};
+  for (const f of PROFILE_FIELDS) {
+    const v = form[f.key];
+    if (f.type === 'bool') {
+      payload[f.key] = !!v;
+    } else if (f.type === 'number') {
+      if (typeof v === 'string' && v.trim() !== '') {
+        const n = Number(v);
+        if (!Number.isNaN(n)) payload[f.key] = n;
+      }
+    } else if (f.type === 'csv' || f.type === 'days') {
+      if (Array.isArray(v) && v.length) payload[f.key] = v;
+    } else {
+      if (typeof v === 'string' && v.trim() !== '') payload[f.key] = v;
+    }
+  }
+  return payload;
+}
+
+function ProfileEditModal({
+  visible, onClose, userId, onSaved,
+}: { visible: boolean; onClose: () => void; userId: string; onSaved: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [form, setForm] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    if (!visible) return;
+    setLoading(true);
+    adminAiService.getProfile(userId)
+      .then((p) => { setHasProfile(p != null); setForm(profileToForm(p)); })
+      .catch(() => Alert.alert('Error', 'Could not load profile'))
+      .finally(() => setLoading(false));
+  }, [visible, userId]);
+
+  const set = (key: string, value: any) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const toggleArrayValue = (key: string, value: string) =>
+    setForm((prev) => {
+      const arr: string[] = Array.isArray(prev[key]) ? prev[key] : [];
+      return { ...prev, [key]: arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value] };
+    });
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await adminAiService.saveProfile(userId, formToPayload(form));
+      Alert.alert('Saved', 'Profile updated. The next plan will use the new context.');
+      onSaved();
+      onClose();
+    } catch (e: any) {
+      Alert.alert('Error', e?.response?.data?.message ?? e?.message ?? 'Could not save profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Group fields for rendering, preserving declaration order.
+  const groups: { name: string; fields: FieldSpec[] }[] = [];
+  for (const f of PROFILE_FIELDS) {
+    let g = groups.find((x) => x.name === f.group);
+    if (!g) { g = { name: f.group, fields: [] }; groups.push(g); }
+    g.fields.push(f);
+  }
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top', 'bottom']}>
+        <View style={edit.header}>
+          <TouchableOpacity onPress={onClose}><Text style={edit.close}>✕</Text></TouchableOpacity>
+          <Text style={edit.title}>Edit AI Profile</Text>
+          <TouchableOpacity onPress={save} disabled={saving || loading}>
+            {saving
+              ? <ActivityIndicator size="small" color={palette.brand[400]} />
+              : <Text style={[edit.save, (loading) && { opacity: 0.4 }]}>Save</Text>}
+          </TouchableOpacity>
+        </View>
+        {loading ? (
+          <ActivityIndicator color={palette.brand[400]} style={{ marginTop: 40 }} />
+        ) : (
+          <KeyboardAwareScreen contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
+            {!hasProfile && (
+              <Text style={edit.notice}>No AI profile exists yet — saving will create one.</Text>
+            )}
+            {groups.map((g) => (
+              <View key={g.name} style={edit.group}>
+                <Text style={edit.groupTitle}>{g.name}</Text>
+                {g.fields.map((f) => (
+                  <View key={f.key} style={edit.field}>
+                    <View style={edit.fieldLabelRow}>
+                      <Text style={edit.fieldLabel}>{f.label}</Text>
+                      {f.hint && <Text style={edit.fieldHint}>{f.hint}</Text>}
+                    </View>
+                    {f.type === 'bool' && (
+                      <Switch
+                        value={!!form[f.key]}
+                        onValueChange={(v) => set(f.key, v)}
+                        trackColor={{ false: palette.gray[700], true: palette.brand[600] }}
+                        thumbColor="#fff"
+                      />
+                    )}
+                    {f.type === 'enum' && (
+                      <View style={edit.chipRow}>
+                        {f.options!.map((opt) => {
+                          const active = form[f.key] === opt;
+                          return (
+                            <TouchableOpacity
+                              key={opt}
+                              style={[edit.chip, active && edit.chipActive]}
+                              onPress={() => set(f.key, active ? '' : opt)}
+                            >
+                              <Text style={[edit.chipText, active && edit.chipTextActive]}>{opt}</Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    )}
+                    {f.type === 'days' && (
+                      <View style={edit.chipRow}>
+                        {WEEKDAYS.map((d) => {
+                          const active = Array.isArray(form[f.key]) && form[f.key].includes(d);
+                          return (
+                            <TouchableOpacity
+                              key={d}
+                              style={[edit.chip, active && edit.chipActive]}
+                              onPress={() => toggleArrayValue(f.key, d)}
+                            >
+                              <Text style={[edit.chipText, active && edit.chipTextActive]}>{d.slice(0, 3)}</Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    )}
+                    {(f.type === 'text' || f.type === 'multiline' || f.type === 'number' || f.type === 'csv') && (
+                      <TextInput
+                        style={[edit.input, f.type === 'multiline' && edit.inputMultiline]}
+                        value={f.type === 'csv' ? (Array.isArray(form[f.key]) ? form[f.key].join(', ') : '') : form[f.key]}
+                        onChangeText={(txt) =>
+                          f.type === 'csv'
+                            ? set(f.key, txt.split(',').map((s) => s.trim()).filter(Boolean))
+                            : set(f.key, txt)
+                        }
+                        multiline={f.type === 'multiline'}
+                        keyboardType={f.type === 'number' ? 'decimal-pad' : 'default'}
+                        placeholder={f.type === 'number' ? '—' : ''}
+                        placeholderTextColor={palette.gray[600]}
+                      />
+                    )}
+                  </View>
+                ))}
+              </View>
+            ))}
+          </KeyboardAwareScreen>
+        )}
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+const edit = StyleSheet.create({
+  header:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: palette.gray[800] },
+  title:   { fontSize: 18, fontWeight: '700', color: theme.colors.text },
+  close:   { fontSize: 22, color: palette.gray[400] },
+  save:    { fontSize: 15, fontWeight: '700', color: palette.brand[400] },
+  notice:  { fontSize: 12, color: palette.warning[400], marginBottom: 14, lineHeight: 17 },
+  group:      { marginBottom: 18 },
+  groupTitle: { fontSize: 11, fontWeight: '700', color: palette.brand[400], textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
+  field:         { marginBottom: 12 },
+  fieldLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 },
+  fieldLabel:    { fontSize: 12, fontWeight: '600', color: palette.gray[300] },
+  fieldHint:     { fontSize: 10, color: palette.gray[600], fontStyle: 'italic' },
+  input: {
+    backgroundColor: palette.gray[900], borderRadius: 8, paddingHorizontal: 12, paddingVertical: 9,
+    color: theme.colors.text, fontSize: 14, borderWidth: 1, borderColor: palette.gray[700],
+  },
+  inputMultiline: { minHeight: 64, textAlignVertical: 'top' },
+  chipRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  chip:        { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: palette.gray[700], backgroundColor: palette.gray[900] },
+  chipActive:  { borderColor: palette.brand[500], backgroundColor: palette.brand[600] + '33' },
+  chipText:    { fontSize: 12, color: palette.gray[400] },
+  chipTextActive: { color: palette.brand[300], fontWeight: '700' },
+});
+
 // ── Main Screen ───────────────────────────────────────────────────────────
 
 export const AdminAILabScreen: React.FC = () => {
@@ -202,6 +486,7 @@ export const AdminAILabScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [debugVisible, setDebugVisible] = useState(false);
+  const [profileEditVisible, setProfileEditVisible] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const [showUserPicker, setShowUserPicker] = useState(false);
 
@@ -656,6 +941,15 @@ export const AdminAILabScreen: React.FC = () => {
             />
           </Section>
 
+          {/* ── Athlete Profile ──────────────────────────────────────── */}
+          <Section title="Athlete Profile">
+            <Text style={styles.fieldHint}>
+              View and fix the onboarding answers this user entered. These feed the context message GPT receives —
+              correcting bad input here updates the next plan.
+            </Text>
+            <Btn label="Edit AI Profile" onPress={() => setProfileEditVisible(true)} />
+          </Section>
+
           {/* ── Debug Prompt ─────────────────────────────────────────── */}
           <Section title="Debug Prompt">
             <Text style={styles.fieldHint}>
@@ -673,6 +967,15 @@ export const AdminAILabScreen: React.FC = () => {
           visible={debugVisible}
           onClose={() => setDebugVisible(false)}
           userId={selectedUser.id}
+        />
+      )}
+
+      {selectedUser && (
+        <ProfileEditModal
+          visible={profileEditVisible}
+          onClose={() => setProfileEditVisible(false)}
+          userId={selectedUser.id}
+          onSaved={() => loadState(selectedUser.id)}
         />
       )}
     </SafeAreaView>

@@ -43,6 +43,7 @@ import {
   ChartLineUp,
   Lightning,
   Heartbeat,
+  FastForward,
 } from 'phosphor-react-native';
 
 const CREATINE_ENABLED_KEY = '@ironlab_creatine_enabled';
@@ -140,8 +141,14 @@ export const HomeScreen: React.FC = () => {
     planText: string | null;
     missedSession: { day: string; lifts: string[] } | null;
     catchUpRecommendation: 'make_up' | 'skip' | null;
+    nextScheduledDay: string | null;
+    skipAheadDay: string | null;
   } | null>(null);
   const [catchUpDismissed, setCatchUpDismissed] = useState(false);
+  // Schedule-shift confirm sheet: 'early' = train on a rest day (pull next session
+  // forward), 'skip' = skip the upcoming scheduled day and do the one after it.
+  const [shiftSheet, setShiftSheet] = useState<{ kind: 'early' | 'skip'; day: string } | null>(null);
+  const shiftSlide = useRef(new Animated.Value(300)).current;
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -161,7 +168,7 @@ export const HomeScreen: React.FC = () => {
         proposalsService.getPending().catch(() => null),
         sessionService.getTodaySummary(today).catch(() => null),
       ]);
-      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation } : null);
+      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation, nextScheduledDay: plan.nextScheduledDay, skipAheadDay: plan.skipAheadDay } : null);
       setActiveSessionId(active?.id ?? null);
       setProposal(pending);
       setTodaySummary(summary);
@@ -287,10 +294,46 @@ export const HomeScreen: React.FC = () => {
   const missed = planData?.missedSession ?? null;
   const catchUpRec = planData?.catchUpRecommendation ?? null;
   const showCatchUp = !!missed && !catchUpDismissed && !activeSessionId;
+  const nextScheduledDay = planData?.nextScheduledDay ?? null;
+  const skipAheadDay = planData?.skipAheadDay ?? null;
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
   const startMakeUpWorkout = () => {
     navigation.navigate('StartSession', { makeUp: true });
+  };
+
+  // Schedule-shift sheet animation — entrance runs after mount (rAF) so the native
+  // node exists, matching the creatine sheet (synchronous entrance drops on New Arch).
+  useEffect(() => {
+    if (shiftSheet === null) return;
+    shiftSlide.setValue(300);
+    let anim: Animated.CompositeAnimation | undefined;
+    const raf = requestAnimationFrame(() => {
+      anim = Animated.spring(shiftSlide, { toValue: 0, useNativeDriver: true, bounciness: 4 });
+      anim.start();
+    });
+    return () => { cancelAnimationFrame(raf); anim?.stop(); };
+  }, [shiftSheet, shiftSlide]);
+
+  const closeShiftSheet = (onDone?: () => void) => {
+    Animated.timing(shiftSlide, { toValue: 300, duration: 220, useNativeDriver: true }).start(() => {
+      setShiftSheet(null);
+      onDone?.();
+    });
+  };
+
+  // Rest-day "train anyway": pull the next scheduled session forward. The backend
+  // already targets nextScheduledDay when today isn't a training day, so no flag.
+  const confirmTrainEarly = () => {
+    closeShiftSheet(() => navigation.navigate('StartSession', {
+      plan: planData?.planText ?? undefined,
+      nextSessionJson: planData?.nextSessionJson ?? undefined,
+    }));
+  };
+
+  // Skip the upcoming scheduled day and generate the one after it (skipNext).
+  const confirmSkipAhead = () => {
+    closeShiftSheet(() => navigation.navigate('StartSession', { skipNext: true }));
   };
 
   const startTodayWorkout = () => {
@@ -453,17 +496,17 @@ export const HomeScreen: React.FC = () => {
             <View style={styles.restDayBlock}>
               <Moon size={40} weight="fill" color={palette.gray[500]} style={{ marginBottom: 6 }} />
               <Text style={styles.restDayText}>{t('home.restDay')}</Text>
-              {(() => {
-                const days = planData?.trainingDays ?? [];
-                const todayIdx = new Date().getDay();
-                for (let i = 1; i <= 7; i++) {
-                  const candidate = DAY_NAMES[(todayIdx + i) % 7];
-                  if (days.includes(candidate)) {
-                    return <Text style={styles.restDaySub}>{t('home.nextSession')}: {candidate.charAt(0).toUpperCase() + candidate.slice(1)}</Text>;
-                  }
-                }
-                return null;
-              })()}
+              {nextScheduledDay && (
+                <Text style={styles.restDaySub}>{t('home.nextSession')}: {cap(nextScheduledDay)}</Text>
+              )}
+              {nextScheduledDay && (
+                <TouchableOpacity
+                  style={styles.shiftLink}
+                  onPress={() => setShiftSheet({ kind: 'early', day: nextScheduledDay })}
+                >
+                  <Text style={styles.shiftLinkText}>{t('home.trainEarly.cta', { defaultValue: 'Train anyway' })}</Text>
+                </TouchableOpacity>
+              )}
             </View>
           ) : nextSession ? (
             <>
@@ -474,6 +517,14 @@ export const HomeScreen: React.FC = () => {
               <TouchableOpacity style={styles.startBtn} onPress={startTodayWorkout}>
                 <Text style={styles.startBtnText}>{t('home.startWorkout')}</Text>
               </TouchableOpacity>
+              {skipAheadDay && skipAheadDay !== todayDayName && (
+                <TouchableOpacity
+                  style={styles.shiftLink}
+                  onPress={() => setShiftSheet({ kind: 'skip', day: skipAheadDay })}
+                >
+                  <Text style={styles.shiftLinkText}>{t('home.skipAhead.cta', { defaultValue: 'Skip → do {{day}} instead', day: cap(skipAheadDay) })}</Text>
+                </TouchableOpacity>
+              )}
             </>
           ) : (
             <TouchableOpacity style={styles.setupPrompt} onPress={openAICoach}>
@@ -635,6 +686,43 @@ export const HomeScreen: React.FC = () => {
           </Animated.View>
         </View>
       </Modal>
+
+      {/* Schedule-shift confirm — train early on a rest day, or skip the next slot */}
+      <Modal transparent visible={shiftSheet !== null} animationType="none" onRequestClose={() => closeShiftSheet()}>
+        <View style={styles.creatineOverlay}>
+          <Animated.View style={[styles.creatineSheet, { transform: [{ translateY: shiftSlide }] }]}>
+            <View style={styles.creatineHandle} />
+            <View style={styles.creatineIconWrap}>
+              {shiftSheet?.kind === 'early'
+                ? <Moon size={36} weight="fill" color={palette.brand[400]} />
+                : <FastForward size={36} weight="fill" color={palette.brand[400]} />}
+            </View>
+            {shiftSheet?.kind === 'early' ? (
+              <>
+                <Text style={styles.creatineQuestion}>{t('home.trainEarly.title', { defaultValue: "Today's a rest day" })}</Text>
+                <Text style={styles.creatineSubtitle}>{t('home.trainEarly.body', { defaultValue: "This pulls {{day}}'s session forward. Train now?", day: cap(shiftSheet.day) })}</Text>
+                <TouchableOpacity style={styles.creatineYesBtn} onPress={confirmTrainEarly}>
+                  <Text style={styles.creatineYesBtnText}>{t('home.trainEarly.confirm', { defaultValue: 'Train now' })}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.creatineNoBtn} onPress={() => closeShiftSheet()}>
+                  <Text style={styles.creatineNoBtnText}>{t('common.cancel', { defaultValue: 'Cancel' })}</Text>
+                </TouchableOpacity>
+              </>
+            ) : shiftSheet?.kind === 'skip' ? (
+              <>
+                <Text style={styles.creatineQuestion}>{t('home.skipAhead.title', { defaultValue: "Skip today's session?" })}</Text>
+                <Text style={styles.creatineSubtitle}>{t('home.skipAhead.body', { defaultValue: "You'll do {{day}}'s workout instead.", day: cap(shiftSheet.day) })}</Text>
+                <TouchableOpacity style={styles.creatineYesBtn} onPress={confirmSkipAhead}>
+                  <Text style={styles.creatineYesBtnText}>{t('home.skipAhead.confirm', { defaultValue: 'Do {{day}} instead', day: cap(shiftSheet.day) })}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.creatineNoBtn} onPress={() => closeShiftSheet()}>
+                  <Text style={styles.creatineNoBtnText}>{t('common.cancel', { defaultValue: 'Cancel' })}</Text>
+                </TouchableOpacity>
+              </>
+            ) : null}
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -724,6 +812,8 @@ cardTitle: { fontSize: 16, fontWeight: '700', color: theme.colors.text, flex: 1 
   restDayBlock: { alignItems: 'center', paddingVertical: 12 },
 restDayText: { fontSize: 18, fontWeight: '700', color: palette.gray[300], marginBottom: 4 },
   restDaySub: { fontSize: 13, color: palette.gray[500] },
+  shiftLink: { marginTop: 12, paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'center' },
+  shiftLinkText: { fontSize: 14, fontWeight: '600', color: palette.brand[400] },
 
   sessionReadyRow: {
     flexDirection: 'row',

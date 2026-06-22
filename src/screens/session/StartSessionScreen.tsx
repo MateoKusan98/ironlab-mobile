@@ -136,9 +136,9 @@ export const StartSessionScreen: React.FC = () => {
       // skip straight to the workout — only re-show it once a new workout is generated.
       const marker: ReadinessMarker | null = markerRaw ? JSON.parse(markerRaw) : null;
       const hasPlan = !!(plan?.plan || plan?.nextSessionJson?.exercises?.length);
-      // A make-up always re-runs readiness → regenerate for the missed day, so never
-      // short-circuit to the already-generated (natural next-day) plan here.
-      if (!route.params?.freeSession && !route.params?.makeUp && plan && hasPlan && marker && plan.generatedAt && marker.planAt === plan.generatedAt) {
+      // A make-up or skip-ahead always re-runs readiness → regenerate for the chosen
+      // slot, so never short-circuit to the already-generated (natural next-day) plan.
+      if (!route.params?.freeSession && !route.params?.makeUp && !route.params?.skipNext && plan && hasPlan && marker && plan.generatedAt && marker.planAt === plan.generatedAt) {
         applyPlanResult(plan);
         if (marker.mood) setMood(marker.mood);
         if (typeof marker.energyLevel === 'number') setEnergyLevel(marker.energyLevel);
@@ -178,16 +178,19 @@ export const StartSessionScreen: React.FC = () => {
       let result = await aiCoachService.getPlan();
       const planFromToday = result.generatedAt ? result.generatedAt.startsWith(today) : false;
       const makeUp = route.params?.makeUp === true;
+      const skipNext = route.params?.skipNext === true;
 
-      // Regenerate when there's no plan for today, OR when making up a missed day
-      // (the existing plan targets the natural next day, so it must be replaced).
-      if (!planFromToday || makeUp) {
+      // Regenerate when there's no plan for today, OR when making up a missed day,
+      // OR when skipping the upcoming slot to do the one after it. In the make-up /
+      // skip cases the existing plan targets the natural next day, so it must be
+      // replaced with one for the chosen slot.
+      if (!planFromToday || makeUp || skipNext) {
         // Generate fresh plan using today's readiness data
         await aiCoachService.generatePlan({
           mood,
           energyLevel,
           sleepHours: sleepHours ? parseFloat(sleepHours) : undefined,
-        }, undefined, makeUp);
+        }, undefined, makeUp, skipNext);
         // Re-fetch to get nextSessionJson and cycle metadata
         result = await aiCoachService.getPlan();
       }
