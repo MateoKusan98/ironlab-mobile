@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  KeyboardAvoidingView,
   Platform,
   Image,
   Alert,
@@ -13,6 +12,7 @@ import {
   Modal,
   TextInput as RNTextInput,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { theme, palette } from '../../theme';
@@ -234,7 +234,7 @@ export const ManualFoodLogScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         style={{ flex: 1 }}
       >
         <View style={styles.header}>
@@ -471,7 +471,7 @@ export const ManualFoodLogScreen: React.FC = () => {
 
       {/* Paste ingredients modal */}
       <Modal visible={pasteModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPasteModalVisible(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, backgroundColor: '#000' }}>
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: '#000' }}>
           <View style={pm.header}>
             <Text style={pm.title}>{t('manualFood.pasteRecipeTitle')}</Text>
             <TouchableOpacity onPress={() => setPasteModalVisible(false)} style={pm.closeBtn}>

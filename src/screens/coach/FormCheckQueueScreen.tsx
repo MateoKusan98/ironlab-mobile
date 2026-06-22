@@ -11,9 +11,8 @@ import {
   TextInput,
   Alert,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -83,7 +82,7 @@ const DetailView = ({ item, onBack }: { item: QueueItem; onBack: () => void }) =
   const mediaIsVideo = item.mediaUrls?.[0]?.match(/\.mp4|video/);
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <ScrollView contentContainerStyle={styles.detailScroll} showsVerticalScrollIndicator={false}>
         <View style={styles.detailMeta}>
           <Text style={styles.detailAthlete}>{item.user?.name ?? 'Athlete'}</Text>

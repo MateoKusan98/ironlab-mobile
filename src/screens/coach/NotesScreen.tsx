@@ -4,12 +4,12 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { CoachStackParamList } from '../../navigation/CoachTabs';
@@ -75,7 +75,7 @@ export const NotesScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView}>
+      <KeyboardAwareScreen style={styles.scrollView}>
         {isLoading ? (
           <ActivityIndicator color={theme.colors.primary} />
         ) : notes && notes.length > 0 ? (
@@ -95,7 +95,7 @@ export const NotesScreen: React.FC = () => {
         ) : (
           <Text style={styles.empty}>{t('coach.noNotesYet')}</Text>
         )}
-      </ScrollView>
+      </KeyboardAwareScreen>
     </SafeAreaView>
   );
 };

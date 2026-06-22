@@ -7,11 +7,11 @@ import {
   Alert,
   ActivityIndicator,
   Image,
-  ScrollView,
   Switch,
   Modal,
   TextInput,
 } from 'react-native';
+import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -29,7 +29,8 @@ import { nutritionService } from '../../services/nutrition.service';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from '../../i18n';
-import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug } from 'phosphor-react-native';
+import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug, Sparkle } from 'phosphor-react-native';
+import { useWhatsNew } from '../../contexts/WhatsNewContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBadges } from '../../hooks/useBadges';
 import { rankForPoints } from '../../services/rank';
@@ -78,6 +79,7 @@ export const ProfileScreen: React.FC = () => {
   const logoutMutation = useLogout();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
+  const { open: openWhatsNew } = useWhatsNew();
   const DAYS = DAY_VALUES.map((v) => ({ value: v, short: t(`history.${v}`) }));
   const { compoundRestSecs, isolationRestSecs, language, setCompoundRestSecs, setIsolationRestSecs, setLanguage } = useSettingsStore();
 
@@ -287,7 +289,7 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <KeyboardAwareScreen style={styles.scroll} contentContainerStyle={styles.content}>
         <Text style={styles.title}>{t('profile.title')}</Text>
 
         {/* Avatar */}
@@ -610,6 +612,16 @@ export const ProfileScreen: React.FC = () => {
           </View>
           <TouchableOpacity
             style={styles.menuItem}
+            onPress={openWhatsNew}
+          >
+            <Sparkle size={20} weight="fill" color={palette.brand[400]} />
+            <View style={styles.exportTextWrap}>
+              <Text style={styles.menuText}>What's New</Text>
+              <Text style={styles.exportSub}>Latest features and improvements</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
             onPress={() => navigation.navigate('SubmitIdea')}
           >
             <Lightbulb size={20} weight="fill" color={palette.warning[400]} />
@@ -706,7 +718,7 @@ export const ProfileScreen: React.FC = () => {
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>{t('profile.signOut')}</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </KeyboardAwareScreen>
 
       <Modal visible={deleteModalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>

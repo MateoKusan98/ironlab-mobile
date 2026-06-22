@@ -3,8 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  KeyboardAvoidingView,
-  ScrollView,
   Platform,
   Alert,
   ImageBackground,
@@ -16,6 +14,7 @@ import { AuthStackParamList } from '../../navigation/AuthStack';
 import { Button } from '../../components/ui/Button';
 import { TextInput } from '../../components/ui/TextInput';
 import { Checkbox } from '../../components/ui/Checkbox';
+import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
 import { theme, palette } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { authService } from '../../services/auth.service';
@@ -58,9 +57,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View style={styles.container}>
       {/* Dark gym photo background */}
       <ImageBackground
         source={GYM_BG}
@@ -69,10 +66,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         imageStyle={styles.bgImage}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScreen contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.logoText}>IronLab</Text>
           <Text style={styles.subtitle}>{t('auth.signInSubtitle')}</Text>
@@ -140,7 +134,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             icon={<GoogleLogo size={18} color={palette.gray[300]} weight="bold" />}
           />
         </View>
-      </ScrollView>
+      </KeyboardAwareScreen>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>{t('auth.noAccount')} </Text>
@@ -148,7 +142,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
           {t('auth.signUp')}
         </Text>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

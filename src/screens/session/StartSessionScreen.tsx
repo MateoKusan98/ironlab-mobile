@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -290,7 +290,7 @@ export const StartSessionScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScreen contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
         {step === 1 ? (
           <>
@@ -413,7 +413,7 @@ export const StartSessionScreen: React.FC = () => {
           </>
         )}
 
-      </ScrollView>
+      </KeyboardAwareScreen>
     </SafeAreaView>
   );
 };

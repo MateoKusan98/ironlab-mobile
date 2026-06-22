@@ -8,9 +8,9 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
+  Modal,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -50,6 +50,30 @@ export const SessionSummaryScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  // Final duration sent to the backend — editable in case the clock ran long
+  // (e.g. the workout was left open). Seeded from the active screen's value.
+  const [duration, setDuration] = useState(durationMinutes);
+  const [editingDuration, setEditingDuration] = useState(false);
+  const [editH, setEditH] = useState('');
+  const [editM, setEditM] = useState('');
+
+  const openDurationEdit = () => {
+    setEditH(String(Math.floor(duration / 60)));
+    setEditM(String(duration % 60));
+    setEditingDuration(true);
+  };
+
+  const saveDurationEdit = () => {
+    const h = parseInt(editH, 10) || 0;
+    const m = parseInt(editM, 10) || 0;
+    const total = h * 60 + m;
+    if (total <= 0) {
+      Alert.alert('Invalid duration', 'Enter a duration greater than zero.');
+      return;
+    }
+    setDuration(total);
+    setEditingDuration(false);
+  };
 
   useEffect(() => {
     sessionService.getSession(sessionId).then((s) => {
@@ -76,7 +100,7 @@ export const SessionSummaryScreen: React.FC = () => {
       await sessionService.completeSession(sessionId, {
         notes: notes.trim() || undefined,
         mood,
-        durationMinutes,
+        durationMinutes: duration,
       });
     } catch {
       Alert.alert(t('common.error'), t('errors.serverError'));
@@ -110,7 +134,7 @@ export const SessionSummaryScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -128,10 +152,12 @@ export const SessionSummaryScreen: React.FC = () => {
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{durationMinutes}m</Text>
-            <Text style={styles.statLabel}>{t('sessionSummary.duration').toUpperCase()}</Text>
-          </View>
+          <TouchableOpacity style={styles.statCard} onPress={openDurationEdit} activeOpacity={0.7}>
+            <Text style={styles.statValue}>
+              {duration >= 60 ? `${Math.floor(duration / 60)}h ${duration % 60}m` : `${duration}m`}
+            </Text>
+            <Text style={styles.statLabel}>{t('sessionSummary.duration').toUpperCase()} ✎</Text>
+          </TouchableOpacity>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.totalSets}</Text>
             <Text style={styles.statLabel}>{t('sessionSummary.totalSets').toUpperCase()}</Text>
@@ -279,6 +305,67 @@ export const SessionSummaryScreen: React.FC = () => {
 
       </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Edit duration */}
+      <Modal
+        visible={editingDuration}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditingDuration(false)}
+      >
+        <TouchableOpacity
+          style={durStyles.overlay}
+          activeOpacity={1}
+          onPress={() => setEditingDuration(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={durStyles.card}>
+            <Text style={durStyles.title}>Edit duration</Text>
+            <Text style={durStyles.subtitle}>
+              Set how long the workout actually took.
+            </Text>
+            <View style={durStyles.inputsRow}>
+              <View style={durStyles.inputGroup}>
+                <TextInput
+                  style={durStyles.input}
+                  value={editH}
+                  onChangeText={setEditH}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={palette.gray[600]}
+                  maxLength={2}
+                />
+                <Text style={durStyles.unit}>hours</Text>
+              </View>
+              <View style={durStyles.inputGroup}>
+                <TextInput
+                  style={durStyles.input}
+                  value={editM}
+                  onChangeText={setEditM}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={palette.gray[600]}
+                  maxLength={2}
+                />
+                <Text style={durStyles.unit}>min</Text>
+              </View>
+            </View>
+            <View style={durStyles.actions}>
+              <TouchableOpacity
+                style={[durStyles.actionBtn, durStyles.cancelBtn]}
+                onPress={() => setEditingDuration(false)}
+              >
+                <Text style={durStyles.cancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[durStyles.actionBtn, durStyles.confirmBtn]}
+                onPress={saveDurationEdit}
+              >
+                <Text style={durStyles.confirmText}>{t('common.save')}</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -385,4 +472,45 @@ const styles = StyleSheet.create({
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnInner: { flexDirection: 'row', alignItems: 'center' },
   saveBtnText: { fontSize: 17, fontWeight: '700', color: '#fff' },
+});
+
+const durStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  card: {
+    backgroundColor: palette.gray[900],
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: palette.gray[700],
+    padding: 20,
+    width: '100%',
+    maxWidth: 360,
+  },
+  title: { fontSize: 18, fontWeight: '800', color: '#fff', marginBottom: 4 },
+  subtitle: { fontSize: 13, color: palette.gray[400], marginBottom: 18 },
+  inputsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  inputGroup: { flex: 1, alignItems: 'center' },
+  input: {
+    backgroundColor: palette.gray[800],
+    borderRadius: 12,
+    paddingVertical: 14,
+    fontSize: 28,
+    fontWeight: '800',
+    color: theme.colors.text,
+    textAlign: 'center',
+    width: '100%',
+    fontVariant: ['tabular-nums'],
+  },
+  unit: { fontSize: 12, color: palette.gray[500], fontWeight: '600', marginTop: 6 },
+  actions: { flexDirection: 'row', gap: 10 },
+  actionBtn: { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  cancelBtn: { backgroundColor: palette.gray[800] },
+  cancelText: { fontSize: 15, fontWeight: '700', color: palette.gray[300] },
+  confirmBtn: { backgroundColor: palette.brand[600] },
+  confirmText: { fontSize: 15, fontWeight: '700', color: '#fff' },
 });

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ActivityIndicator, View } from 'react-native';
 import './src/i18n';
 import { AppNavigator } from './src/navigation/AppNavigator';
@@ -67,14 +68,16 @@ const AppContent: React.FC = () => {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <StatusBar style="light" />
-        <BadgeCelebrationProvider>
-          <WhatsNewProvider>
-            <AppContent />
-          </WhatsNewProvider>
-        </BadgeCelebrationProvider>
-      </QueryClientProvider>
+      <KeyboardProvider>
+        <QueryClientProvider client={queryClient}>
+          <StatusBar style="light" />
+          <BadgeCelebrationProvider>
+            <WhatsNewProvider>
+              <AppContent />
+            </WhatsNewProvider>
+          </BadgeCelebrationProvider>
+        </QueryClientProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }

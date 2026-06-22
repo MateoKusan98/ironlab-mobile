@@ -7,14 +7,13 @@ import {
   TextInput,
   ScrollView,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Modal,
   Vibration,
   ActivityIndicator,
   Linking,
   AppState,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -221,46 +220,102 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const [substituteIdx, setSubstituteIdx] = useState<number | null>(null);
   const [substituteSearch, setSubstituteSearch] = useState('');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const [restSecs, setRestSecs] = useState<number | null>(null);
   const [rpeGuideVisible, setRpeGuideVisible] = useState(false);
   const rpeGuideSeen = useRef(false);
   const compoundRestSecs = useSettingsStore((s) => s.compoundRestSecs);
   const isolationRestSecs = useSettingsStore((s) => s.isolationRestSecs);
+  // Active-time clock. The visible elapsed time is `accumulatedRef` (active
+  // seconds banked from previous running segments) plus the live seconds since
+  // `startTime` (the start of the current running segment). Pausing banks the
+  // current segment into `accumulatedRef` and freezes the display.
   const startTime = useRef(Date.now());
+  const accumulatedRef = useRef(0);
+  // Wall-clock time of the last real activity (set logged, manual resume, or
+  // session start). Used to auto-pause after a stretch of inactivity so a
+  // forgotten/unended workout doesn't keep counting.
+  const lastActivityRef = useRef(Date.now());
+  const isPausedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  // Auto-pause once this much time passes with no completed set.
+  const IDLE_LIMIT_MS = 15 * 60 * 1000;
   // Absolute wall-clock time (ms) the rest period ends, so the countdown stays
   // accurate across app backgrounding (JS timers freeze in the background).
   const restEndAtRef = useRef<number | null>(null);
   // Id of the scheduled OS notification that beeps when rest ends.
   const restNotifIdRef = useRef<string | null>(null);
+  // Where the running rest countdown is mirrored to disk, so it survives the
+  // screen unmounting (minimize to a tab, app backgrounded/killed). Keyed by
+  // session so a stale timer can't leak into a different workout.
+  const restPersistKey = `activeRest:${sessionId}`;
+
+  // Freeze the clock at wall-clock time `at`, banking the active portion of the
+  // current segment. Idle time after the last activity is intentionally excluded.
+  const pauseAt = useCallback((at: number) => {
+    if (isPausedRef.current) return;
+    accumulatedRef.current += Math.max(0, Math.floor((at - startTime.current) / 1000));
+    isPausedRef.current = true;
+    setIsPaused(true);
+    setElapsedSeconds(accumulatedRef.current);
+  }, []);
+
+  // Resume counting from now — starts a fresh active segment.
+  const resumeTimer = useCallback(() => {
+    if (!isPausedRef.current) return;
+    startTime.current = Date.now();
+    lastActivityRef.current = Date.now();
+    isPausedRef.current = false;
+    setIsPaused(false);
+  }, []);
+
+  // Record real activity (e.g. a logged set). Resets the idle window and resumes
+  // the clock if it had auto-paused.
+  const markActivity = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    if (isPausedRef.current) resumeTimer();
+  }, [resumeTimer]);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - startTime.current) / 1000));
+      if (isPausedRef.current) return;
+      const now = Date.now();
+      if (now - lastActivityRef.current >= IDLE_LIMIT_MS) {
+        // Auto-pause and freeze at the last activity so the idle gap isn't counted.
+        pauseAt(lastActivityRef.current);
+        return;
+      }
+      setElapsedSeconds(accumulatedRef.current + Math.floor((now - startTime.current) / 1000));
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, []);
+  }, [pauseAt]);
 
   // Start a rest period: track the end time and schedule a background-safe
   // notification (sound + vibration) for when it elapses.
   const startRest = useCallback((seconds: number) => {
     if (seconds <= 0) return;
-    restEndAtRef.current = Date.now() + seconds * 1000;
+    const endAt = Date.now() + seconds * 1000;
+    restEndAtRef.current = endAt;
     setRestSecs(seconds);
     cancelRestTimerAlert(restNotifIdRef.current);
     restNotifIdRef.current = null;
+    // Persist the absolute end time immediately, then attach the notification id
+    // once it's scheduled so a remount can still cancel it.
+    AsyncStorage.setItem(restPersistKey, JSON.stringify({ endAt })).catch(() => {});
     scheduleRestTimerAlert(seconds).then((id) => {
       restNotifIdRef.current = id;
+      AsyncStorage.setItem(restPersistKey, JSON.stringify({ endAt, notifId: id })).catch(() => {});
     });
-  }, []);
+  }, [restPersistKey]);
 
-  // Cancel the rest period entirely (skip / un-complete a set).
+  // Cancel the rest period entirely (skip / un-complete a set / leave workout).
   const stopRest = useCallback(() => {
     restEndAtRef.current = null;
     setRestSecs(null);
     cancelRestTimerAlert(restNotifIdRef.current);
     restNotifIdRef.current = null;
-  }, []);
+    AsyncStorage.removeItem(restPersistKey).catch(() => {});
+  }, [restPersistKey]);
 
   // Add/subtract time, recomputed from the live remaining seconds.
   const adjustRest = useCallback((delta: number) => {
@@ -282,6 +337,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
       // if the screen is in the foreground (the handler suppresses its banner).
       restEndAtRef.current = null;
       restNotifIdRef.current = null;
+      AsyncStorage.removeItem(restPersistKey).catch(() => {});
       setRestSecs(null);
       return;
     }
@@ -292,20 +348,51 @@ export const ActiveWorkoutScreen: React.FC = () => {
       setRestSecs(remaining);
     }, 1000);
     return () => clearTimeout(id);
-  }, [restSecs]);
+  }, [restSecs, restPersistKey]);
 
   // Re-sync the visible countdown when returning from the background.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active' && restEndAtRef.current !== null) {
+      if (state !== 'active') return;
+      if (restEndAtRef.current !== null) {
         setRestSecs(Math.max(0, Math.round((restEndAtRef.current - Date.now()) / 1000)));
+      }
+      // JS timers freeze in the background, so the idle auto-pause can't fire
+      // while away. Catch it on return: if we were idle past the limit, pause
+      // and freeze at the last activity so the gap isn't counted.
+      if (!isPausedRef.current && Date.now() - lastActivityRef.current >= IDLE_LIMIT_MS) {
+        pauseAt(lastActivityRef.current);
       }
     });
     return () => sub.remove();
   }, []);
 
-  // Clear any pending rest alert if the screen is torn down.
-  useEffect(() => () => { cancelRestTimerAlert(restNotifIdRef.current); }, []);
+  // Restore a rest countdown that was running when the screen was last torn down
+  // (app backgrounded/killed, or minimized to another tab). The end time is
+  // absolute, so we recompute the remaining seconds and pick the countdown back
+  // up — and the OS notification keeps the beep firing meanwhile. We deliberately
+  // DON'T cancel the alert on plain unmount, so leaving the screen doesn't kill
+  // an in-progress rest; it's only cancelled on an explicit skip/finish/cancel.
+  useEffect(() => {
+    let cancelled = false;
+    AsyncStorage.getItem(restPersistKey).then((raw) => {
+      if (cancelled || !raw) return;
+      try {
+        const { endAt, notifId } = JSON.parse(raw) as { endAt: number; notifId?: string | null };
+        const remaining = Math.round((endAt - Date.now()) / 1000);
+        if (remaining > 0) {
+          restEndAtRef.current = endAt;
+          restNotifIdRef.current = notifId ?? null;
+          setRestSecs(remaining);
+        } else {
+          AsyncStorage.removeItem(restPersistKey).catch(() => {});
+        }
+      } catch {
+        AsyncStorage.removeItem(restPersistKey).catch(() => {});
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [restPersistKey]);
 
   // Always fetch the session to restore the clock and any logged sets.
   // Falls back to plannedExercises if the session has no sets yet (e.g. resumed before logging anything).
@@ -314,6 +401,10 @@ export const ActiveWorkoutScreen: React.FC = () => {
       if (session.startedAt) {
         const realStart = new Date(session.startedAt).getTime();
         startTime.current = realStart;
+        accumulatedRef.current = 0;
+        // Treat the resume as activity so a just-reopened session doesn't trip
+        // the idle auto-pause immediately.
+        lastActivityRef.current = Date.now();
         setElapsedSeconds(Math.floor((Date.now() - realStart) / 1000));
       }
 
@@ -470,6 +561,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
     }
 
     Vibration.vibrate(40);
+    markActivity();
     const restDuration = classifyExercise(ex.name) === 'compound' ? compoundRestSecs : isolationRestSecs;
     startRest(restDuration);
     updateSetField(exIdx, setIdx, 'isCompleted', true);
@@ -574,6 +666,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
           text: t('activeWorkout.cancelWorkout'),
           style: 'destructive',
           onPress: async () => {
+            stopRest();
             try {
               await sessionService.cancelSession(sessionId);
             } catch {
@@ -602,6 +695,8 @@ export const ActiveWorkoutScreen: React.FC = () => {
       Alert.alert('No sets logged', 'Complete at least one set before finishing.');
       return;
     }
+    // The workout is over — drop any lingering rest beep/countdown.
+    stopRest();
     const durationMinutes = Math.floor(elapsedSeconds / 60);
     const allPRs = exercises.flatMap((ex) =>
       ex.sets.flatMap((s) =>
@@ -633,7 +728,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
 
         {/* Fixed Header */}
         <View style={styles.header}>
@@ -645,10 +740,16 @@ export const ActiveWorkoutScreen: React.FC = () => {
           >
             <Text style={styles.cancelBtnText}>←</Text>
           </TouchableOpacity>
-          <View style={styles.timerBlock}>
-            <Text style={styles.timerLabel}>{t('activeWorkout.time')}</Text>
-            <Text style={styles.timer}>{formatTime(elapsedSeconds)}</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.timerBlock}
+            activeOpacity={isPaused ? 0.6 : 1}
+            onPress={isPaused ? resumeTimer : undefined}
+          >
+            <Text style={[styles.timerLabel, isPaused && styles.timerLabelPaused]}>
+              {isPaused ? 'PAUSED' : t('activeWorkout.time')}
+            </Text>
+            <Text style={[styles.timer, isPaused && styles.timerPaused]}>{formatTime(elapsedSeconds)}</Text>
+          </TouchableOpacity>
           <View style={styles.progressBlock}>
             <Text style={styles.progressLabel}>{t('activeWorkout.setsDone')}</Text>
             <Text style={styles.progressValue}>{completedSets}/{totalSets}</Text>
@@ -663,6 +764,21 @@ export const ActiveWorkoutScreen: React.FC = () => {
           <View style={[styles.progressFill, { width: totalSets > 0 ? `${(completedSets / totalSets) * 100}%` : '0%' }]} />
         </View>
         <Text style={styles.minimizeHint}>{t('activeWorkout.tapToGoBack')}  ·  {t('activeWorkout.holdToCancel')}</Text>
+
+        {/* Idle Auto-Pause Banner */}
+        {isPaused && (
+          <View style={styles.pausedBanner}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.pausedTitle}>⏸ Timer paused</Text>
+              <Text style={styles.pausedText}>
+                You were idle for a while, so we stopped the clock. The idle time isn't counted.
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.resumeBtn} onPress={resumeTimer}>
+              <Text style={styles.resumeBtnText}>Resume</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Rest Timer Banner */}
         {restSecs !== null && (() => {
@@ -1059,7 +1175,9 @@ const styles = StyleSheet.create({
   },
   timerBlock: { flex: 1 },
   timerLabel: { fontSize: 10, color: palette.gray[400], fontWeight: '700', letterSpacing: 1 },
+  timerLabelPaused: { color: '#f59e0b' },
   timer: { fontSize: 22, fontWeight: '800', color: theme.colors.text, fontVariant: ['tabular-nums'] },
+  timerPaused: { color: palette.gray[500] },
   progressBlock: { flex: 1, alignItems: 'center' },
   progressLabel: { fontSize: 10, color: palette.gray[400], fontWeight: '700', letterSpacing: 1 },
   progressValue: { fontSize: 22, fontWeight: '800', color: theme.colors.text },
@@ -1084,6 +1202,28 @@ const styles = StyleSheet.create({
   progressBar: { height: 3, backgroundColor: palette.gray[800] },
   progressFill: { height: 3, backgroundColor: palette.brand[500] },
   minimizeHint: { fontSize: 10, color: palette.gray[600], textAlign: 'center', paddingVertical: 4 },
+
+  pausedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#78350f33',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: '#f59e0b',
+    borderBottomWidth: 1,
+    borderBottomColor: palette.gray[800],
+  },
+  pausedTitle: { fontSize: 13, fontWeight: '800', color: '#f59e0b', marginBottom: 2 },
+  pausedText: { fontSize: 11, color: palette.gray[300], lineHeight: 15 },
+  resumeBtn: {
+    backgroundColor: palette.brand[600],
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  resumeBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
 
   restBanner: {
     flexDirection: 'row',

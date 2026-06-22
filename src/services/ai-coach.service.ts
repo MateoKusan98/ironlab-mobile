@@ -33,6 +33,7 @@ export interface AICoachProfileData {
   priorityHierarchy?: string;
   successMetrics?: string;
   yearsTraining?: number;
+  experienceLevel?: 'novice' | 'beginner' | 'intermediate' | 'advanced';
   bestSystems?: string[];
   failedSystems?: string[];
   adaptationSpeed?: string;

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, Platform, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 import { Button } from '../../components/ui/Button';
 import { TextInput } from '../../components/ui/TextInput';
 import { ProgressBar } from '../../components/ui/ProgressBar';
+import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
 import { theme, palette } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { authService } from '../../services/auth.service';
@@ -67,11 +68,8 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+    <View style={styles.container}>
+      <KeyboardAwareScreen contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <AuthLogo />
           <Text style={[theme.typography.textLg, styles.subtitle]}>
@@ -144,7 +142,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             disabled={password !== confirmPassword || password === '' || isLoading}
           />
         </View>
-      </ScrollView>
+      </KeyboardAwareScreen>
 
       <View style={styles.footer}>
         <Text style={[theme.typography.textMd, { color: palette.gray[400] }]}>
@@ -157,7 +155,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           {t('auth.signIn')}
         </Text>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

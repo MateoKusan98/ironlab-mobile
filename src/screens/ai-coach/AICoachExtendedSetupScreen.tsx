@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  TextInput, Animated, Dimensions, KeyboardAvoidingView, Platform, Alert,
+  TextInput, Animated, Dimensions, Alert,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
@@ -75,6 +76,16 @@ const getSections = (t: TFunction): Section[] => [
     id: 'history', title: t('aiCoachExtendedSetup.sectionHistoryTitle'), icon: '📚',
     subtitle: t('aiCoachExtendedSetup.sectionHistorySubtitle'),
     questions: [
+      {
+        id: 'experienceLevel', label: t('aiCoachExtendedSetup.questionExperienceLevel'),
+        subtitle: t('aiCoachExtendedSetup.questionExperienceLevelSubtitle'), type: 'single',
+        options: [
+          { value: 'novice', label: t('aiCoachExtendedSetup.optionExperienceNovice'), icon: '🌱' },
+          { value: 'beginner', label: t('aiCoachExtendedSetup.optionExperienceBeginner'), icon: '📗' },
+          { value: 'intermediate', label: t('aiCoachExtendedSetup.optionExperienceIntermediate'), icon: '📘' },
+          { value: 'advanced', label: t('aiCoachExtendedSetup.optionExperienceAdvanced'), icon: '🏆' },
+        ],
+      },
       {
         id: 'yearsTraining', label: t('aiCoachExtendedSetup.questionYearsTraining'), type: 'number',
         min: 0, max: 40, unit: 'years', placeholder: '3',
@@ -846,7 +857,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
         <Text style={s.sectionSubtitle}>{section.subtitle}</Text>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <Animated.View style={[{ flex: 1 }, { transform: [{ translateX: slideAnim }] }]}>
           <ScrollView key={sectionIndex} ref={scrollRef} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
             {/* Constraint suggestions banner */}

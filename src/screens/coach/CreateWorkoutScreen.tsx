@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { CoachStackParamList } from '../../navigation/CoachTabs';
@@ -96,7 +96,7 @@ export const CreateWorkoutScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scroll}>
+      <KeyboardAwareScreen style={styles.scroll}>
 
         <Text style={styles.title}>Create Workout</Text>
         <Text style={styles.subtitle}>For {params.clientName}</Text>
@@ -188,7 +188,7 @@ export const CreateWorkoutScreen: React.FC = () => {
             <Text style={styles.submitText}>Create Plan</Text>
           )}
         </TouchableOpacity>
-      </ScrollView>
+      </KeyboardAwareScreen>
     </SafeAreaView>
   );
 };

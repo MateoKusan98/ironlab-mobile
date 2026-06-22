@@ -22,6 +22,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button';
 import { ProgressBar } from '../../components/ui/ProgressBar';
+import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
 import { theme, palette } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { usersService } from '../../services/users.service';
@@ -465,7 +466,7 @@ export const SetupWizardScreen: React.FC = () => {
   };
 
   const renderGenderStep = () => (
-    <ScrollView style={styles.container}>
+    <KeyboardAwareScreen style={styles.container}>
       {renderTopNav(40)}
       <View style={styles.stepContent}>
         <Text style={styles.titleBig}>{t('setup.whatsGender')}</Text>
@@ -501,7 +502,7 @@ export const SetupWizardScreen: React.FC = () => {
         <Button label={t('setup.continueBtn')} onPress={nextStep} variant="solid" color="brand" style={{ marginTop: 24, marginBottom: 16 }} />
         <Button label={t('setup.preferNotToSay')} onPress={nextStep} variant="outline" color="brand" />
       </View>
-    </ScrollView>
+    </KeyboardAwareScreen>
   );
 
   const renderWeightStep = () => (
