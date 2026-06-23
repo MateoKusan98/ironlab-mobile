@@ -118,9 +118,19 @@ export const aiCoachService = {
     return data.data;
   },
 
-  generatePlan: async (readiness?: { mood?: string; energyLevel?: number; sleepHours?: number }, note?: string, makeUp?: boolean, skipNext?: boolean): Promise<string> => {
-    const { data } = await api.post<{ data: { plan: string } }>('/ai-coach/generate-plan', { ...readiness ?? {}, ...(note ? { note } : {}), ...(makeUp ? { makeUp: true } : {}), ...(skipNext ? { skipNext: true } : {}) }, { timeout: PLAN_GEN_TIMEOUT_MS });
+  generatePlan: async (readiness?: { mood?: string; energyLevel?: number; sleepHours?: number }, note?: string, makeUp?: boolean, skipNext?: boolean, fatigueDecision?: 'accept' | 'dismiss'): Promise<string> => {
+    const { data } = await api.post<{ data: { plan: string } }>('/ai-coach/generate-plan', { ...readiness ?? {}, ...(note ? { note } : {}), ...(makeUp ? { makeUp: true } : {}), ...(skipNext ? { skipNext: true } : {}), ...(fatigueDecision ? { fatigueDecision } : {}) }, { timeout: PLAN_GEN_TIMEOUT_MS });
     return data.data.plan;
+  },
+
+  /**
+   * Cheap, LLM-free readiness gate. Call after the readiness check and before
+   * generatePlan: if `requiresAck`, surface `reasons` and let the athlete choose
+   * recovery ('accept') or "I feel fine" ('dismiss'), then pass that into generatePlan.
+   */
+  fatigueCheck: async (): Promise<{ requiresAck: boolean; level: 'none' | 'mild' | 'elevated' | 'high'; reasons: string[] }> => {
+    const { data } = await api.get<{ data: { requiresAck: boolean; level: 'none' | 'mild' | 'elevated' | 'high'; reasons: string[] } }>('/ai-coach/fatigue-check');
+    return data.data;
   },
 
   /** Fire-and-forget: runs full intelligence analysis then generates next plan */

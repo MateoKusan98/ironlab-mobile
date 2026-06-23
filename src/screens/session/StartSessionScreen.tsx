@@ -7,6 +7,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -94,6 +95,8 @@ export const StartSessionScreen: React.FC = () => {
   const [mood, setMood] = useState('good');
   const [loading, setLoading] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
+  // Reactive HIGH-fatigue alarm awaiting the athlete's call. Non-null = modal shown.
+  const [fatigueGate, setFatigueGate] = useState<string[] | null>(null);
   const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[]>(() => {
     if (route.params?.nextSessionJson?.exercises?.length) {
       return route.params.nextSessionJson.exercises;
@@ -168,8 +171,10 @@ export const StartSessionScreen: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSeeWorkout = async () => {
-    if (!validate()) return;
+  // Runs the actual plan generation + transition to step 2. `fatigueDecision` carries
+  // the athlete's answer to the readiness gate ('accept' = recover, 'dismiss' = feel fine).
+  const proceedGeneration = async (fatigueDecision?: 'accept' | 'dismiss') => {
+    setFatigueGate(null);
     setPlanLoading(true);
     const today = new Date().toISOString().split('T')[0];
 
@@ -190,7 +195,7 @@ export const StartSessionScreen: React.FC = () => {
           mood,
           energyLevel,
           sleepHours: sleepHours ? parseFloat(sleepHours) : undefined,
-        }, undefined, makeUp, skipNext);
+        }, undefined, makeUp, skipNext, fatigueDecision);
         // Re-fetch to get nextSessionJson and cycle metadata
         result = await aiCoachService.getPlan();
       }
@@ -203,13 +208,41 @@ export const StartSessionScreen: React.FC = () => {
         const marker: ReadinessMarker = { planAt: result.generatedAt, mood, energyLevel, sleepHours, bodyweight };
         await AsyncStorage.setItem(readinessAppliedKey(uid), JSON.stringify(marker)).catch(() => {});
       }
+      setStep(2);
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
       Alert.alert(t('common.error'), String(Array.isArray(msg) ? msg.join('\n') : msg));
     } finally {
       setPlanLoading(false);
-      setStep(2);
     }
+  };
+
+  const handleSeeWorkout = async () => {
+    if (!validate()) return;
+    setPlanLoading(true);
+
+    // Cheap, LLM-free pre-flight: only when we're about to regenerate (a fresh plan
+    // for today / make-up / skip), ask the backend whether a reactive HIGH-fatigue
+    // alarm needs the athlete's call. If so, surface it and let them choose recovery
+    // or "I feel fine" before spending an AI generation.
+    try {
+      const existing = await aiCoachService.getPlan();
+      const today = new Date().toISOString().split('T')[0];
+      const planFromToday = existing.generatedAt ? existing.generatedAt.startsWith(today) : false;
+      const willRegenerate = !planFromToday || route.params?.makeUp === true || route.params?.skipNext === true;
+      if (willRegenerate) {
+        const gate = await aiCoachService.fatigueCheck().catch(() => null);
+        if (gate?.requiresAck && gate.reasons.length) {
+          setPlanLoading(false);
+          setFatigueGate(gate.reasons);
+          return;
+        }
+      }
+    } catch {
+      // Pre-flight failed (offline, etc.) — fall through to normal generation.
+    }
+
+    await proceedGeneration();
   };
 
   const doCreateSession = async () => {
@@ -417,6 +450,32 @@ export const StartSessionScreen: React.FC = () => {
         )}
 
       </KeyboardAwareScreen>
+
+      {/* Readiness gate — reactive HIGH-fatigue alarm awaiting the athlete's call. */}
+      <Modal visible={fatigueGate !== null} transparent animationType="fade" onRequestClose={() => setFatigueGate(null)}>
+        <View style={styles.gateOverlay}>
+          <View style={styles.gateCard}>
+            <View style={styles.gateIcon}><Fire size={28} color={palette.brand[500]} weight="fill" /></View>
+            <Text style={styles.gateTitle}>{t('session.fatigueGate.title')}</Text>
+            <Text style={styles.gateSubtitle}>{t('session.fatigueGate.subtitle')}</Text>
+            <View style={styles.gateReasons}>
+              {(fatigueGate ?? []).map((r, i) => (
+                <View key={i} style={styles.gateReasonRow}>
+                  <Text style={styles.gateBullet}>•</Text>
+                  <Text style={styles.gateReasonText}>{r}</Text>
+                </View>
+              ))}
+            </View>
+            <Text style={styles.gateQuestion}>{t('session.fatigueGate.question')}</Text>
+            <TouchableOpacity style={styles.gateAcceptBtn} onPress={() => proceedGeneration('accept')}>
+              <Text style={styles.gateAcceptText}>{t('session.fatigueGate.accept')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.gateDismissBtn} onPress={() => proceedGeneration('dismiss')}>
+              <Text style={styles.gateDismissText}>{t('session.fatigueGate.dismiss')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -504,6 +563,25 @@ const styles = StyleSheet.create({
   },
   startBtnDisabled: { opacity: 0.6 },
   startBtnText: { fontSize: 17, fontWeight: '700', color: '#fff' },
+
+  // ── Readiness / fatigue gate modal ──
+  gateOverlay: { flex: 1, backgroundColor: '#000000B3', justifyContent: 'center', padding: 24 },
+  gateCard: { backgroundColor: palette.gray[800], borderRadius: 20, padding: 24 },
+  gateIcon: {
+    alignSelf: 'center', width: 56, height: 56, borderRadius: 28,
+    backgroundColor: palette.brand[600] + '33', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+  },
+  gateTitle: { fontSize: 19, fontWeight: '800', color: theme.colors.text, textAlign: 'center', marginBottom: 6 },
+  gateSubtitle: { fontSize: 13, color: palette.gray[400], textAlign: 'center', marginBottom: 18, lineHeight: 19 },
+  gateReasons: { gap: 8, marginBottom: 18 },
+  gateReasonRow: { flexDirection: 'row', gap: 8 },
+  gateBullet: { color: palette.brand[400], fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  gateReasonText: { flex: 1, fontSize: 14, color: theme.colors.text, lineHeight: 20 },
+  gateQuestion: { fontSize: 14, fontWeight: '700', color: theme.colors.text, textAlign: 'center', marginBottom: 16 },
+  gateAcceptBtn: { backgroundColor: palette.brand[600], borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginBottom: 10 },
+  gateAcceptText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  gateDismissBtn: { backgroundColor: 'transparent', borderRadius: 14, paddingVertical: 13, alignItems: 'center', borderWidth: 1, borderColor: palette.gray[600] },
+  gateDismissText: { fontSize: 15, fontWeight: '600', color: palette.gray[300] },
 
   planCard: {
     backgroundColor: palette.gray[800],

@@ -132,6 +132,13 @@
     "todaysProgram": "TODAY'S PROGRAM",
     "readinessRequired": "Required — enter hours slept (e.g. 7.5)",
     "bodyweightRequired": "Required — enter your bodyweight",
+    "fatigueGate": {
+      "title": "Let's check in first",
+      "subtitle": "M-7EO is picking up some fatigue signals from your recent sessions:",
+      "question": "How are you actually feeling?",
+      "accept": "I'm beat — give me a recovery session",
+      "dismiss": "I feel fine — keep training"
+    },
     "moods": {
       "tired": "Tired",
       "neutral": "Okay",
