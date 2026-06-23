@@ -242,7 +242,7 @@ export const StartSessionScreen: React.FC = () => {
           t('session.workoutInProgress'),
           'You have an unfinished workout. Starting a new one will end it.',
           [
-            { text: t('session.resumeWorkout'), style: 'cancel', onPress: () => navigation.replace('ActiveWorkout', { sessionId: active.id }) },
+            { text: t('session.resumeWorkout'), style: 'cancel', onPress: () => navigation.replace('ActiveWorkout', { sessionId: active.id, plannedExercises: plannedExercises.length ? plannedExercises : undefined }) },
             {
               text: t('session.endAndStart'),
               style: 'destructive',

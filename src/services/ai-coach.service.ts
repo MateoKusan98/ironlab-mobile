@@ -1,5 +1,11 @@
 import { api } from './api';
 
+// LLM session generation runs a reasoning model server-side and routinely takes
+// far longer than the api client's default 15s timeout — without this override
+// the mobile client aborts with a timeout error while the backend completes and
+// saves the plan (the user then sees an error on a session that did generate).
+const PLAN_GEN_TIMEOUT_MS = 120000;
+
 export interface NextSessionExercise {
   name: string;
   sets: number;
@@ -113,7 +119,7 @@ export const aiCoachService = {
   },
 
   generatePlan: async (readiness?: { mood?: string; energyLevel?: number; sleepHours?: number }, note?: string, makeUp?: boolean, skipNext?: boolean): Promise<string> => {
-    const { data } = await api.post<{ data: { plan: string } }>('/ai-coach/generate-plan', { ...readiness ?? {}, ...(note ? { note } : {}), ...(makeUp ? { makeUp: true } : {}), ...(skipNext ? { skipNext: true } : {}) });
+    const { data } = await api.post<{ data: { plan: string } }>('/ai-coach/generate-plan', { ...readiness ?? {}, ...(note ? { note } : {}), ...(makeUp ? { makeUp: true } : {}), ...(skipNext ? { skipNext: true } : {}) }, { timeout: PLAN_GEN_TIMEOUT_MS });
     return data.data.plan;
   },
 
@@ -273,7 +279,7 @@ export const adminAiService = {
   },
 
   forceGeneratePlan: async (userId: string): Promise<string> => {
-    const { data } = await api.post<{ data: { plan: string } }>(`/ai-coach/admin/lab/${userId}/force-generate-plan`, {});
+    const { data } = await api.post<{ data: { plan: string } }>(`/ai-coach/admin/lab/${userId}/force-generate-plan`, {}, { timeout: PLAN_GEN_TIMEOUT_MS });
     return data.data.plan;
   },
 

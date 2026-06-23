@@ -566,9 +566,20 @@ export const AdminAILabScreen: React.FC = () => {
   };
 
   const uid = selectedUser?.id ?? '';
-  const cycleN = state?.trainingDays?.length ?? 4;
-  const slotLabels = state?.trainingDays
-    ? state.trainingDays.map((d, i) => `${i}: ${d.slice(0, 3)}`)
+  // Slots are Monday-anchored on the backend (WEEK_DAY_ORDER), so sort the same way
+  // here — the raw trainingDays array is in onboarding-entry order and would mislabel
+  // which weekday each slot maps to.
+  const sortedDays = state?.trainingDays
+    ? [...state.trainingDays].sort((a, b) => WEEKDAYS.indexOf(a) - WEEKDAYS.indexOf(b))
+    : [];
+  const cycleN = sortedDays.length || 4;
+  // cycleSlot from getState already includes the saved offset; back it out to find
+  // the natural (offset-0) calendar slot so the override chips preview correctly.
+  const naturalSlot = state
+    ? ((state.cycleSlot - (state.testCycleSlotOffset ?? 0)) % cycleN + cycleN) % cycleN
+    : 0;
+  const slotLabels = sortedDays.length
+    ? sortedDays.map((d, i) => `${i}: ${d.slice(0, 3)}`)
     : ['0: Day 1', '1: Day 2', '2: Day 3', '3: Day 4'];
 
   return (
@@ -712,31 +723,44 @@ export const AdminAILabScreen: React.FC = () => {
           {/* ── Cycle Slot ────────────────────────────────────────────── */}
           <Section title="Cycle Slot Override">
             <Text style={styles.fieldLabel}>
-              Slot offset (current sessions: {state.totalSessions}, effective slot: {state.cycleSlot + 1}/{cycleN})
+              Effective slot: {state.cycleSlot + 1}/{cycleN}
+              {sortedDays[state.cycleSlot] ? ` (${sortedDays[state.cycleSlot].slice(0, 3)})` : ''}
+              {(state.testCycleSlotOffset ?? 0) !== 0 ? ` · offset +${state.testCycleSlotOffset}` : ''}
             </Text>
-            {state.trainingDays && (
+            <Text style={styles.fieldHint}>
+              Shifts the next workout forward by N slots from the natural calendar day
+              {sortedDays[naturalSlot] ? ` (${sortedDays[naturalSlot].slice(0, 3)})` : ''}. Offset 0 = no change.
+            </Text>
+            {sortedDays.length > 0 && (
               <Text style={styles.fieldHint}>
-                {state.trainingDays.map((d, i) => {
-                  const slot = (state.totalSessions + i) % cycleN;
-                  return `offset ${i} → slot ${slot + 1} (${d.slice(0, 3)})`;
+                {sortedDays.map((_, i) => {
+                  const slot = (naturalSlot + i) % cycleN;
+                  return `+${i} → ${sortedDays[slot].slice(0, 3)}`;
                 }).join('  ·  ')}
               </Text>
             )}
             <View style={styles.weekRow}>
-              {Array.from({ length: cycleN }, (_, i) => i).map((i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={[styles.weekChip, editSlotOffset === String(i) && styles.weekChipActive]}
-                  onPress={() => setEditSlotOffset(String(i))}
-                >
-                  <Text style={[styles.weekChipText, editSlotOffset === String(i) && styles.weekChipTextActive]}>
-                    {slotLabels[i] ?? `+${i}`}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {Array.from({ length: cycleN }, (_, i) => i).map((i) => {
+                const slot = (naturalSlot + i) % cycleN;
+                return (
+                  <TouchableOpacity
+                    key={i}
+                    style={[styles.weekChip, editSlotOffset === String(i) && styles.weekChipActive]}
+                    onPress={() => setEditSlotOffset(String(i))}
+                  >
+                    <Text style={[styles.weekChipText, editSlotOffset === String(i) && styles.weekChipTextActive]}>
+                      {`+${i} ${sortedDays[slot]?.slice(0, 3) ?? ''}`.trim()}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
             <Btn
-              label={`Set offset → ${editSlotOffset}`}
+              label={
+                sortedDays[(naturalSlot + Number(editSlotOffset)) % cycleN]
+                  ? `Set → ${sortedDays[(naturalSlot + Number(editSlotOffset)) % cycleN].slice(0, 3)} (offset ${editSlotOffset})`
+                  : `Set offset → ${editSlotOffset}`
+              }
               loading={busy === 'slot'}
               onPress={() => run('slot', () => adminAiService.setCycleSlot(uid, Number(editSlotOffset)), 'Slot offset updated')}
             />
