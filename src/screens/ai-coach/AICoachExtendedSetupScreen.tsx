@@ -22,7 +22,7 @@ type Props = {
 
 // ─── Section / Question definitions ─────────────────────────────────────────
 
-type QuestionType = 'single' | 'multi' | 'number' | 'text' | 'slider' | 'bool' | 'longtext' | 'focus_slider';
+type QuestionType = 'single' | 'multi' | 'number' | 'text' | 'slider' | 'bool' | 'longtext' | 'focus_slider' | 'comp_date';
 
 interface Option { value: string; label: string; icon?: string }
 interface Question {
@@ -69,6 +69,11 @@ const getSections = (t: TFunction): Section[] => [
           { value: '12 months', label: t('aiCoachExtendedSetup.optionTimeline12Months') },
           { value: 'ongoing', label: t('aiCoachExtendedSetup.optionTimelineOngoing') },
         ],
+      },
+      {
+        id: 'competitionDate', label: t('aiCoachExtendedSetup.questionCompDate'),
+        subtitle: t('aiCoachExtendedSetup.questionCompDateSubtitle'),
+        type: 'comp_date', optional: true,
       },
     ],
   },
@@ -530,6 +535,136 @@ const FocusSlider = ({ value, onChange, t }: { value: string; onChange: (v: stri
   </View>
 );
 
+// ─── Competition / PR-test date field ────────────────────────────────────────
+// Mirrors the quick-pick + month-picker UX of CompDateModal so setting a target
+// date feels identical wherever the athlete does it. Stores competitionDate as an
+// ISO 'YYYY-MM-DD' string (or null) and competitionType as 'meet' | 'pr_test'.
+
+const CD_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const CD_QUICK_WEEKS = [4, 8, 12, 16, 20, 24];
+const cdAddWeeks = (n: number): Date => new Date(Date.now() + n * 7 * 86_400_000);
+const cdToISO = (d: Date): string => d.toISOString().split('T')[0];
+
+const CompDateField = ({
+  date,
+  type,
+  onChange,
+  t,
+}: {
+  date: string | null;
+  type: 'meet' | 'pr_test' | null;
+  onChange: (date: string | null, type: 'meet' | 'pr_test' | null) => void;
+  t: TFunction;
+}) => {
+  const selected = date ? new Date(date) : null;
+
+  const monthOptions: Array<{ label: string; date: Date }> = [];
+  const now = new Date();
+  for (let i = 1; i <= 14; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    monthOptions.push({ label: `${CD_MONTHS[d.getMonth()]} ${d.getFullYear()}`, date: d });
+  }
+
+  const pickType = (next: 'meet' | 'pr_test' | null) => {
+    if (next === null) onChange(null, null);
+    else onChange(date, next);
+  };
+
+  return (
+    <View>
+      <View style={cd.typeRow}>
+        <TouchableOpacity
+          style={[cd.typeBtn, !type && cd.typeBtnActive]}
+          onPress={() => pickType(null)}
+        >
+          <Text style={[cd.typeText, !type && cd.typeTextActive]}>{t('aiCoachExtendedSetup.compDateNone')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[cd.typeBtn, type === 'meet' && cd.typeBtnActive]}
+          onPress={() => pickType('meet')}
+        >
+          <Text style={[cd.typeText, type === 'meet' && cd.typeTextActive]}>{t('aiCoach.competition.meet')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[cd.typeBtn, type === 'pr_test' && cd.typeBtnActive]}
+          onPress={() => pickType('pr_test')}
+        >
+          <Text style={[cd.typeText, type === 'pr_test' && cd.typeTextActive]}>{t('aiCoach.competition.prTest')}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {type && (
+        <>
+          <Text style={cd.sectionLabel}>{t('aiCoach.competition.quickPick')}</Text>
+          <View style={cd.quickRow}>
+            {CD_QUICK_WEEKS.map((w) => {
+              const d = cdAddWeeks(w);
+              const active = selected && Math.abs(selected.getTime() - d.getTime()) < 3 * 86_400_000;
+              return (
+                <TouchableOpacity
+                  key={w}
+                  style={[cd.quickBtn, active && cd.quickBtnActive]}
+                  onPress={() => onChange(cdToISO(d), type)}
+                >
+                  <Text style={[cd.quickWks, active && cd.quickTextActive]}>{w}wk</Text>
+                  <Text style={[cd.quickMonth, active && cd.quickTextActive]}>{CD_MONTHS[d.getMonth()]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text style={cd.sectionLabel}>{t('aiCoach.competition.pickMonth')}</Text>
+          <View style={cd.monthWrap}>
+            {monthOptions.map(({ label, date: d }) => {
+              const active = selected &&
+                selected.getMonth() === d.getMonth() &&
+                selected.getFullYear() === d.getFullYear();
+              return (
+                <TouchableOpacity
+                  key={label}
+                  style={[cd.monthChip, active && cd.monthChipActive]}
+                  onPress={() => onChange(cdToISO(d), type)}
+                >
+                  <Text style={[cd.monthText, active && cd.monthTextActive]}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </>
+      )}
+    </View>
+  );
+};
+
+const cd = StyleSheet.create({
+  typeRow: { flexDirection: 'row', gap: 8 },
+  typeBtn: {
+    flex: 1, paddingVertical: 12, borderRadius: 12,
+    borderWidth: 1, borderColor: palette.gray[700], alignItems: 'center',
+  },
+  typeBtnActive: { borderColor: palette.brand[500], backgroundColor: palette.brand[500] + '22' },
+  typeText: { color: palette.gray[300], fontSize: 13, fontWeight: '600' },
+  typeTextActive: { color: palette.brand[400], fontWeight: '700' },
+  sectionLabel: { color: palette.gray[400], fontSize: 12, fontWeight: '600', marginTop: 18, marginBottom: 8 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  quickBtn: {
+    paddingVertical: 8, paddingHorizontal: 14, borderRadius: 10,
+    borderWidth: 1, borderColor: palette.gray[700], alignItems: 'center',
+  },
+  quickBtnActive: { borderColor: palette.brand[500], backgroundColor: palette.brand[500] + '22' },
+  quickWks: { color: palette.gray[200], fontSize: 13, fontWeight: '700' },
+  quickMonth: { color: palette.gray[500], fontSize: 10 },
+  quickTextActive: { color: palette.brand[400] },
+  monthWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  monthChip: {
+    paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10,
+    borderWidth: 1, borderColor: palette.gray[700],
+  },
+  monthChipActive: { borderColor: palette.brand[500], backgroundColor: palette.brand[500] + '22' },
+  monthText: { color: palette.gray[300], fontSize: 12 },
+  monthTextActive: { color: palette.brand[400], fontWeight: '700' },
+});
+
 const fs = StyleSheet.create({
   wrap: { marginVertical: 4 },
   trackRow: { height: 40, justifyContent: 'center' },
@@ -621,7 +756,17 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
         if (!EDITABLE_KEYS.has(k)) return; // skip id/userId/timestamps/internal columns
         if (v !== null && v !== undefined && v !== '') loaded[k] = v;
       });
-      setAnswers(loaded);
+      setAnswers((prev) => ({ ...prev, ...loaded }));
+    }).catch(() => {});
+    // The competition/PR date is owned by the dedicated endpoint, not the profile DTO,
+    // so prefill it from the plan payload (which already returns it) rather than getProfile.
+    aiCoachService.getPlan().then((p) => {
+      if (!p?.competitionDate) return;
+      setAnswers((prev) => ({
+        ...prev,
+        competitionDate: String(p.competitionDate).split('T')[0],
+        competitionType: (p.competitionType as 'meet' | 'pr_test' | null) ?? 'meet',
+      }));
     }).catch(() => {});
   }, [editMode]);
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -735,7 +880,23 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
         }
       });
 
+      // The competition/PR date lives behind its own endpoint (it re-anchors the
+      // periodization block clock), and the profile DTO would reject it. Strip it
+      // out of the profile payload and reconcile it separately.
+      delete (profileData as any).competitionDate;
+      delete (profileData as any).competitionType;
+
       await aiCoachService.saveProfile(profileData);
+
+      const compDate = answers.competitionDate as string | undefined;
+      const compType = (answers.competitionType as 'meet' | 'pr_test' | undefined) ?? 'meet';
+      if (compDate) {
+        await aiCoachService.setCompetitionDate(compDate, compType);
+      } else if (editMode) {
+        // Edit mode prefills any existing date, so an empty value here means the
+        // athlete cleared it. (In onboarding there's nothing to clear.)
+        await aiCoachService.clearCompetitionDate();
+      }
       if (editMode) {
         Alert.alert(t('aiCoachExtendedSetup.savedTitle'), t('aiCoachExtendedSetup.savedMsg'));
         navigation.goBack();
@@ -804,6 +965,15 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
           return <SliderInput value={get(id, min ?? 1)} onChange={(v) => set(id, v)} min={min} max={max} />;
         case 'focus_slider':
           return <FocusSlider value={get(id, '')} onChange={(v) => set(id, v)} t={t} />;
+        case 'comp_date':
+          return (
+            <CompDateField
+              date={get('competitionDate', null)}
+              type={get('competitionType', null)}
+              onChange={(d, ty) => setAnswers((prev) => ({ ...prev, competitionDate: d, competitionType: ty }))}
+              t={t}
+            />
+          );
         default:
           return null;
       }
