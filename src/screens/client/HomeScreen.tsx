@@ -44,6 +44,7 @@ import {
   Lightning,
   Heartbeat,
   FastForward,
+  CheckCircle,
 } from 'phosphor-react-native';
 
 const CREATINE_ENABLED_KEY = '@ironlab_creatine_enabled';
@@ -285,7 +286,11 @@ export const HomeScreen: React.FC = () => {
   };
 
   const totalCalories = foodLogs?.reduce((sum, log) => sum + (log.calories || 0), 0) || 0;
-  const isTrainingDay = planData?.trainingDays?.includes(todayDayName) ?? false;
+  // Today's strength session is already logged. Treat the rest of today like a rest
+  // day so the card offers the NEXT session (e.g. "train Wednesday early") instead of
+  // re-issuing the session just completed.
+  const completedToday = planData?.completedToday ?? false;
+  const isTrainingDay = (planData?.trainingDays?.includes(todayDayName) ?? false) && !completedToday;
   const nextSession = planData?.nextSessionJson;
   const hasTrainingSchedule = (planData?.trainingDays?.length ?? 0) > 0;
 
@@ -494,8 +499,16 @@ export const HomeScreen: React.FC = () => {
             </TouchableOpacity>
           ) : !isTrainingDay ? (
             <View style={styles.restDayBlock}>
-              <Moon size={40} weight="fill" color={palette.gray[500]} style={{ marginBottom: 6 }} />
-              <Text style={styles.restDayText}>{t('home.restDay')}</Text>
+              {completedToday ? (
+                <CheckCircle size={40} weight="fill" color={palette.brand[400]} style={{ marginBottom: 6 }} />
+              ) : (
+                <Moon size={40} weight="fill" color={palette.gray[500]} style={{ marginBottom: 6 }} />
+              )}
+              <Text style={styles.restDayText}>
+                {completedToday
+                  ? t('home.doneForToday', { defaultValue: 'Nice work — done for today' })
+                  : t('home.restDay')}
+              </Text>
               {nextScheduledDay && (
                 <Text style={styles.restDaySub}>{t('home.nextSession')}: {cap(nextScheduledDay)}</Text>
               )}

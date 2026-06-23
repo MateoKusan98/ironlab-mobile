@@ -9,7 +9,9 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Share,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -22,7 +24,8 @@ import { sessionService, WorkoutSession } from '../../services/session.service';
 import { projectSessionPoints } from '../../services/badges.service';
 import { aiCoachService } from '../../services/ai-coach.service';
 import { useBadgeCelebration } from '../../contexts/BadgeCelebrationContext';
-import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, Check } from 'phosphor-react-native';
+import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, Check, Sparkle, Copy, ShareNetwork } from 'phosphor-react-native';
+import { LANGUAGES } from '../../i18n';
 
 type SummaryRouteProp = RouteProp<RootStackParamList, 'SessionSummary'>;
 
@@ -36,7 +39,7 @@ const MOOD_ICONS: Record<string, React.ReactElement> = {
 };
 
 export const SessionSummaryScreen: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { exName } = useExerciseName();
   const MOODS = MOOD_VALUES.map((v) => ({ icon: MOOD_ICONS[v], value: v, name: t(`session.moods.${v}`) }));
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -56,6 +59,62 @@ export const SessionSummaryScreen: React.FC = () => {
   const [editingDuration, setEditingDuration] = useState(false);
   const [editH, setEditH] = useState('');
   const [editM, setEditM] = useState('');
+
+  // ── Social-media share captions ──────────────────────────────────────────
+  type CaptionStyle = 'hype' | 'clean' | 'funny';
+  const CAPTION_STYLES: { key: CaptionStyle; label: string }[] = [
+    { key: 'hype', label: 'Hype' },
+    { key: 'clean', label: 'Clean' },
+    { key: 'funny', label: 'Funny' },
+  ];
+  // The app's current language and its English name (for the AI prompt). The
+  // EN ⇄ local toggle only makes sense when the app isn't already in English.
+  const localLang = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0];
+  const showLangToggle = localLang.code !== 'en';
+  const aiNameFor = (code: string) => LANGUAGES.find((l) => l.code === code)?.aiName ?? 'English';
+
+  const [captions, setCaptions] = useState<Record<CaptionStyle, string> | null>(null);
+  const [captionLoading, setCaptionLoading] = useState(false);
+  const [captionStyle, setCaptionStyle] = useState<CaptionStyle>('hype');
+  const [captionLang, setCaptionLang] = useState(i18n.language);
+  const [copied, setCopied] = useState(false);
+
+  const generateCaptions = async (langCode: string) => {
+    setCaptionLang(langCode);
+    setCaptionLoading(true);
+    try {
+      const result = await aiCoachService.generateShareCaption(sessionId, aiNameFor(langCode), {
+        notes: notes.trim() || undefined,
+        mood,
+      });
+      setCaptions(result);
+      // Land on the first style that actually came back with text.
+      const first = CAPTION_STYLES.map((s) => s.key).find((k) => result[k]?.trim());
+      if (first) setCaptionStyle(first);
+    } catch {
+      Alert.alert(t('common.error'), t('errors.serverError'));
+    } finally {
+      setCaptionLoading(false);
+    }
+  };
+
+  const currentCaption = captions ? captions[captionStyle] ?? '' : '';
+
+  const handleCopyCaption = async () => {
+    if (!currentCaption) return;
+    await Clipboard.setStringAsync(currentCaption);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const handleShareCaption = async () => {
+    if (!currentCaption) return;
+    try {
+      await Share.share({ message: currentCaption });
+    } catch {
+      /* user dismissed the share sheet */
+    }
+  };
 
   const openDurationEdit = () => {
     setEditH(String(Math.floor(duration / 60)));
@@ -285,6 +344,96 @@ export const SessionSummaryScreen: React.FC = () => {
           />
         </View>
 
+        {/* Share to socials */}
+        <View style={styles.card}>
+          <Text style={styles.cardLabel}>SHARE TO SOCIALS</Text>
+
+          {!captions && !captionLoading && (
+            <>
+              <Text style={styles.shareHint}>
+                Turn this workout into a ready-to-post caption for TikTok, Instagram & more.
+              </Text>
+              <TouchableOpacity style={styles.shareGenBtn} onPress={() => generateCaptions(captionLang)}>
+                <Sparkle size={18} weight="fill" color="#fff" />
+                <Text style={styles.shareGenText}>Generate caption</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {captionLoading && (
+            <View style={styles.shareLoading}>
+              <ActivityIndicator color={palette.brand[400]} />
+              <Text style={styles.shareHint}>Writing your caption…</Text>
+            </View>
+          )}
+
+          {captions && !captionLoading && (
+            <>
+              {/* Style tabs */}
+              <View style={styles.styleTabs}>
+                {CAPTION_STYLES.map((s) => {
+                  const empty = !captions[s.key]?.trim();
+                  return (
+                    <TouchableOpacity
+                      key={s.key}
+                      disabled={empty}
+                      style={[
+                        styles.styleTab,
+                        captionStyle === s.key && styles.styleTabActive,
+                        empty && styles.styleTabDisabled,
+                      ]}
+                      onPress={() => setCaptionStyle(s.key)}
+                    >
+                      <Text style={[styles.styleTabText, captionStyle === s.key && styles.styleTabTextActive]}>
+                        {s.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <View style={styles.captionBox}>
+                <Text style={styles.captionText}>{currentCaption}</Text>
+              </View>
+
+              {/* Language toggle (only when app isn't already English) */}
+              {showLangToggle && (
+                <View style={styles.langToggle}>
+                  {[{ code: 'en', label: 'EN' }, { code: localLang.code, label: localLang.label }].map((l) => (
+                    <TouchableOpacity
+                      key={l.code}
+                      style={[styles.langBtn, captionLang === l.code && styles.langBtnActive]}
+                      onPress={() => captionLang !== l.code && generateCaptions(l.code)}
+                    >
+                      <Text style={[styles.langBtnText, captionLang === l.code && styles.langBtnTextActive]}>
+                        {l.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              {/* Copy / Share */}
+              <View style={styles.shareActions}>
+                <TouchableOpacity style={[styles.shareActionBtn, styles.copyBtn]} onPress={handleCopyCaption}>
+                  {copied ? <Check size={16} weight="bold" color={palette.brand[400]} /> : <Copy size={16} weight="bold" color={palette.gray[200]} />}
+                  <Text style={[styles.shareActionText, copied && { color: palette.brand[400] }]}>
+                    {copied ? 'Copied!' : 'Copy'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.shareActionBtn, styles.shareSheetBtn]} onPress={handleShareCaption}>
+                  <ShareNetwork size={16} weight="bold" color="#fff" />
+                  <Text style={[styles.shareActionText, { color: '#fff' }]}>Share</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity onPress={() => generateCaptions(captionLang)}>
+                <Text style={styles.regenLink}>↻ Regenerate</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
         {/* Save */}
         <TouchableOpacity
           style={[styles.saveBtn, (saving || generating) && styles.saveBtnDisabled]}
@@ -437,6 +586,63 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     minHeight: 90,
   },
+
+  // Share to socials
+  shareHint: { fontSize: 13, color: palette.gray[400], lineHeight: 18, marginBottom: 14 },
+  shareGenBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: palette.brand[600],
+    borderRadius: 12,
+    paddingVertical: 13,
+  },
+  shareGenText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  shareLoading: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
+  styleTabs: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  styleTab: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: palette.gray[700],
+  },
+  styleTabActive: { backgroundColor: palette.brand[600] + '33', borderWidth: 1, borderColor: palette.brand[500] },
+  styleTabDisabled: { opacity: 0.35 },
+  styleTabText: { fontSize: 13, fontWeight: '700', color: palette.gray[300] },
+  styleTabTextActive: { color: palette.brand[400] },
+  captionBox: {
+    backgroundColor: palette.gray[700],
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+  },
+  captionText: { fontSize: 14, lineHeight: 21, color: theme.colors.text },
+  langToggle: { flexDirection: 'row', gap: 8, marginBottom: 12, alignSelf: 'flex-start' },
+  langBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: palette.gray[700],
+  },
+  langBtnActive: { backgroundColor: palette.brand[600] },
+  langBtnText: { fontSize: 12, fontWeight: '700', color: palette.gray[300] },
+  langBtnTextActive: { color: '#fff' },
+  shareActions: { flexDirection: 'row', gap: 10 },
+  shareActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  copyBtn: { backgroundColor: palette.gray[700] },
+  shareSheetBtn: { backgroundColor: palette.brand[600] },
+  shareActionText: { fontSize: 14, fontWeight: '700', color: palette.gray[200] },
+  regenLink: { fontSize: 13, fontWeight: '600', color: palette.gray[400], textAlign: 'center', marginTop: 14 },
 
   prCard: {
     backgroundColor: '#78350f' + '50',

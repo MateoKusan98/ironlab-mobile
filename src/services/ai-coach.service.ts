@@ -128,6 +128,20 @@ export const aiCoachService = {
     await api.post(`/ai-coach/post-session/${sessionId}`);
   },
 
+  // `language` is the English name of the target language (e.g. "Bosnian"),
+  // matching LANGUAGES[].aiName so the backend can instruct the model directly.
+  generateShareCaption: async (
+    sessionId: string,
+    language: string,
+    overrides?: { notes?: string; mood?: string },
+  ): Promise<{ hype: string; clean: string; funny: string }> => {
+    const { data } = await api.post<{ data: { hype: string; clean: string; funny: string } }>(
+      `/ai-coach/share-caption/${sessionId}`,
+      { language, ...overrides },
+    );
+    return data.data;
+  },
+
   getDebugPrompt: async (): Promise<{ systemPrompt: string; userMessage: string; layers: Record<string, string | null> }> => {
     const { data } = await api.get<{ data: { systemPrompt: string; userMessage: string; layers: Record<string, string | null> } }>('/ai-coach/debug-prompt');
     return data.data;
@@ -149,6 +163,7 @@ export const aiCoachService = {
     catchUpRecommendation: 'make_up' | 'skip' | null;
     nextScheduledDay: string | null;
     skipAheadDay: string | null;
+    completedToday: boolean;
   }> => {
     const { data } = await api.get<{ data: {
       plan: string | null;
@@ -166,6 +181,7 @@ export const aiCoachService = {
       catchUpRecommendation: 'make_up' | 'skip' | null;
       nextScheduledDay: string | null;
       skipAheadDay: string | null;
+      completedToday: boolean;
     } }>('/ai-coach/plan');
     return data.data;
   },
