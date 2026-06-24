@@ -56,6 +56,7 @@ export type RootStackParamList = {
   AdminIdeas: undefined;
   AdminLogs: undefined;
   SubmitIdea: undefined;
+  Quiz: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -106,6 +107,7 @@ import { ProgramCreatorWeeksScreen } from '../screens/client/program-builder/Pro
 import { ProgramCreatorDayScreen } from '../screens/client/program-builder/ProgramCreatorDayScreen';
 import { SupportChatScreen } from '../screens/support/SupportChatScreen';
 import { FormCheckScreen } from '../screens/form-check/FormCheckScreen';
+import { QuizScreen } from '../screens/client/QuizScreen';
 import { AdminUsersScreen } from '../screens/admin/AdminUsersScreen';
 import { AdminAILabScreen } from '../screens/admin/AdminAILabScreen';
 import { AdminIdeasScreen } from '../screens/admin/AdminIdeasScreen';
@@ -202,6 +204,7 @@ export const AppNavigator: React.FC = () => {
 
             <Stack.Screen name="SupportChat" component={SupportChatScreen} />
             <Stack.Screen name="FormCheck" component={FormCheckScreen} />
+            <Stack.Screen name="Quiz" component={QuizScreen} />
             <Stack.Screen name="Badges" component={BadgesScreen} />
             <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />
             <Stack.Screen name="AdminAILab" component={AdminAILabScreen} />

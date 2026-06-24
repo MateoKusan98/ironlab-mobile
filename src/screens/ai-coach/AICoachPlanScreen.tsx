@@ -22,6 +22,7 @@ import { aiCoachService } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserRole } from '@shared';
 import { MagnifyingGlass, Gear, Robot, Trophy, ChartBar } from 'phosphor-react-native';
+import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'AICoachPlan'>;
 
@@ -453,6 +454,9 @@ export const AICoachPlanScreen: React.FC = () => {
   const [plan, setPlan] = useState<string | null>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  // True once the new plan has come back but the quiz is still up — lets the
+  // user finish the question they're on before the plan is revealed.
+  const [planReady, setPlanReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [regenUsedToday, setRegenUsedToday] = useState(false);
   const [debugVisible, setDebugVisible] = useState(false);
@@ -536,6 +540,7 @@ export const AICoachPlanScreen: React.FC = () => {
       await aiCoachService.setInjuryPreference(handling);
       setInjuryHandling(handling);
       setInjuryModalVisible(false);
+      setPlanReady(false);
       setGenerating(true);
       const newPlan = await aiCoachService.generatePlan();
       setPlan(newPlan);
@@ -543,6 +548,7 @@ export const AICoachPlanScreen: React.FC = () => {
       const today = new Date().toISOString().split('T')[0];
       await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
       setRegenUsedToday(true);
+      setPlanReady(true);
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 429) {
@@ -551,7 +557,6 @@ export const AICoachPlanScreen: React.FC = () => {
         setRegenUsedToday(true);
       }
       Alert.alert('Error', 'Could not save injury preference.');
-    } finally {
       setGenerating(false);
     }
   };
@@ -564,6 +569,7 @@ export const AICoachPlanScreen: React.FC = () => {
     }
     setShowRegenInput(false);
     setRegenNote('');
+    setPlanReady(false);
     setGenerating(true);
     try {
       const newPlan = await aiCoachService.generatePlan(undefined, note?.trim() || undefined);
@@ -571,6 +577,7 @@ export const AICoachPlanScreen: React.FC = () => {
       setGeneratedAt(new Date().toISOString());
       await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
       setRegenUsedToday(true);
+      setPlanReady(true);
     } catch (err: any) {
       const status = (err as any)?.response?.status;
       if (status === 429) {
@@ -579,7 +586,6 @@ export const AICoachPlanScreen: React.FC = () => {
       }
       const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
       Alert.alert('Could not generate plan', String(Array.isArray(msg) ? msg.join('\n') : msg));
-    } finally {
       setGenerating(false);
     }
   };
@@ -594,13 +600,16 @@ export const AICoachPlanScreen: React.FC = () => {
 
   if (generating) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.generatingContainer}>
-          <Robot size={56} weight="fill" color={palette.brand[400]} style={{ marginBottom: 16 }} />
-          <Text style={styles.generatingTitle}>{t('aiCoach.generating')}</Text>
-          <Text style={styles.generatingSubtitle}>{t('aiCoach.buildingWorkout')}</Text>
-          <ActivityIndicator color={palette.brand[500]} style={{ marginTop: 24 }} size="large" />
-        </View>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <FitnessQuiz
+          loading={!planReady}
+          title={t('aiCoach.generating')}
+          subtitle={t('aiCoach.buildingWorkout')}
+          onFinish={() => {
+            setGenerating(false);
+            setPlanReady(false);
+          }}
+        />
       </SafeAreaView>
     );
   }

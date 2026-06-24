@@ -29,7 +29,7 @@ import { nutritionService } from '../../services/nutrition.service';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from '../../i18n';
-import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug, Sparkle } from 'phosphor-react-native';
+import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug, Sparkle, Brain } from 'phosphor-react-native';
 import { useWhatsNew } from '../../contexts/WhatsNewContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBadges } from '../../hooks/useBadges';
@@ -586,6 +586,16 @@ export const ProfileScreen: React.FC = () => {
             <View style={styles.exportTextWrap}>
               <Text style={styles.menuText}>Badges & Achievements</Text>
               <Text style={styles.exportSub}>Track your strength milestones and points</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Quiz')}
+          >
+            <Brain size={20} weight="fill" color="#22d3ee" />
+            <View style={styles.exportTextWrap}>
+              <Text style={styles.menuText}>Fitness Quiz</Text>
+              <Text style={styles.exportSub}>Test your knowledge — 100+ questions & answers</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity

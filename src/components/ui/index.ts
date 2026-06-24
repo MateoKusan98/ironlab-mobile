@@ -19,3 +19,4 @@ export * from './Tooltip';
 export * from './Stepper';
 export * from './Slider';
 export * from './KeyboardAwareScreen';
+export * from './FitnessQuiz';
