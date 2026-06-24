@@ -75,9 +75,20 @@ export const ManualFoodLogScreen: React.FC = () => {
   const [pasteText, setPasteText] = useState('');
   const [parsing, setParsing] = useState(false);
   const [parsedIngredients, setParsedIngredients] = useState<Array<{
-    name: string; quantity: number; unit: string;
+    name: string; quantity: number | string; unit: string;
     calories: number; protein: number; carbs: number; fat: number;
-  }>>([]);
+  }>>(
+    // Seed from an AI meal scan so detected ingredients are listed, not dropped.
+    (prefill?.ingredients ?? []).map((ing) => ({
+      name: ing.name ?? '',
+      quantity: '',
+      unit: ing.amount ?? '',
+      calories: Math.round(ing.calories ?? 0),
+      protein: Math.round((ing.protein ?? 0) as number),
+      carbs: Math.round((ing.carbs ?? 0) as number),
+      fat: Math.round((ing.fat ?? 0) as number),
+    })),
+  );
 
   const categories = [
     { label: 'Breakfast', value: 'BREAKFAST' },

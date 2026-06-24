@@ -28,7 +28,7 @@ export type RootStackParamList = {
   ScanResult: { analysis: any };
   FoodScanOnboarding: undefined;
   FoodDetails: { food?: any };
-  ManualFoodLog: { prefill?: { mealName?: string; calories?: number; protein?: number; carbs?: number; fat?: number; category?: string; imageUri?: string } } | undefined;
+  ManualFoodLog: { prefill?: { mealName?: string; calories?: number; protein?: number; carbs?: number; fat?: number; category?: string; imageUri?: string; ingredients?: Array<{ name: string; amount?: string; calories?: number; protein?: number; carbs?: number; fat?: number }> } } | undefined;
   MealScan: undefined;
   BarcodeScanner: undefined;
   MyMeals: undefined;

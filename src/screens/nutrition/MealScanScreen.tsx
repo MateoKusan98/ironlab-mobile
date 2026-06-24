@@ -57,6 +57,7 @@ export const MealScanScreen: React.FC = () => {
           fat: Math.round(result.macros?.fat ?? 0),
           category: (result.category ?? 'LUNCH').toUpperCase(),
           imageUri: photo.uri,
+          ingredients: Array.isArray(result.ingredients) ? result.ingredients : [],
         },
       });
     } catch {
