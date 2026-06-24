@@ -871,6 +871,22 @@
     "bmr": "BMR",
     "metabolicAge": "Metabolic Age",
     "aiStrategy": "AI Strategy",
+    "leveragesTitle": "Lifting Leverages",
+    "arms": "Arms",
+    "torso": "Torso",
+    "femurs": "Femurs",
+    "limb": {
+      "short": "Short",
+      "average": "Average",
+      "long": "Long"
+    },
+    "waterRetentionTitle": "Water Retention",
+    "retention": {
+      "low": "Low / Dry",
+      "normal": "Normal",
+      "elevated": "Elevated",
+      "high": "High"
+    },
     "nutritionTargets": "Daily Nutrition Targets",
     "day": "day",
     "continueBtn": "Continue →",

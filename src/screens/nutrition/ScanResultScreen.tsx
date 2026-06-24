@@ -17,6 +17,23 @@ import { useAuthStore } from '../../stores/auth.store';
 
 const { width } = Dimensions.get('window');
 
+type LimbLength = 'long' | 'average' | 'short';
+type RetentionLevel = 'low' | 'normal' | 'elevated' | 'high';
+
+interface Leverages {
+  armLength: LimbLength;
+  torsoLength: LimbLength;
+  femurLength: LimbLength;
+  build: string;
+  implications: string[];
+}
+
+interface WaterRetention {
+  level: RetentionLevel;
+  score: number; // 1-5
+  note: string;
+}
+
 interface BodyScanAnalysis {
   bodyFatPercentage: number;
   bodyWaterPercentage: number;
@@ -31,6 +48,17 @@ interface BodyScanAnalysis {
   explanation: string;
   calories: number;
   macros: { protein: number; fat: number; carbs: number };
+  leverages?: Leverages;
+  waterRetention?: WaterRetention;
+}
+
+function retentionColor(level: RetentionLevel): string {
+  switch (level) {
+    case 'low': return palette.info[400];
+    case 'normal': return palette.success[400];
+    case 'elevated': return palette.warning[400];
+    case 'high': return palette.error[400];
+  }
 }
 
 function visceralFatColor(level: number): string {
@@ -165,6 +193,61 @@ export const ScanResultScreen: React.FC = () => {
           )}
         </View>
 
+        {/* ── Lifting Leverages ── */}
+        {analysis.leverages && (
+          <View style={styles.card}>
+            <View style={styles.leverageHeader}>
+              <Text style={styles.sectionTitle}>{t('scanResult.leveragesTitle')}</Text>
+              <Text style={styles.leverageBuild}>{analysis.leverages.build}</Text>
+            </View>
+            <View style={styles.leverageRows}>
+              <LeverageRow label={t('scanResult.arms')} value={analysis.leverages.armLength} t={t} />
+              <LeverageRow label={t('scanResult.torso')} value={analysis.leverages.torsoLength} t={t} />
+              <LeverageRow label={t('scanResult.femurs')} value={analysis.leverages.femurLength} t={t} />
+            </View>
+            {analysis.leverages.implications.length > 0 && (
+              <View style={styles.implicationList}>
+                {analysis.leverages.implications.map((line, i) => (
+                  <View key={i} style={styles.implicationItem}>
+                    <Text style={styles.implicationBullet}>›</Text>
+                    <Text style={styles.implicationText}>{line}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* ── Water Retention ── */}
+        {analysis.waterRetention && (
+          <View style={styles.card}>
+            <View style={styles.leverageHeader}>
+              <Text style={styles.sectionTitle}>{t('scanResult.waterRetentionTitle')}</Text>
+              <View style={[styles.ratingBadge, { backgroundColor: retentionColor(analysis.waterRetention.level) + '22' }]}>
+                <Text style={[styles.ratingText, { color: retentionColor(analysis.waterRetention.level) }]}>
+                  {t(`scanResult.retention.${analysis.waterRetention.level}`)}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.retentionScale}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <View
+                  key={n}
+                  style={[
+                    styles.retentionPip,
+                    {
+                      backgroundColor: n <= analysis.waterRetention!.score
+                        ? retentionColor(analysis.waterRetention!.level)
+                        : '#27272A',
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+            <Text style={styles.retentionNote}>{analysis.waterRetention.note}</Text>
+          </View>
+        )}
+
         {/* ── AI Strategy ── */}
         <View style={[styles.card, styles.strategyCard]}>
           <View style={styles.strategyHeader}>
@@ -226,6 +309,38 @@ const MacroChip: React.FC<{ label: string; value: number; color: string }> = ({ 
     <Text style={macroStyles.label}>{label}</Text>
   </View>
 );
+
+const LeverageRow: React.FC<{
+  label: string;
+  value: LimbLength;
+  t: (key: string) => string;
+}> = ({ label, value, t }) => {
+  // Highlight whichever end of the scale the athlete sits at; "average" is neutral.
+  const accent = value === 'average' ? palette.gray[300] : palette.brand[400];
+  return (
+    <View style={leverageStyles.row}>
+      <Text style={leverageStyles.rowLabel}>{label}</Text>
+      <View style={leverageStyles.scale}>
+        {(['short', 'average', 'long'] as LimbLength[]).map((step) => {
+          const active = step === value;
+          return (
+            <View
+              key={step}
+              style={[
+                leverageStyles.pill,
+                active && { backgroundColor: accent + '22', borderColor: accent },
+              ]}
+            >
+              <Text style={[leverageStyles.pillText, active && { color: accent, fontWeight: '700' }]}>
+                {t(`scanResult.limb.${step}`)}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
@@ -341,6 +456,20 @@ const styles = StyleSheet.create({
   strategyTitle: { fontSize: 16, fontWeight: '700', color: '#FFF' },
   strategyText: { fontSize: 14, color: '#A1A1AA', lineHeight: 22 },
 
+  // Leverages
+  leverageHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  leverageBuild: { fontSize: 12, color: palette.brand[400], fontWeight: '600', flexShrink: 1, textAlign: 'right', marginLeft: 8 },
+  leverageRows: { gap: 12 },
+  implicationList: { marginTop: 16, gap: 8, borderTopWidth: 1, borderTopColor: CARD_BORDER, paddingTop: 16 },
+  implicationItem: { flexDirection: 'row', gap: 8 },
+  implicationBullet: { color: palette.brand[400], fontSize: 14, fontWeight: '700', lineHeight: 20 },
+  implicationText: { flex: 1, fontSize: 13, color: '#A1A1AA', lineHeight: 20 },
+
+  // Water retention
+  retentionScale: { flexDirection: 'row', gap: 6, marginBottom: 14 },
+  retentionPip: { flex: 1, height: 8, borderRadius: 4 },
+  retentionNote: { fontSize: 13, color: '#A1A1AA', lineHeight: 20 },
+
   // Nutrition targets
   sectionTitle: { fontSize: 14, fontWeight: '600', color: TEXT_MUTED, marginBottom: 12 },
   calorieRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 16 },
@@ -389,4 +518,20 @@ const macroStyles = StyleSheet.create({
   },
   value: { fontSize: 18, fontWeight: 'bold' },
   label: { fontSize: 12, color: TEXT_MUTED },
+});
+
+const leverageStyles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  rowLabel: { fontSize: 14, color: '#FFF', fontWeight: '500', width: 70 },
+  scale: { flex: 1, flexDirection: 'row', gap: 6 },
+  pill: {
+    flex: 1,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
+    backgroundColor: '#111',
+    alignItems: 'center',
+  },
+  pillText: { fontSize: 11, color: TEXT_MUTED },
 });
