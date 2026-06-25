@@ -144,6 +144,7 @@ export const HomeScreen: React.FC = () => {
     catchUpRecommendation: 'make_up' | 'skip' | null;
     nextScheduledDay: string | null;
     skipAheadDay: string | null;
+    completedToday: boolean | null;
   } | null>(null);
   const [catchUpDismissed, setCatchUpDismissed] = useState(false);
   // Schedule-shift confirm sheet: 'early' = train on a rest day (pull next session
@@ -169,7 +170,7 @@ export const HomeScreen: React.FC = () => {
         proposalsService.getPending().catch(() => null),
         sessionService.getTodaySummary(today).catch(() => null),
       ]);
-      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation, nextScheduledDay: plan.nextScheduledDay, skipAheadDay: plan.skipAheadDay } : null);
+      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation, nextScheduledDay: plan.nextScheduledDay, skipAheadDay: plan.skipAheadDay, completedToday: plan.completedToday } : null);
       setActiveSessionId(active?.id ?? null);
       setProposal(pending);
       setTodaySummary(summary);

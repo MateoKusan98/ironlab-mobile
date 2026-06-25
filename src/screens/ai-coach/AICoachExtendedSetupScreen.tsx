@@ -26,7 +26,9 @@ type QuestionType = 'single' | 'multi' | 'number' | 'text' | 'slider' | 'bool' |
 
 interface Option { value: string; label: string; icon?: string }
 interface Question {
-  id: keyof AICoachProfileData;
+  // Mostly profile fields, plus the comp-date pseudo-questions whose answers are
+  // owned by the dedicated /ai-coach/competition endpoint, not the profile DTO.
+  id: keyof AICoachProfileData | 'competitionDate' | 'competitionType';
   label: string;
   subtitle?: string;
   type: QuestionType;
