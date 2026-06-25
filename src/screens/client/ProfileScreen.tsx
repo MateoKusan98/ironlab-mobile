@@ -29,7 +29,7 @@ import { nutritionService } from '../../services/nutrition.service';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from '../../i18n';
-import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug, Sparkle, Brain } from 'phosphor-react-native';
+import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug, Sparkle, Brain, ScanSmiley } from 'phosphor-react-native';
 import { useWhatsNew } from '../../contexts/WhatsNewContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBadges } from '../../hooks/useBadges';
@@ -566,6 +566,16 @@ export const ProfileScreen: React.FC = () => {
             <View style={styles.exportTextWrap}>
               <Text style={styles.menuText}>{t('profile.aiCoachSettings')}</Text>
               <Text style={styles.exportSub}>Goal, maxes, exercises, constraints & more</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Progress')}
+          >
+            <ScanSmiley size={20} weight="fill" color={palette.error[400]} />
+            <View style={styles.exportTextWrap}>
+              <Text style={styles.menuText}>Progress & Body Scan</Text>
+              <Text style={styles.exportSub}>Scan body fat, track photos & composition</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity

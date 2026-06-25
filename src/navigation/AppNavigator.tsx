@@ -43,6 +43,7 @@ export type RootStackParamList = {
   AICoachChat: { preferences?: import('../services/ai-coach.service').CoachPreferences };
   AICoachPlan: undefined;
   WorkoutHistory: undefined;
+  Progress: undefined;
   Stats: undefined;
   SessionDetail: { sessionId: string };
   StartSession: { plan?: string; nextSessionJson?: import('../services/ai-coach.service').NextSession | null; freeSession?: boolean; makeUp?: boolean; skipNext?: boolean };
@@ -97,6 +98,7 @@ import { ActiveWorkoutScreen } from '../screens/session/ActiveWorkoutScreen';
 import { SessionSummaryScreen } from '../screens/session/SessionSummaryScreen';
 import { CardioLogScreen } from '../screens/session/CardioLogScreen';
 import { WorkoutHistoryScreen } from '../screens/client/WorkoutHistoryScreen';
+import { ProgressScreen } from '../screens/client/ProgressScreen';
 import { StatsScreen } from '../screens/client/StatsScreen';
 import { SessionDetailScreen } from '../screens/client/SessionDetailScreen';
 
@@ -192,6 +194,7 @@ export const AppNavigator: React.FC = () => {
             </Stack.Group>
 
             <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
+            <Stack.Screen name="Progress" component={ProgressScreen} />
             <Stack.Screen name="Stats" component={StatsScreen} />
             <Stack.Screen name="SessionDetail" component={SessionDetailScreen} />
 
