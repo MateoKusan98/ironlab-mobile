@@ -106,7 +106,12 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
               onValueChange={setKeepSignedIn}
               label={t('auth.keepSignedIn')}
             />
-            <Text style={styles.forgotLink}>{t('auth.forgotPassword')}</Text>
+            <Text
+              style={styles.forgotLink}
+              onPress={() => navigation.navigate('ForgotPassword')}
+            >
+              {t('auth.forgotPassword')}
+            </Text>
           </View>
 
           <Button

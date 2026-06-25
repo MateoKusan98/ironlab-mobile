@@ -1,4 +1,4 @@
-export { RegisterDto, LoginDto, RefreshTokenDto, SocialAuthDto } from './auth.dto';
+export { RegisterDto, LoginDto, RefreshTokenDto, SocialAuthDto, ForgotPasswordDto, ResetPasswordDto } from './auth.dto';
 export { CreateFoodLogDto } from './nutrition.dto';
 export {
   CreateWorkoutPlanDto,

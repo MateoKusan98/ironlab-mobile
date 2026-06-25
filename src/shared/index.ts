@@ -19,6 +19,8 @@ export type {
   LoginDto,
   RefreshTokenDto,
   SocialAuthDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
   CreateFoodLogDto,
   CreateWorkoutPlanDto,
   CreateWorkoutExerciseDto,

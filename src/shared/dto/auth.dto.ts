@@ -20,3 +20,13 @@ export interface SocialAuthDto {
   provider: 'google' | 'facebook';
   accessToken: string;
 }
+
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  email: string;
+  code: string;
+  newPassword: string;
+}

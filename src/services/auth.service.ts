@@ -1,6 +1,6 @@
 import { api } from './api';
 import { AuthResponse, ApiResponse } from '@shared';
-import { RegisterDto, LoginDto, SocialAuthDto } from '@shared';
+import { RegisterDto, LoginDto, SocialAuthDto, ForgotPasswordDto, ResetPasswordDto } from '@shared';
 
 export const authService = {
   register: async (dto: RegisterDto): Promise<AuthResponse> => {
@@ -20,5 +20,13 @@ export const authService = {
 
   logout: async (): Promise<void> => {
     await api.post('/auth/logout');
+  },
+
+  forgotPassword: async (dto: ForgotPasswordDto): Promise<void> => {
+    await api.post('/auth/forgot-password', dto);
+  },
+
+  resetPassword: async (dto: ResetPasswordDto): Promise<void> => {
+    await api.post('/auth/reset-password', dto);
   },
 };
