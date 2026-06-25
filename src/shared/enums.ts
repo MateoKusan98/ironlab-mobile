@@ -33,9 +33,6 @@ export enum BadgeKey {
   DEADLIFT_100 = 'DEADLIFT_100',
   DEADLIFT_180 = 'DEADLIFT_180',
   DEADLIFT_220 = 'DEADLIFT_220',
-  // Strength — OHP
-  OHP_60 = 'OHP_60',
-  OHP_80 = 'OHP_80',
   // Strength — Combo
   POWERFUL_LAD = 'POWERFUL_LAD',
   // Grind — Sessions

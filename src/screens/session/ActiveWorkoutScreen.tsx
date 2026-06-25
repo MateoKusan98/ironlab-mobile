@@ -109,7 +109,7 @@ const COMMON_EXERCISES = [
   'Cable Crossover', 'Assisted Pull-up', 'Assisted Dip',
 ];
 
-const KEY_EXERCISE_PATTERN = /\bsquat\b|\bbench\b|\bdeadlift\b|overhead.?press|\bohp\b/i;
+const KEY_EXERCISE_PATTERN = /\bsquat\b|\bbench\b|\bdeadlift\b/i;
 
 const SUBSTITUTE_MAP: Record<string, string[]> = {
   squat: ['Hack Squat', 'Leg Press', 'Bulgarian Split Squat', 'Goblet Squat', 'Smith Machine Squat'],
@@ -869,11 +869,13 @@ export const ActiveWorkoutScreen: React.FC = () => {
                   </View>
 
                   {/* Sets */}
-                  {ex.sets.map((set, setIdx) => (
+                  {ex.sets.map((set, setIdx) => {
+                    const hasTruePR = !!set.prs?.some((p) => p.tier === 'pr');
+                    return (
                     <View key={setIdx}>
-                      <View style={[styles.setRow, set.isCompleted && styles.setRowDone, !!(set.prs?.length) && styles.setRowPR]}>
-                        <Text style={[styles.setNum, set.isCompleted && styles.setNumDone, !!(set.prs?.length) && styles.setNumPR]}>
-                          {set.prs?.length ? <Trophy size={14} weight="fill" color={palette.brand[400]} /> : set.setNumber}
+                      <View style={[styles.setRow, set.isCompleted && styles.setRowDone, hasTruePR && styles.setRowPR]}>
+                        <Text style={[styles.setNum, set.isCompleted && styles.setNumDone, hasTruePR && styles.setNumPR]}>
+                          {hasTruePR ? <Trophy size={14} weight="fill" color={palette.brand[400]} /> : set.setNumber}
                         </Text>
 
                         <TextInput
@@ -918,18 +920,21 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
                       {/* PR badges */}
                       {set.prs && set.prs.length > 0 && (
-                        <View style={styles.prBadgeRow}>
+                        <View style={[styles.prBadgeRow, !hasTruePR && styles.prBadgeRowMini]}>
                           {set.prs.map((pr) => (
-                            <View key={pr.type} style={styles.prBadge}>
-                              <Text style={styles.prBadgeText}>
-                                {pr.label}: {pr.value}kg{pr.previous ? ` (+${(pr.value - pr.previous).toFixed(1)})` : ' · First ever!'}
+                            <View key={pr.type} style={[styles.prBadge, pr.tier === 'mini' && styles.prBadgeMini]}>
+                              <Text style={[styles.prBadgeText, pr.tier === 'mini' && styles.prBadgeMiniText]}>
+                                {pr.tier === 'pr'
+                                  ? `🏆 PR · ${pr.e1rm ?? pr.value}kg 1RM${pr.prevE1rm ? ` (+${((pr.e1rm ?? pr.value) - pr.prevE1rm).toFixed(1)})` : ' · First ever!'}`
+                                  : `mini PR · ${pr.label}: ${pr.value}kg${pr.previous ? ` (+${(pr.value - pr.previous).toFixed(1)})` : ''}`}
                               </Text>
                             </View>
                           ))}
                         </View>
                       )}
                     </View>
-                  ))}
+                    );
+                  })}
 
                   {/* Add Set */}
                   <TouchableOpacity style={styles.addSetBtn} onPress={() => addSet(exIdx)}>
@@ -1307,8 +1312,11 @@ const styles = StyleSheet.create({
   setNumPR: { color: '#f59e0b' },
 
   prBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, paddingHorizontal: 16, paddingVertical: 6, backgroundColor: '#78350f' + '25' },
+  prBadgeRowMini: { backgroundColor: palette.gray[800] },
   prBadge: { backgroundColor: '#92400e', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   prBadgeText: { fontSize: 11, color: '#fcd34d', fontWeight: '700' },
+  prBadgeMini: { backgroundColor: palette.gray[700] },
+  prBadgeMiniText: { color: palette.gray[300] },
   setInput: {
     backgroundColor: palette.gray[700],
     borderRadius: 8,

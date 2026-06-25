@@ -4,7 +4,6 @@ export type BadgeKey =
   | 'BENCH_80' | 'BENCH_100' | 'BENCH_120'
   | 'SQUAT_100' | 'SQUAT_140' | 'SQUAT_180'
   | 'DEADLIFT_100' | 'DEADLIFT_180' | 'DEADLIFT_220'
-  | 'OHP_60' | 'OHP_80'
   | 'POWERFUL_LAD'
   | 'SESSIONS_1' | 'SESSIONS_10' | 'SESSIONS_50' | 'SESSIONS_100'
   | 'WEEK_3' | 'STREAK_30_MONTH'
@@ -41,8 +40,6 @@ export const BADGE_CATALOG: BadgeMeta[] = [
   { key: 'DEADLIFT_100',   name: 'Off The Floor',            description: 'Deadlift 1RM ≥ 100 kg',            icon: '💪', group: 'strength',   points: 25 },
   { key: 'DEADLIFT_180',   name: 'Iron Floor',               description: 'Deadlift 1RM ≥ 180 kg',            icon: '⚡', group: 'strength',   points: 50 },
   { key: 'DEADLIFT_220',   name: 'Human Forklift',           description: 'Deadlift 1RM ≥ 220 kg',            icon: '🦾', group: 'strength',   points: 100 },
-  { key: 'OHP_60',         name: 'Shoulder Enthusiast',      description: 'OHP 1RM ≥ 60 kg',                  icon: '🙌', group: 'strength',   points: 25 },
-  { key: 'OHP_80',         name: 'Push The Sky',             description: 'OHP 1RM ≥ 80 kg',                  icon: '☁️', group: 'strength',   points: 50 },
   { key: 'POWERFUL_LAD',   name: 'Powerful Lad',             description: 'Hit the century bench, 140 squat & 180 deadlift', icon: '👑', group: 'strength', points: 200 },
 
   // ── Grind ─────────────────────────────────────────────────────────────────

@@ -1,29 +1,41 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator,
-  TouchableOpacity,
+  TouchableOpacity, DimensionValue,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { sessionService, AthleteStats, MuscleGroup, TopExercise, ExerciseProgression, MainLiftData } from '../../services/session.service';
+import {
+  sessionService, AthleteStats, MuscleGroup, TopExercise, ExerciseProgression,
+  MainLiftData, MuscleLandmark, PRTimelineEntry, RepMaxRecord, StrengthLift,
+  BodyCompositionPoint,
+} from '../../services/session.service';
 import { useTranslation } from 'react-i18next';
 import { useExerciseName } from '../../hooks/useExerciseName';
 import { theme, palette } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
 import { UserAvatar } from '../../components/ui/UserAvatar';
-import { Moon, Minus, ThumbsUp, Fire, Lightning, Barbell, ArrowUp } from 'phosphor-react-native';
+import {
+  Moon, Minus, ThumbsUp, Fire, Lightning, Barbell,
+  Trophy, Medal, Timer, Heart, Pulse, Scales, Gauge, ChartLineUp,
+} from 'phosphor-react-native';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const fmtVol = (kg: number): string => {
   if (kg >= 1_000_000) return `${(kg / 1_000_000).toFixed(1)}kt`;
   if (kg >= 1000) return `${(kg / 1000).toFixed(1)}t`;
-  return `${kg}kg`;
+  return `${Math.round(kg)}kg`;
 };
+
+const fmtNum = (n: number): string => n.toLocaleString();
 
 const fmtDate = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+const fmtDay = (iso: string): string =>
+  new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 const MOOD_ICON: Record<string, React.ReactElement> = {
   tired:   <Moon size={18} weight="fill" color="#6b7280" />,
@@ -50,23 +62,40 @@ const LIFT_ICON: Record<string, React.ReactElement> = {
   squat:      <Barbell size={18} weight="bold" color={palette.brand[400]} />,
   benchPress: <Barbell size={18} weight="fill" color="#93c5fd" />,
   deadlift:   <Lightning size={18} weight="fill" color="#eab308" />,
-  ohp:        <ArrowUp size={18} weight="bold" color="#a78bfa" />,
 };
 
 const LIFT_META: Record<string, { label: string }> = {
   squat: { label: 'Squat' },
   benchPress: { label: 'Bench Press' },
   deadlift: { label: 'Deadlift' },
-  ohp: { label: 'Overhead Press' },
 };
+
+const LANDMARK_STATUS: Record<MuscleLandmark['status'], { color: string; label: string }> = {
+  under:        { color: '#f59e0b', label: 'Below MEV' },
+  optimal:      { color: '#22c55e', label: 'Optimal' },
+  high:         { color: '#3b82f6', label: 'High' },
+  overreaching: { color: '#ef4444', label: 'Overreaching' },
+};
+
+const LEVEL_COLOR: Record<string, string> = {
+  Untrained: palette.gray[500],
+  Beginner: '#84cc16',
+  Novice: '#22c55e',
+  Intermediate: '#06b6d4',
+  Advanced: '#a78bfa',
+  Elite: '#eab308',
+};
+
+const DOW_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const SectionCard: React.FC<{ title: string; children: React.ReactNode; accentColor?: string }> = ({
-  title, children, accentColor,
+const SectionCard: React.FC<{ title: string; children: React.ReactNode; accentColor?: string; subtitle?: string }> = ({
+  title, children, accentColor, subtitle,
 }) => (
   <View style={[styles.card, accentColor && { borderLeftColor: accentColor, borderLeftWidth: 3 }]}>
     <Text style={styles.sectionTitle}>{title}</Text>
+    {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
     {children}
   </View>
 );
@@ -97,18 +126,14 @@ const WeeklyBarChart: React.FC<{ data: AthleteStats['weeklyVolume'] }> = ({ data
                 styles.bar,
                 { height: h, backgroundColor: week.volumeKg > 0 ? palette.brand[600] : palette.gray[700] },
               ]} />
-              {week.sessions > 0 && (
-                <View style={styles.barDot} />
-              )}
+              {week.sessions > 0 && <View style={styles.barDot} />}
             </View>
           );
         })}
       </View>
       <View style={styles.barLabelsRow}>
         {data.map((week, i) => (
-          <Text key={i} style={styles.barDateLabel}>
-            {week.label.split(' ')[1]}
-          </Text>
+          <Text key={i} style={styles.barDateLabel}>{week.label.split(' ')[1]}</Text>
         ))}
       </View>
       <View style={styles.barMonthRow}>
@@ -146,6 +171,7 @@ const MainLiftCard: React.FC<{ liftKey: string; data: MainLiftData | null }> = (
   const { t } = useTranslation();
   const { exName } = useExerciseName();
   const meta = LIFT_META[liftKey];
+  if (!meta) return null;
   return (
     <View style={styles.liftCard}>
       <View style={styles.liftIcon}>{LIFT_ICON[liftKey]}</View>
@@ -188,12 +214,9 @@ const ProgressionRow: React.FC<{ progression: ExerciseProgression }> = ({ progre
   const last = progression.points[progression.points.length - 1].estimated1RM;
   const pct = first > 0 ? ((last - first) / first * 100) : 0;
   const isUp = pct >= 0;
-
-  // Sparkline: normalize points to 0–1 and draw mini-bars
   const maxVal = Math.max(...progression.points.map(p => p.estimated1RM));
   const minVal = Math.min(...progression.points.map(p => p.estimated1RM));
   const range = maxVal - minVal || 1;
-
   return (
     <View style={styles.progRow}>
       <View style={{ flex: 1 }}>
@@ -201,19 +224,15 @@ const ProgressionRow: React.FC<{ progression: ExerciseProgression }> = ({ progre
         <Text style={styles.progSub}>
           {first}kg → {last}kg {t('stats.est1RM')} · {t('stats.sessionCount', { count: progression.points.length })}
         </Text>
-        {/* Sparkline */}
         <View style={styles.sparkline}>
           {progression.points.slice(-12).map((p, i) => {
             const h = Math.max(((p.estimated1RM - minVal) / range) * 22, 2);
             return (
-              <View
-                key={i}
-                style={[styles.sparkBar, {
-                  height: h,
-                  backgroundColor: isUp ? '#22c55e' : '#ef4444',
-                  opacity: 0.5 + (i / progression.points.length) * 0.5,
-                }]}
-              />
+              <View key={i} style={[styles.sparkBar, {
+                height: h,
+                backgroundColor: isUp ? '#22c55e' : '#ef4444',
+                opacity: 0.5 + (i / progression.points.length) * 0.5,
+              }]} />
             );
           })}
         </View>
@@ -228,25 +247,198 @@ const ProgressionRow: React.FC<{ progression: ExerciseProgression }> = ({ progre
 const EnergyDots: React.FC<{ value: number }> = ({ value }) => (
   <View style={{ flexDirection: 'row', gap: 4, marginTop: 4 }}>
     {[1, 2, 3, 4, 5].map(n => (
-      <View
-        key={n}
-        style={[
-          styles.energyDot,
-          { backgroundColor: n <= Math.round(value) ? palette.brand[500] : palette.gray[700] },
-        ]}
-      />
+      <View key={n} style={[styles.energyDot, { backgroundColor: n <= Math.round(value) ? palette.brand[500] : palette.gray[700] }]} />
     ))}
   </View>
 );
 
+// ── Strength Standards ─────────────────────────────────────────────────────────
+
+const StrengthLiftRow: React.FC<{ liftKey: string; lift: StrengthLift }> = ({ liftKey, lift }) => {
+  const { exName } = useExerciseName();
+  const meta = LIFT_META[liftKey];
+  const color = LEVEL_COLOR[lift.level] ?? palette.brand[500];
+  return (
+    <View style={styles.ssRow}>
+      <View style={styles.ssHeader}>
+        <Text style={styles.ssLiftName}>{exName(meta?.label ?? liftKey)}</Text>
+        <View style={[styles.ssBadge, { backgroundColor: color + '22', borderColor: color }]}>
+          <Text style={[styles.ssBadgeText, { color }]}>{lift.level}</Text>
+        </View>
+      </View>
+      <View style={styles.ssMetaRow}>
+        <Text style={styles.ssMeta}>{lift.e1RM}kg · {lift.ratio}× BW</Text>
+        {lift.nextLevel && <Text style={styles.ssMetaDim}>→ {lift.nextLevel}</Text>}
+      </View>
+      <View style={styles.ssBarBg}>
+        <View style={[styles.ssBarFill, { width: `${Math.round(lift.progressToNext * 100)}%`, backgroundColor: color }]} />
+      </View>
+    </View>
+  );
+};
+
+// ── PR Timeline ────────────────────────────────────────────────────────────────
+
+const PRRow: React.FC<{ pr: PRTimelineEntry }> = ({ pr }) => {
+  const { exName } = useExerciseName();
+  const isTrue = pr.tier === 'pr';
+  return (
+    <View style={styles.prRow}>
+      <View style={[styles.prIcon, { backgroundColor: isTrue ? '#eab30822' : palette.gray[700] }]}>
+        {isTrue
+          ? <Trophy size={16} weight="fill" color="#eab308" />
+          : <Medal size={16} weight="regular" color={palette.gray[300]} />}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.prName}>{exName(pr.exerciseName)}</Text>
+        <Text style={styles.prMeta}>{pr.weight}kg × {pr.reps} · {fmtDay(pr.date)}</Text>
+      </View>
+      <View style={{ alignItems: 'flex-end' }}>
+        <Text style={[styles.prValue, { color: isTrue ? '#eab308' : palette.gray[200] }]}>{pr.e1rm}kg</Text>
+        <Text style={styles.prTier}>{isTrue ? 'PR' : 'Mini PR'}</Text>
+      </View>
+    </View>
+  );
+};
+
+const RepMaxTable: React.FC<{ record: RepMaxRecord }> = ({ record }) => {
+  const { exName } = useExerciseName();
+  return (
+    <View style={styles.rmCard}>
+      <Text style={styles.rmTitle}>{exName(record.exerciseName)}</Text>
+      <View style={styles.rmGrid}>
+        {record.maxes.map(m => (
+          <View key={m.reps} style={styles.rmCell}>
+            <Text style={styles.rmReps}>{m.reps}RM</Text>
+            <Text style={styles.rmWeight}>{m.weight}kg</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+// ── Consistency Heatmap ────────────────────────────────────────────────────────
+
+const Heatmap: React.FC<{ data: AthleteStats['consistency']['heatmap'] }> = ({ data }) => {
+  const byDate = new Map(data.map(d => [d.date, d]));
+  const maxVol = Math.max(...data.map(d => d.volumeKg), 1);
+
+  const today = new Date();
+  const days: Array<{ date: string; vol: number; sessions: number } | null> = [];
+  const start = new Date(today);
+  start.setDate(start.getDate() - 363);
+  const lead = start.getDay();
+  for (let i = 0; i < lead; i++) days.push(null);
+  for (let i = 0; i < 364; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const key = d.toISOString().split('T')[0];
+    const hit = byDate.get(key);
+    days.push({ date: key, vol: hit?.volumeKg ?? 0, sessions: hit?.sessions ?? 0 });
+  }
+  const weeks: Array<typeof days> = [];
+  for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
+
+  const cellColor = (vol: number, sessions: number) => {
+    if (sessions === 0) return palette.gray[800];
+    const intensity = Math.min(vol / maxVol, 1);
+    if (intensity > 0.66) return palette.brand[400];
+    if (intensity > 0.33) return palette.brand[600];
+    return palette.brand[700] ?? palette.brand[600];
+  };
+
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <View style={styles.heatGrid}>
+        {weeks.map((week, wi) => (
+          <View key={wi} style={styles.heatCol}>
+            {week.map((day, di) => (
+              <View
+                key={di}
+                style={[styles.heatCell, { backgroundColor: day ? cellColor(day.vol, day.sessions) : 'transparent' }]}
+              />
+            ))}
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+  );
+};
+
+const DayOfWeekBars: React.FC<{ counts: number[] }> = ({ counts }) => {
+  const max = Math.max(...counts, 1);
+  return (
+    <View style={styles.dowRow}>
+      {counts.map((c, i) => (
+        <View key={i} style={styles.dowCol}>
+          <Text style={styles.dowVal}>{c}</Text>
+          <View style={styles.dowBarBg}>
+            <View style={[styles.dowBarFill, { height: `${Math.max((c / max) * 100, c > 0 ? 8 : 0)}%` }]} />
+          </View>
+          <Text style={styles.dowLabel}>{DOW_LABELS[i]}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+// ── Muscle Landmarks ───────────────────────────────────────────────────────────
+
+const LandmarkRow: React.FC<{ lm: MuscleLandmark }> = ({ lm }) => {
+  const status = LANDMARK_STATUS[lm.status];
+  const scaleMax = lm.mrv * 1.15;
+  const pos = (v: number): DimensionValue => `${Math.min((v / scaleMax) * 100, 100)}%`;
+  const zoneWidth = `${Math.min(((lm.mav - lm.mev) / scaleMax) * 100, 100)}%` as DimensionValue;
+  return (
+    <View style={styles.lmRow}>
+      <View style={styles.muscleHeader}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={[styles.muscleColorDot, { backgroundColor: MUSCLE_COLORS[lm.name] ?? palette.brand[500] }]} />
+          <Text style={styles.muscleName}>{lm.name}</Text>
+        </View>
+        <Text style={[styles.lmStatus, { color: status.color }]}>{lm.weeklySets}/wk · {status.label}</Text>
+      </View>
+      <View style={styles.lmTrack}>
+        <View style={[styles.lmZone, { left: pos(lm.mev), width: zoneWidth }]} />
+        <View style={[styles.lmMarker, { left: pos(lm.weeklySets), backgroundColor: status.color }]} />
+      </View>
+      <View style={styles.lmScale}>
+        <Text style={styles.lmScaleText}>MEV {lm.mev}</Text>
+        <Text style={styles.lmScaleText}>MAV {lm.mav}</Text>
+        <Text style={styles.lmScaleText}>MRV {lm.mrv}</Text>
+      </View>
+    </View>
+  );
+};
+
+// ── Body Composition ───────────────────────────────────────────────────────────
+
+const BodyCompMiniChart: React.FC<{ series: BodyCompositionPoint[]; pick: (p: BodyCompositionPoint) => number | null; color: string }> = ({ series, pick, color }) => {
+  const vals = series.map(pick).filter((v): v is number => v != null);
+  if (vals.length < 2) return null;
+  const min = Math.min(...vals), max = Math.max(...vals), range = max - min || 1;
+  return (
+    <View style={styles.bcChart}>
+      {series.map((p, i) => {
+        const v = pick(p);
+        const h = v != null ? Math.max(((v - min) / range) * 44, 3) : 2;
+        return <View key={i} style={[styles.bcBar, { height: h, backgroundColor: v != null ? color : palette.gray[700] }]} />;
+      })}
+    </View>
+  );
+};
+
 // ── Main Screen ───────────────────────────────────────────────────────────────
+
+type Tab = 'performance' | 'records' | 'body' | 'wellbeing';
 
 export const StatsScreen: React.FC = () => {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const [stats, setStats] = useState<AthleteStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'performance' | 'body' | 'wellbeing'>('performance');
+  const [activeTab, setActiveTab] = useState<Tab>('performance');
 
   useFocusEffect(
     useCallback(() => {
@@ -283,9 +475,15 @@ export const StatsScreen: React.FC = () => {
     );
   }
 
-  const { overview, mainLifts, weeklyVolume, muscleGroups, topExercises, exerciseProgression, wellbeing, bodyweight } = stats;
+  const {
+    overview, mainLifts, weeklyVolume, muscleGroups, muscleLandmarks, topExercises,
+    exerciseProgression, records, consistency, intensity, density, strengthStandards,
+    bodyComposition, cardio, milestones, wellbeing, bodyweight,
+  } = stats;
 
   const totalSets = topExercises.reduce((s, e) => s + e.totalSets, 0);
+  const truePRs = records.recentPRs.filter(p => p.tier === 'pr');
+  const miniPRs = records.recentPRs.filter(p => p.tier === 'mini');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -300,8 +498,8 @@ export const StatsScreen: React.FC = () => {
         <View style={styles.heroGrid}>
           <HeroStat label={t('stats.sessions')} value={overview.totalSessions} />
           <HeroStat label={t('stats.allTimeVolume')} value={fmtVol(overview.totalVolumeKg)} accent />
-          <HeroStat label={t('stats.weekStreak')} value={`${overview.currentWeekStreak}w`} sub={overview.currentWeekStreak > 0 ? 'on fire' : undefined} />
-          <HeroStat label={t('stats.prsThisMonth')} value={overview.prsThisMonth} />
+          <HeroStat label={t('stats.weekStreak')} value={`${overview.currentWeekStreak}w`} sub={overview.currentWeekStreak > 0 ? '🔥' : undefined} />
+          <HeroStat label={t('stats.prsThisMonth')} value={overview.truePrsThisMonth} />
         </View>
 
         {/* ── Quick Activity Row ──────────────────────────────────────────── */}
@@ -329,14 +527,17 @@ export const StatsScreen: React.FC = () => {
 
         {/* ── Tab switcher ─────────────────────────────────────────────────── */}
         <View style={styles.tabRow}>
-          {(['performance', 'body', 'wellbeing'] as const).map(tab => (
+          {(['performance', 'records', 'body', 'wellbeing'] as const).map(tab => (
             <TouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'performance' ? t('stats.performance') : tab === 'body' ? t('stats.bodyParts') : t('stats.wellbeing')}
+                {tab === 'performance' ? t('stats.performance')
+                  : tab === 'records' ? t('stats.records')
+                  : tab === 'body' ? t('stats.bodyParts')
+                  : t('stats.wellbeing')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -345,7 +546,6 @@ export const StatsScreen: React.FC = () => {
         {/* ══════════════════════ PERFORMANCE TAB ══════════════════════════ */}
         {activeTab === 'performance' && (
           <>
-            {/* Main Lifts */}
             <SectionCard title={t('stats.strengthStandards')} accentColor={palette.brand[500]}>
               <View style={styles.liftGrid}>
                 {Object.entries(mainLifts).map(([key, data]) => (
@@ -355,32 +555,105 @@ export const StatsScreen: React.FC = () => {
               <Text style={styles.liftFootnote}>{t('stats.epleyFormula')}</Text>
             </SectionCard>
 
-            {/* Weekly Volume Chart */}
+            {strengthStandards.available && (
+              <SectionCard
+                title={t('stats.strengthLevel')}
+                accentColor="#eab308"
+                subtitle={t('stats.strengthLevelSub', { bw: strengthStandards.bodyweightKg })}
+              >
+                {(['squat', 'benchPress', 'deadlift'] as const).map(key => {
+                  const lift = strengthStandards.lifts[key];
+                  return lift ? <StrengthLiftRow key={key} liftKey={key} lift={lift} /> : null;
+                })}
+                <View style={styles.ssTotals}>
+                  <View style={styles.ssTotalItem}>
+                    <Text style={styles.ssTotalVal}>{strengthStandards.total}kg</Text>
+                    <Text style={styles.ssTotalLabel}>{t('stats.big3Total')}</Text>
+                  </View>
+                  <View style={styles.ssTotalItem}>
+                    <Text style={styles.ssTotalVal}>{strengthStandards.totalRatio ?? '—'}×</Text>
+                    <Text style={styles.ssTotalLabel}>{t('stats.bodyweightRatio')}</Text>
+                  </View>
+                  <View style={styles.ssTotalItem}>
+                    <Text style={styles.ssTotalVal}>{strengthStandards.dots ?? '—'}</Text>
+                    <Text style={styles.ssTotalLabel}>{t('stats.dotsScore')}</Text>
+                  </View>
+                </View>
+              </SectionCard>
+            )}
+
             <SectionCard title={t('stats.weeklyVolume')}>
               <WeeklyBarChart data={weeklyVolume} />
               <View style={styles.weekSummaryRow}>
                 <View style={styles.weekSummaryItem}>
-                  <Text style={styles.weekSummaryVal}>
-                    {fmtVol(weeklyVolume.reduce((s, w) => s + w.volumeKg, 0))}
-                  </Text>
+                  <Text style={styles.weekSummaryVal}>{fmtVol(weeklyVolume.reduce((s, w) => s + w.volumeKg, 0))}</Text>
                   <Text style={styles.weekSummaryLabel}>{t('stats.weekTotal')}</Text>
                 </View>
                 <View style={styles.weekSummaryItem}>
-                  <Text style={styles.weekSummaryVal}>
-                    {weeklyVolume.reduce((s, w) => s + w.sessions, 0)}
-                  </Text>
+                  <Text style={styles.weekSummaryVal}>{weeklyVolume.reduce((s, w) => s + w.sessions, 0)}</Text>
                   <Text style={styles.weekSummaryLabel}>{t('history.sessions').toLowerCase()}</Text>
                 </View>
                 <View style={styles.weekSummaryItem}>
-                  <Text style={styles.weekSummaryVal}>
-                    {fmtVol(weeklyVolume[weeklyVolume.length - 1]?.volumeKg ?? 0)}
-                  </Text>
+                  <Text style={styles.weekSummaryVal}>{fmtVol(weeklyVolume[weeklyVolume.length - 1]?.volumeKg ?? 0)}</Text>
                   <Text style={styles.weekSummaryLabel}>{t('stats.thisWeek').toLowerCase()}</Text>
                 </View>
               </View>
             </SectionCard>
 
-            {/* Progression */}
+            {(intensity.avgRpe != null || intensity.trend.some(x => x.avgIntensityPct != null)) && (
+              <SectionCard title={t('stats.intensityTrend')}>
+                <View style={styles.intHeader}>
+                  <View style={styles.intStat}>
+                    <Gauge size={18} weight="fill" color={palette.brand[400]} />
+                    <Text style={styles.intVal}>{intensity.avgRpe ?? '—'}</Text>
+                    <Text style={styles.intLabel}>{t('stats.avgRpe')}</Text>
+                  </View>
+                  <View style={styles.intStat}>
+                    <ChartLineUp size={18} weight="bold" color="#22c55e" />
+                    <Text style={styles.intVal}>
+                      {(() => {
+                        const last = [...intensity.trend].reverse().find(x => x.avgIntensityPct != null);
+                        return last?.avgIntensityPct != null ? `${last.avgIntensityPct}%` : '—';
+                      })()}
+                    </Text>
+                    <Text style={styles.intLabel}>{t('stats.recentIntensity')}</Text>
+                  </View>
+                </View>
+                <View style={styles.intTrendRow}>
+                  {intensity.trend.map((w, i) => {
+                    const h = w.avgRpe != null ? (w.avgRpe / 10) * 100 : 2;
+                    return (
+                      <View key={i} style={styles.intCol}>
+                        <View style={[styles.intBar, { height: `${Math.max(h, 2)}%`, backgroundColor: w.avgRpe != null ? palette.brand[500] : palette.gray[700] }]} />
+                        <Text style={styles.intColLabel}>{w.label.split(' ')[1]}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+                <Text style={styles.liftFootnote}>{t('stats.rpeFootnote')}</Text>
+              </SectionCard>
+            )}
+
+            <SectionCard title={t('stats.workoutDensity')}>
+              <View style={styles.densityGrid}>
+                <View style={styles.densityItem}>
+                  <Timer size={20} weight="regular" color={palette.brand[400]} />
+                  <Text style={styles.densityVal}>{density.avgRestSeconds != null ? `${density.avgRestSeconds}s` : '—'}</Text>
+                  <Text style={styles.densityLabel}>{t('stats.avgRest')}</Text>
+                </View>
+                <View style={styles.densityItem}>
+                  <Gauge size={20} weight="regular" color="#22c55e" />
+                  <Text style={styles.densityVal}>{density.avgDensityKgPerMin != null ? `${density.avgDensityKgPerMin}` : '—'}</Text>
+                  <Text style={styles.densityLabel}>{t('stats.kgPerMin')}</Text>
+                </View>
+                <View style={styles.densityItem}>
+                  <Barbell size={20} weight="regular" color="#a78bfa" />
+                  <Text style={styles.densityVal}>{density.avgSetsPerSession}</Text>
+                  <Text style={styles.densityLabel}>{t('stats.setsPerSession')}</Text>
+                </View>
+              </View>
+            </SectionCard>
+
             {exerciseProgression.length > 0 && (
               <SectionCard title={t('stats.strengthProgression')}>
                 {exerciseProgression.map(prog => (
@@ -389,7 +662,6 @@ export const StatsScreen: React.FC = () => {
               </SectionCard>
             )}
 
-            {/* Top Exercises */}
             <SectionCard title={t('stats.topExercises')}>
               {topExercises.map((ex, i) => (
                 <ExerciseRow key={ex.name} exercise={ex} rank={i + 1} />
@@ -398,16 +670,67 @@ export const StatsScreen: React.FC = () => {
           </>
         )}
 
+        {/* ══════════════════════ RECORDS TAB ══════════════════════════════ */}
+        {activeTab === 'records' && (
+          <>
+            <View style={styles.heroGrid}>
+              <HeroStat label={t('stats.totalPRs')} value={records.truePrCount} accent />
+              <HeroStat label={t('stats.miniPRs')} value={records.miniPrCount} />
+              <HeroStat label={t('stats.prsThisMonth')} value={overview.truePrsThisMonth} />
+              <HeroStat label={t('stats.miniThisMonth')} value={overview.miniPrsThisMonth} />
+            </View>
+
+            {truePRs.length > 0 && (
+              <SectionCard title={t('stats.recentPRs')} accentColor="#eab308">
+                {truePRs.map((pr, i) => <PRRow key={`pr-${i}`} pr={pr} />)}
+              </SectionCard>
+            )}
+
+            {miniPRs.length > 0 && (
+              <SectionCard title={t('stats.recentMiniPRs')}>
+                {miniPRs.map((pr, i) => <PRRow key={`mini-${i}`} pr={pr} />)}
+              </SectionCard>
+            )}
+
+            {records.repMaxRecords.length > 0 && (
+              <SectionCard title={t('stats.repMaxes')} subtitle={t('stats.repMaxesSub')}>
+                {records.repMaxRecords.map(r => <RepMaxTable key={r.exerciseName} record={r} />)}
+              </SectionCard>
+            )}
+
+            <SectionCard title={t('stats.milestones')}>
+              {([
+                { key: 'volume', icon: <Barbell size={18} weight="fill" color={palette.brand[400]} />, label: t('stats.weightMoved'), value: fmtVol(milestones.volume.value), next: milestones.volume.next ? fmtVol(milestones.volume.next) : null },
+                { key: 'sessions', icon: <Fire size={18} weight="fill" color="#ef4444" />, label: t('stats.sessions'), value: fmtNum(milestones.sessions.value), next: milestones.sessions.next ? fmtNum(milestones.sessions.next) : null },
+                { key: 'reps', icon: <Lightning size={18} weight="fill" color="#eab308" />, label: t('stats.totalReps'), value: fmtNum(milestones.reps.value), next: milestones.reps.next ? fmtNum(milestones.reps.next) : null },
+                { key: 'prs', icon: <Trophy size={18} weight="fill" color="#eab308" />, label: t('stats.totalPRs'), value: fmtNum(milestones.prs.value), next: milestones.prs.next ? fmtNum(milestones.prs.next) : null },
+              ]).map(m => (
+                <View key={m.key} style={styles.mileRow}>
+                  <View style={styles.mileIcon}>{m.icon}</View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.mileLabel}>{m.label}</Text>
+                    {m.next && <Text style={styles.mileNext}>{t('stats.nextMilestone', { target: m.next })}</Text>}
+                  </View>
+                  <Text style={styles.mileVal}>{m.value}</Text>
+                </View>
+              ))}
+            </SectionCard>
+          </>
+        )}
+
         {/* ══════════════════════ BODY PARTS TAB ═══════════════════════════ */}
         {activeTab === 'body' && (
           <>
+            {muscleLandmarks.length > 0 && (
+              <SectionCard title={t('stats.weeklySetsLandmarks')} accentColor="#22c55e" subtitle={t('stats.landmarksSub')}>
+                {muscleLandmarks.map(lm => <LandmarkRow key={lm.name} lm={lm} />)}
+              </SectionCard>
+            )}
+
             <SectionCard title={t('stats.muscleDistribution')} accentColor="#3b82f6">
-              {muscleGroups.map(group => (
-                <MuscleGroupBar key={group.name} {...group} />
-              ))}
+              {muscleGroups.map(group => <MuscleGroupBar key={group.name} {...group} />)}
             </SectionCard>
 
-            {/* Sets distribution */}
             <SectionCard title={t('stats.setsPerMuscle')}>
               {muscleGroups.map(group => {
                 const color = MUSCLE_COLORS[group.name] ?? palette.brand[500];
@@ -429,7 +752,35 @@ export const StatsScreen: React.FC = () => {
               })}
             </SectionCard>
 
-            {/* Bodyweight trend */}
+            {bodyComposition.series.length >= 2 && (
+              <SectionCard title={t('stats.bodyComposition')} accentColor="#06b6d4">
+                {bodyComposition.latest?.bodyFatPercentage != null && (
+                  <View style={styles.bcBlock}>
+                    <View style={styles.bcHeader}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Scales size={16} weight="regular" color="#06b6d4" />
+                        <Text style={styles.bcLabel}>{t('stats.bodyFat')}</Text>
+                      </View>
+                      <Text style={styles.bcVal}>{bodyComposition.latest.bodyFatPercentage}%</Text>
+                    </View>
+                    <BodyCompMiniChart series={bodyComposition.series} pick={p => p.bodyFatPercentage} color="#06b6d4" />
+                  </View>
+                )}
+                {bodyComposition.latest?.muscleMassKg != null && (
+                  <View style={styles.bcBlock}>
+                    <View style={styles.bcHeader}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Barbell size={16} weight="regular" color="#22c55e" />
+                        <Text style={styles.bcLabel}>{t('stats.muscleMass')}</Text>
+                      </View>
+                      <Text style={styles.bcVal}>{bodyComposition.latest.muscleMassKg}kg</Text>
+                    </View>
+                    <BodyCompMiniChart series={bodyComposition.series} pick={p => p.muscleMassKg} color="#22c55e" />
+                  </View>
+                )}
+              </SectionCard>
+            )}
+
             {bodyweight.length > 1 && (
               <SectionCard title={t('stats.bodyweidghtTrend')}>
                 <View style={styles.bwRow}>
@@ -438,10 +789,7 @@ export const StatsScreen: React.FC = () => {
                     <Text style={styles.bwLabel}>{t('stats.firstLogged')}</Text>
                     <Text style={styles.bwDate}>{fmtDate(bodyweight[0].date)}</Text>
                   </View>
-                  <Text style={[
-                    styles.bwArrow,
-                    { color: bodyweight[bodyweight.length - 1].weight <= bodyweight[0].weight ? '#22c55e' : '#f59e0b' },
-                  ]}>→</Text>
+                  <Text style={[styles.bwArrow, { color: bodyweight[bodyweight.length - 1].weight <= bodyweight[0].weight ? '#22c55e' : '#f59e0b' }]}>→</Text>
                   <View style={styles.bwStat}>
                     <Text style={styles.bwVal}>{bodyweight[bodyweight.length - 1].weight}kg</Text>
                     <Text style={styles.bwLabel}>{t('stats.latest')}</Text>
@@ -454,12 +802,7 @@ export const StatsScreen: React.FC = () => {
                     const maxW = Math.max(...bodyweight.map(b => b.weight));
                     const range = maxW - minW || 1;
                     const h = Math.max(((bw.weight - minW) / range) * 50, 4);
-                    return (
-                      <View
-                        key={i}
-                        style={[styles.bwBar, { height: h }]}
-                      />
-                    );
+                    return <View key={i} style={[styles.bwBar, { height: h }]} />;
                   })}
                 </View>
               </SectionCard>
@@ -470,6 +813,28 @@ export const StatsScreen: React.FC = () => {
         {/* ══════════════════════ WELLBEING TAB ════════════════════════════ */}
         {activeTab === 'wellbeing' && (
           <>
+            <SectionCard title={t('stats.consistency')} accentColor="#22c55e" subtitle={t('stats.lastYear')}>
+              <Heatmap data={consistency.heatmap} />
+              <View style={styles.consSummary}>
+                <View style={styles.consItem}>
+                  <Text style={styles.consVal}>{consistency.totalTrainingDays}</Text>
+                  <Text style={styles.consLabel}>{t('stats.trainingDays')}</Text>
+                </View>
+                <View style={styles.consItem}>
+                  <Text style={styles.consVal}>{consistency.longestWeekStreak}w</Text>
+                  <Text style={styles.consLabel}>{t('stats.longestStreak')}</Text>
+                </View>
+                <View style={styles.consItem}>
+                  <Text style={styles.consVal}>{consistency.avgSessionsPerWeek}</Text>
+                  <Text style={styles.consLabel}>{t('stats.perWeekAvg')}</Text>
+                </View>
+              </View>
+            </SectionCard>
+
+            <SectionCard title={t('stats.trainingDaysOfWeek')}>
+              <DayOfWeekBars counts={consistency.dayOfWeekCounts} />
+            </SectionCard>
+
             <SectionCard title={t('stats.readinessRecovery')} accentColor="#22c55e">
               <View style={styles.wellRow}>
                 <View style={styles.wellItem}>
@@ -496,7 +861,33 @@ export const StatsScreen: React.FC = () => {
               </View>
             </SectionCard>
 
-            {/* Mood distribution */}
+            {cardio.totalSessions > 0 && (
+              <SectionCard title={t('stats.cardio')} accentColor="#ef4444">
+                <View style={styles.cardioGrid}>
+                  <View style={styles.cardioItem}>
+                    <Heart size={18} weight="fill" color="#ef4444" />
+                    <Text style={styles.cardioVal}>{cardio.totalSessions}</Text>
+                    <Text style={styles.cardioLabel}>{t('stats.sessions')}</Text>
+                  </View>
+                  <View style={styles.cardioItem}>
+                    <Timer size={18} weight="regular" color={palette.brand[400]} />
+                    <Text style={styles.cardioVal}>{cardio.totalMinutes}m</Text>
+                    <Text style={styles.cardioLabel}>{t('stats.duration')}</Text>
+                  </View>
+                  <View style={styles.cardioItem}>
+                    <Pulse size={18} weight="regular" color="#f59e0b" />
+                    <Text style={styles.cardioVal}>{cardio.totalDistanceKm}km</Text>
+                    <Text style={styles.cardioLabel}>{t('stats.distance')}</Text>
+                  </View>
+                  <View style={styles.cardioItem}>
+                    <Fire size={18} weight="fill" color="#f97316" />
+                    <Text style={styles.cardioVal}>{fmtNum(cardio.totalCalories)}</Text>
+                    <Text style={styles.cardioLabel}>{t('stats.calories')}</Text>
+                  </View>
+                </View>
+              </SectionCard>
+            )}
+
             {Object.keys(wellbeing.moodDistribution).length > 0 && (
               <SectionCard title={t('stats.moodDistribution')}>
                 {(['elite', 'great', 'good', 'neutral', 'tired'] as const)
@@ -518,31 +909,6 @@ export const StatsScreen: React.FC = () => {
               </SectionCard>
             )}
 
-            {/* Training consistency */}
-            <SectionCard title={t('stats.trainingConsistency')}>
-              <View style={styles.consistencyGrid}>
-                <View style={styles.consistencyItem}>
-                  <Text style={styles.consistencyVal}>{wellbeing.sessionsLast7Days}</Text>
-                  <Text style={styles.consistencyLabel}>{t('stats.sessionsThisWeek')}</Text>
-                </View>
-                <View style={styles.consistencyItem}>
-                  <Text style={styles.consistencyVal}>{wellbeing.sessionsLast30Days}</Text>
-                  <Text style={styles.consistencyLabel}>{t('stats.sessionsLast30d')}</Text>
-                </View>
-                <View style={styles.consistencyItem}>
-                  <Text style={styles.consistencyVal}>{overview.currentWeekStreak}w</Text>
-                  <Text style={styles.consistencyLabel}>{t('stats.currentStreak')}</Text>
-                </View>
-                <View style={styles.consistencyItem}>
-                  <Text style={styles.consistencyVal}>
-                    {overview.avgSessionDurationMinutes ? `${overview.avgSessionDurationMinutes}m` : '—'}
-                  </Text>
-                  <Text style={styles.consistencyLabel}>{t('stats.avgSession')}</Text>
-                </View>
-              </View>
-            </SectionCard>
-
-            {/* All-time totals */}
             <SectionCard title={t('stats.allTimeTotals')}>
               <View style={styles.totalsGrid}>
                 <View style={styles.totalItem}>
@@ -554,12 +920,12 @@ export const StatsScreen: React.FC = () => {
                   <Text style={styles.totalLabel}>{t('stats.totalReps')}</Text>
                 </View>
                 <View style={styles.totalItem}>
-                  <Text style={styles.totalVal}>{overview.totalSessions}</Text>
-                  <Text style={styles.totalLabel}>{t('stats.sessions')}</Text>
+                  <Text style={styles.totalVal}>{overview.totalSets.toLocaleString()}</Text>
+                  <Text style={styles.totalLabel}>{t('stats.totalSets')}</Text>
                 </View>
                 <View style={styles.totalItem}>
-                  <Text style={styles.totalVal}>{overview.prsThisMonth}</Text>
-                  <Text style={styles.totalLabel}>{t('stats.prsThisMonth')}</Text>
+                  <Text style={styles.totalVal}>{overview.totalSessions}</Text>
+                  <Text style={styles.totalLabel}>{t('stats.sessions')}</Text>
                 </View>
               </View>
             </SectionCard>
@@ -582,52 +948,28 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 20, fontWeight: '700', color: theme.colors.text, marginTop: 12 },
   emptyText: { fontSize: 14, color: palette.gray[400], textAlign: 'center', paddingHorizontal: 32, marginTop: 6 },
 
-
-  // Hero grid
-  heroGrid: {
-    flexDirection: 'row',
-    backgroundColor: palette.gray[800],
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 12,
-    gap: 0,
-  },
+  heroGrid: { flexDirection: 'row', backgroundColor: palette.gray[800], borderRadius: 20, padding: 20, marginBottom: 12 },
   heroStat: { flex: 1, alignItems: 'center' },
   heroValue: { fontSize: 22, fontWeight: '800', color: theme.colors.text },
   heroSub: { fontSize: 14, marginTop: -2 },
   heroLabel: { fontSize: 10, color: palette.gray[400], fontWeight: '600', letterSpacing: 0.5, marginTop: 2, textAlign: 'center' },
 
-  // Activity row
-  activityRow: {
-    flexDirection: 'row',
-    backgroundColor: palette.gray[800],
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    marginBottom: 16,
-  },
+  activityRow: { flexDirection: 'row', backgroundColor: palette.gray[800], borderRadius: 16, paddingVertical: 14, paddingHorizontal: 8, marginBottom: 16 },
   activityChip: { flex: 1, alignItems: 'center' },
   activityVal: { fontSize: 17, fontWeight: '700', color: theme.colors.text },
   activityLabel: { fontSize: 10, color: palette.gray[400], marginTop: 2, textAlign: 'center' },
   activityDivider: { width: 1, backgroundColor: palette.gray[700] },
 
-  // Tab switcher
   tabRow: { flexDirection: 'row', backgroundColor: palette.gray[800], borderRadius: 14, padding: 4, marginBottom: 16, gap: 4 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: palette.brand[600] },
-  tabText: { fontSize: 12, fontWeight: '600', color: palette.gray[400] },
+  tabText: { fontSize: 11, fontWeight: '600', color: palette.gray[400] },
   tabTextActive: { color: '#fff' },
 
-  // Section card
-  card: {
-    backgroundColor: palette.gray[800],
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 14,
-  },
+  card: { backgroundColor: palette.gray[800], borderRadius: 20, padding: 18, marginBottom: 14 },
   sectionTitle: { fontSize: 11, fontWeight: '700', color: palette.gray[400], letterSpacing: 1, marginBottom: 16 },
+  sectionSubtitle: { fontSize: 11, color: palette.gray[500], marginTop: -10, marginBottom: 14 },
 
-  // Bar chart
   barChartContainer: { flexDirection: 'row', alignItems: 'flex-end', height: 120, gap: 3, marginBottom: 6 },
   barCol: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', gap: 3 },
   bar: { width: '80%', borderRadius: 4, minHeight: 2 },
@@ -643,7 +985,6 @@ const styles = StyleSheet.create({
   weekSummaryVal: { fontSize: 16, fontWeight: '700', color: theme.colors.text },
   weekSummaryLabel: { fontSize: 10, color: palette.gray[400], marginTop: 2 },
 
-  // Muscle groups
   muscleRow: { marginBottom: 12 },
   muscleHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
   muscleColorDot: { width: 10, height: 10, borderRadius: 5 },
@@ -652,17 +993,8 @@ const styles = StyleSheet.create({
   muscleBarBg: { height: 8, backgroundColor: palette.gray[700], borderRadius: 4 },
   muscleBarFill: { height: 8, borderRadius: 4 },
 
-  // Main lifts
   liftGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  liftCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: palette.gray[700],
-    borderRadius: 14,
-    padding: 14,
-    alignItems: 'center',
-    gap: 2,
-  },
+  liftCard: { flex: 1, minWidth: '45%', backgroundColor: palette.gray[700], borderRadius: 14, padding: 14, alignItems: 'center', gap: 2 },
   liftIcon: { fontSize: 22, marginBottom: 4 },
   liftName: { fontSize: 11, fontWeight: '600', color: palette.gray[400], letterSpacing: 0.5, textAlign: 'center' },
   liftEst1RM: { fontSize: 28, fontWeight: '800', color: palette.brand[400], marginTop: 4 },
@@ -672,15 +1004,36 @@ const styles = StyleSheet.create({
   liftNoData: { fontSize: 28, color: palette.gray[600], marginTop: 4 },
   liftFootnote: { fontSize: 10, color: palette.gray[600], marginTop: 12, textAlign: 'center', fontStyle: 'italic' },
 
-  // Exercises
-  exRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 11,
-    borderBottomWidth: 1,
-    borderBottomColor: palette.gray[700],
-    gap: 10,
-  },
+  ssRow: { marginBottom: 16 },
+  ssHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  ssLiftName: { fontSize: 15, fontWeight: '700', color: theme.colors.text },
+  ssBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10, borderWidth: 1 },
+  ssBadgeText: { fontSize: 11, fontWeight: '700' },
+  ssMetaRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  ssMeta: { fontSize: 12, color: palette.gray[300] },
+  ssMetaDim: { fontSize: 12, color: palette.gray[500] },
+  ssBarBg: { height: 8, backgroundColor: palette.gray[700], borderRadius: 4 },
+  ssBarFill: { height: 8, borderRadius: 4 },
+  ssTotals: { flexDirection: 'row', marginTop: 6, paddingTop: 14, borderTopWidth: 1, borderTopColor: palette.gray[700] },
+  ssTotalItem: { flex: 1, alignItems: 'center' },
+  ssTotalVal: { fontSize: 18, fontWeight: '800', color: '#eab308' },
+  ssTotalLabel: { fontSize: 10, color: palette.gray[400], marginTop: 2, textAlign: 'center' },
+
+  intHeader: { flexDirection: 'row', marginBottom: 14 },
+  intStat: { flex: 1, alignItems: 'center', gap: 2 },
+  intVal: { fontSize: 24, fontWeight: '800', color: theme.colors.text, marginTop: 4 },
+  intLabel: { fontSize: 10, color: palette.gray[400] },
+  intTrendRow: { flexDirection: 'row', alignItems: 'flex-end', height: 80, gap: 3 },
+  intCol: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: '100%' },
+  intBar: { width: '70%', borderRadius: 3, minHeight: 2 },
+  intColLabel: { fontSize: 8, color: palette.gray[600], marginTop: 3 },
+
+  densityGrid: { flexDirection: 'row', gap: 10 },
+  densityItem: { flex: 1, backgroundColor: palette.gray[700], borderRadius: 14, padding: 14, alignItems: 'center', gap: 4 },
+  densityVal: { fontSize: 20, fontWeight: '800', color: theme.colors.text, marginTop: 2 },
+  densityLabel: { fontSize: 10, color: palette.gray[400], textAlign: 'center' },
+
+  exRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: palette.gray[700], gap: 10 },
   exRank: { fontSize: 12, fontWeight: '700', color: palette.gray[500], width: 24 },
   exInfo: { flex: 1 },
   exName: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
@@ -689,22 +1042,68 @@ const styles = StyleSheet.create({
   ex1RM: { fontSize: 16, fontWeight: '800', color: palette.brand[400] },
   ex1RMLabel: { fontSize: 9, color: palette.gray[500] },
 
-  // Progression
-  progRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: palette.gray[700],
-    gap: 12,
-  },
+  progRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: palette.gray[700], gap: 12 },
   progName: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
   progSub: { fontSize: 11, color: palette.gray[400], marginTop: 2 },
   progChange: { fontSize: 16, fontWeight: '800', minWidth: 60, textAlign: 'right' },
   sparkline: { flexDirection: 'row', alignItems: 'flex-end', gap: 2, marginTop: 6, height: 24 },
   sparkBar: { width: 5, borderRadius: 2 },
 
-  // Wellbeing
+  prRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: palette.gray[700], gap: 12 },
+  prIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  prName: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
+  prMeta: { fontSize: 11, color: palette.gray[400], marginTop: 2 },
+  prValue: { fontSize: 16, fontWeight: '800' },
+  prTier: { fontSize: 9, color: palette.gray[500], marginTop: 1 },
+
+  rmCard: { backgroundColor: palette.gray[700], borderRadius: 14, padding: 14, marginBottom: 10 },
+  rmTitle: { fontSize: 14, fontWeight: '700', color: theme.colors.text, marginBottom: 10 },
+  rmGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  rmCell: { backgroundColor: palette.gray[800], borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, alignItems: 'center', minWidth: 64 },
+  rmReps: { fontSize: 10, color: palette.gray[400], fontWeight: '600' },
+  rmWeight: { fontSize: 15, fontWeight: '800', color: palette.brand[400], marginTop: 2 },
+
+  mileRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: palette.gray[700], gap: 12 },
+  mileIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: palette.gray[700], alignItems: 'center', justifyContent: 'center' },
+  mileLabel: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
+  mileNext: { fontSize: 11, color: palette.gray[500], marginTop: 2 },
+  mileVal: { fontSize: 18, fontWeight: '800', color: palette.brand[400] },
+
+  heatGrid: { flexDirection: 'row', gap: 3, paddingVertical: 4 },
+  heatCol: { gap: 3 },
+  heatCell: { width: 11, height: 11, borderRadius: 2 },
+  consSummary: { flexDirection: 'row', marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: palette.gray[700] },
+  consItem: { flex: 1, alignItems: 'center' },
+  consVal: { fontSize: 18, fontWeight: '800', color: theme.colors.text },
+  consLabel: { fontSize: 10, color: palette.gray[400], marginTop: 2, textAlign: 'center' },
+
+  dowRow: { flexDirection: 'row', alignItems: 'flex-end', height: 110, gap: 6 },
+  dowCol: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: '100%' },
+  dowVal: { fontSize: 11, fontWeight: '700', color: palette.gray[300] },
+  dowBarBg: { width: '60%', flex: 1, backgroundColor: palette.gray[700], borderRadius: 4, justifyContent: 'flex-end', marginVertical: 4 },
+  dowBarFill: { width: '100%', backgroundColor: palette.brand[500], borderRadius: 4 },
+  dowLabel: { fontSize: 10, color: palette.gray[500] },
+
+  lmRow: { marginBottom: 18 },
+  lmStatus: { fontSize: 11, fontWeight: '700' },
+  lmTrack: { height: 10, backgroundColor: palette.gray[700], borderRadius: 5, marginTop: 4, justifyContent: 'center' },
+  lmZone: { position: 'absolute', height: 10, backgroundColor: '#22c55e44', borderRadius: 5 },
+  lmMarker: { position: 'absolute', width: 4, height: 16, borderRadius: 2, marginLeft: -2 },
+  lmScale: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
+  lmScaleText: { fontSize: 9, color: palette.gray[600] },
+
+  bcBlock: { marginBottom: 16 },
+  bcHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  bcLabel: { fontSize: 13, fontWeight: '600', color: theme.colors.text },
+  bcVal: { fontSize: 16, fontWeight: '800', color: theme.colors.text },
+  bcChart: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 48, backgroundColor: palette.gray[700], borderRadius: 10, padding: 6 },
+  bcBar: { flex: 1, borderRadius: 2, opacity: 0.85 },
+
+  cardioGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  cardioItem: { flex: 1, minWidth: '45%', backgroundColor: palette.gray[700], borderRadius: 14, padding: 14, alignItems: 'center', gap: 4 },
+  cardioVal: { fontSize: 20, fontWeight: '800', color: theme.colors.text, marginTop: 2 },
+  cardioLabel: { fontSize: 10, color: palette.gray[400], textAlign: 'center' },
+
   wellRow: { flexDirection: 'row', alignItems: 'flex-start' },
   wellItem: { flex: 1, alignItems: 'center', paddingVertical: 8 },
   wellDivider: { width: 1, backgroundColor: palette.gray[700], marginHorizontal: 8, alignSelf: 'stretch' },
@@ -713,7 +1112,6 @@ const styles = StyleSheet.create({
   wellLabel: { fontSize: 12, color: palette.gray[400], marginTop: 4 },
   energyDot: { width: 28, height: 8, borderRadius: 4 },
 
-  // Mood
   moodRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   moodEmoji: { fontSize: 20, width: 28 },
   moodLabel: { fontSize: 13, color: theme.colors.text, fontWeight: '600', width: 60 },
@@ -721,27 +1119,11 @@ const styles = StyleSheet.create({
   moodBarFill: { height: 8, backgroundColor: palette.brand[500], borderRadius: 4 },
   moodPct: { fontSize: 12, color: palette.gray[400], width: 32, textAlign: 'right' },
 
-  // Consistency grid
-  consistencyGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  consistencyItem: {
-    flex: 1, minWidth: '45%',
-    backgroundColor: palette.gray[700],
-    borderRadius: 14, padding: 14, alignItems: 'center',
-  },
-  consistencyVal: { fontSize: 26, fontWeight: '800', color: theme.colors.text },
-  consistencyLabel: { fontSize: 11, color: palette.gray[400], marginTop: 4, textAlign: 'center' },
-
-  // Totals
   totalsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  totalItem: {
-    flex: 1, minWidth: '45%',
-    backgroundColor: palette.gray[700],
-    borderRadius: 14, padding: 14, alignItems: 'center',
-  },
+  totalItem: { flex: 1, minWidth: '45%', backgroundColor: palette.gray[700], borderRadius: 14, padding: 14, alignItems: 'center' },
   totalVal: { fontSize: 24, fontWeight: '800', color: palette.brand[400] },
   totalLabel: { fontSize: 11, color: palette.gray[400], marginTop: 4, textAlign: 'center' },
 
-  // Bodyweight
   bwRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', marginBottom: 14 },
   bwStat: { alignItems: 'center' },
   bwVal: { fontSize: 26, fontWeight: '800', color: theme.colors.text },

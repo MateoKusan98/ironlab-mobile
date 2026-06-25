@@ -46,11 +46,9 @@ export interface AICoachProfileData {
   squatMax?: number;
   benchMax?: number;
   deadliftMax?: number;
-  ohpMax?: number;
   squatERM?: number;
   benchERM?: number;
   deadliftERM?: number;
-  ohpERM?: number;
   prTrend?: string;
   squatWeakPoint?: string;
   benchWeakPoint?: string;
@@ -323,8 +321,8 @@ export const adminAiService = {
   },
 
   setErm: async (userId: string, updates: {
-    squatERM?: number; benchERM?: number; deadliftERM?: number; ohpERM?: number;
-    squatMax?: number; benchMax?: number; deadliftMax?: number; ohpMax?: number;
+    squatERM?: number; benchERM?: number; deadliftERM?: number;
+    squatMax?: number; benchMax?: number; deadliftMax?: number;
   }): Promise<void> => {
     await api.post(`/ai-coach/admin/lab/${userId}/set-erm`, updates);
   },

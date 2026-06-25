@@ -266,19 +266,43 @@ export const SessionSummaryScreen: React.FC = () => {
           );
         })()}
 
-        {/* PR Recap */}
-        {prs && prs.length > 0 && (
+        {/* PR Recap — true PRs (crossed 1RM) get the gold card; mini PRs
+            (rep-count records) get a quieter one below. */}
+        {prs && prs.some((pr) => pr.tier === 'pr') && (
           <View style={styles.prCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}><Trophy size={18} weight="fill" color={palette.brand[400]} /><Text style={styles.prCardTitle}>Personal Records Broken!</Text></View>
-            {prs.map((pr, i) => (
+            {prs.filter((pr) => pr.tier === 'pr').map((pr, i) => {
+              const newE1rm = pr.e1rm ?? pr.value;
+              return (
+                <View key={i} style={styles.prRow}>
+                  <View style={styles.prRowLeft}>
+                    <Text style={styles.prExercise}>{exName(pr.exerciseName)}</Text>
+                    <Text style={styles.prLabel}>{pr.label}</Text>
+                  </View>
+                  <View style={styles.prRowRight}>
+                    <Text style={styles.prValue}>{newE1rm}kg</Text>
+                    <Text style={styles.prDelta}>
+                      {pr.prevE1rm ? `+${(newE1rm - pr.prevE1rm).toFixed(1)} from ${pr.prevE1rm}kg` : 'First ever! 🎉'}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {prs && prs.some((pr) => pr.tier === 'mini') && (
+          <View style={styles.miniPrCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}><Trophy size={16} weight="regular" color={palette.gray[300]} /><Text style={styles.miniPrCardTitle}>Mini PRs</Text></View>
+            {prs.filter((pr) => pr.tier === 'mini').map((pr, i) => (
               <View key={i} style={styles.prRow}>
                 <View style={styles.prRowLeft}>
-                  <Text style={styles.prExercise}>{exName(pr.exerciseName)}</Text>
-                  <Text style={styles.prLabel}>{pr.label}</Text>
+                  <Text style={styles.miniPrExercise}>{exName(pr.exerciseName)}</Text>
+                  <Text style={styles.miniPrLabel}>{pr.label}</Text>
                 </View>
                 <View style={styles.prRowRight}>
-                  <Text style={styles.prValue}>{pr.value}kg</Text>
-                  <Text style={styles.prDelta}>
+                  <Text style={styles.miniPrValue}>{pr.value}kg</Text>
+                  <Text style={styles.miniPrDelta}>
                     {pr.previous ? `+${(pr.value - pr.previous).toFixed(1)} from ${pr.previous}kg` : 'First ever! 🎉'}
                   </Text>
                 </View>
@@ -667,6 +691,20 @@ const styles = StyleSheet.create({
   prRowRight: { alignItems: 'flex-end' },
   prValue: { fontSize: 18, fontWeight: '800', color: '#fcd34d' },
   prDelta: { fontSize: 10, color: '#fbbf24', marginTop: 2 },
+
+  miniPrCard: {
+    backgroundColor: palette.gray[800],
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: palette.gray[700],
+  },
+  miniPrCardTitle: { fontSize: 14, fontWeight: '700', color: palette.gray[200], marginBottom: 14 },
+  miniPrExercise: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
+  miniPrLabel: { fontSize: 11, color: palette.gray[400], marginTop: 2 },
+  miniPrValue: { fontSize: 18, fontWeight: '800', color: palette.gray[200] },
+  miniPrDelta: { fontSize: 10, color: palette.gray[400], marginTop: 2 },
 
   saveBtn: {
     backgroundColor: palette.brand[600],

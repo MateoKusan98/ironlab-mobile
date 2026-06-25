@@ -219,11 +219,9 @@ const PROFILE_FIELDS: FieldSpec[] = [
   { key: 'squatMax', label: 'Squat 1RM (kg)', type: 'number', group: 'Strength' },
   { key: 'benchMax', label: 'Bench 1RM (kg)', type: 'number', group: 'Strength' },
   { key: 'deadliftMax', label: 'Deadlift 1RM (kg)', type: 'number', group: 'Strength' },
-  { key: 'ohpMax', label: 'OHP 1RM (kg)', type: 'number', group: 'Strength' },
   { key: 'squatERM', label: 'Squat eRM (kg)', type: 'number', group: 'Strength' },
   { key: 'benchERM', label: 'Bench eRM (kg)', type: 'number', group: 'Strength' },
   { key: 'deadliftERM', label: 'Deadlift eRM (kg)', type: 'number', group: 'Strength' },
-  { key: 'ohpERM', label: 'OHP eRM (kg)', type: 'number', group: 'Strength' },
   { key: 'prTrend', label: 'PR trend', type: 'multiline', group: 'Strength' },
   // Technical
   { key: 'squatWeakPoint', label: 'Squat weak point', type: 'text', group: 'Technical' },
@@ -498,7 +496,6 @@ export const AdminAILabScreen: React.FC = () => {
   const [editErmSqERM, setEditErmSqERM] = useState('');
   const [editErmBnERM, setEditErmBnERM] = useState('');
   const [editErmDlERM, setEditErmDlERM] = useState('');
-  const [editErmOhpERM, setEditErmOhpERM] = useState('');
 
   const loadUsers = useCallback(async () => {
     try {
@@ -521,7 +518,6 @@ export const AdminAILabScreen: React.FC = () => {
       setEditErmSqERM('');
       setEditErmBnERM('');
       setEditErmDlERM('');
-      setEditErmOhpERM('');
     } catch {
       Alert.alert('Error', 'Could not load user state');
     } finally {
@@ -842,7 +838,6 @@ export const AdminAILabScreen: React.FC = () => {
                 { label: 'Squat eRM', val: editErmSqERM, set: setEditErmSqERM },
                 { label: 'Bench eRM', val: editErmBnERM, set: setEditErmBnERM },
                 { label: 'Deadlift eRM', val: editErmDlERM, set: setEditErmDlERM },
-                { label: 'OHP eRM', val: editErmOhpERM, set: setEditErmOhpERM },
               ].map(({ label, val, set }) => (
                 <View key={label} style={styles.ermField}>
                   <Text style={styles.fieldLabel}>{label}</Text>
@@ -866,7 +861,6 @@ export const AdminAILabScreen: React.FC = () => {
                     squatERM: editErmSqERM ? Number(editErmSqERM) : undefined,
                     benchERM: editErmBnERM ? Number(editErmBnERM) : undefined,
                     deadliftERM: editErmDlERM ? Number(editErmDlERM) : undefined,
-                    ohpERM: editErmOhpERM ? Number(editErmOhpERM) : undefined,
                   }), 'eRM values updated',
                 )
               }

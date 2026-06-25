@@ -132,7 +132,6 @@ const getSections = (t: TFunction): Section[] => [
       { id: 'squatMax', label: t('aiCoachExtendedSetup.questionSquatMax'), type: 'number', min: 0, max: 500, unit: 'kg', placeholder: '140', optional: true },
       { id: 'benchMax', label: t('aiCoachExtendedSetup.questionBenchMax'), type: 'number', min: 0, max: 400, unit: 'kg', placeholder: '100', optional: true },
       { id: 'deadliftMax', label: t('aiCoachExtendedSetup.questionDeadliftMax'), type: 'number', min: 0, max: 600, unit: 'kg', placeholder: '180', optional: true },
-      { id: 'ohpMax', label: t('aiCoachExtendedSetup.questionOhpMax'), type: 'number', min: 0, max: 250, unit: 'kg', placeholder: '70', optional: true },
     ],
   },
   {
@@ -860,7 +859,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
   const handleFinish = async () => {
     setIsSaving(true);
     try {
-      const numericFields = ['yearsTraining', 'squatMax', 'benchMax', 'deadliftMax', 'ohpMax',
+      const numericFields = ['yearsTraining', 'squatMax', 'benchMax', 'deadliftMax',
         'avgSleepHours', 'jobStressLevel', 'weeklyCardioSessions', 'trainingDaysPerWeek',
         'sessionDurationMinutes', 'dailyProteinTarget', 'meetExperience',
         'squatFrequencyPerWeek', 'benchFrequencyPerWeek', 'deadliftFrequencyPerWeek'];

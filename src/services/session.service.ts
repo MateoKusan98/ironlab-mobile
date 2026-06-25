@@ -5,6 +5,10 @@ export interface PRResult {
   label: string;
   value: number;
   previous: number | null;
+  // 'pr' = crossed your estimated 1RM; 'mini' = rep-count record only.
+  tier: 'pr' | 'mini';
+  e1rm?: number;
+  prevE1rm?: number | null;
 }
 
 export interface SessionSet {
@@ -147,13 +151,74 @@ export interface WeeklyVolume {
   sessions: number;
 }
 
+export interface MuscleLandmark {
+  name: string;
+  weeklySets: number;
+  mev: number;
+  mav: number;
+  mrv: number;
+  status: 'under' | 'optimal' | 'high' | 'overreaching';
+}
+
+export interface PRTimelineEntry {
+  exerciseName: string;
+  muscleGroup: string;
+  weight: number;
+  reps: number;
+  e1rm: number;
+  date: string;
+  tier: 'pr' | 'mini';
+}
+
+export interface RepMaxRecord {
+  exerciseName: string;
+  muscleGroup: string;
+  maxes: Array<{ reps: number; weight: number; e1rm: number }>;
+}
+
+export interface StrengthLift {
+  e1RM: number;
+  ratio: number;
+  level: string;
+  nextLevel: string | null;
+  progressToNext: number;
+}
+
+export interface StrengthStandards {
+  available: boolean;
+  bodyweightKg: number | null;
+  gender: 'male' | 'female';
+  lifts: { squat?: StrengthLift | null; benchPress?: StrengthLift | null; deadlift?: StrengthLift | null };
+  total: number | null;
+  totalRatio?: number;
+  dots: number | null;
+}
+
+export interface BodyCompositionPoint {
+  date: string;
+  bodyFatPercentage: number | null;
+  muscleMassKg: number | null;
+  leanMassKg: number | null;
+  visceralFatLevel: number | null;
+}
+
+export interface MilestoneLadder {
+  value: number;
+  achievedCount: number;
+  next: number | null;
+}
+
 export interface AthleteStats {
   overview: {
     totalSessions: number;
     totalVolumeKg: number;
     totalReps: number;
+    totalSets: number;
     currentWeekStreak: number;
+    longestWeekStreak: number;
     prsThisMonth: number;
+    truePrsThisMonth: number;
+    miniPrsThisMonth: number;
     avgSessionDurationMinutes: number | null;
     firstSessionDate: string | null;
     sessionsLast30Days: number;
@@ -163,12 +228,55 @@ export interface AthleteStats {
     squat: MainLiftData | null;
     benchPress: MainLiftData | null;
     deadlift: MainLiftData | null;
-    ohp: MainLiftData | null;
   };
   weeklyVolume: WeeklyVolume[];
   muscleGroups: MuscleGroup[];
+  muscleLandmarks: MuscleLandmark[];
   topExercises: TopExercise[];
   exerciseProgression: ExerciseProgression[];
+  records: {
+    truePrCount: number;
+    miniPrCount: number;
+    recentPRs: PRTimelineEntry[];
+    repMaxRecords: RepMaxRecord[];
+  };
+  consistency: {
+    heatmap: Array<{ date: string; sessions: number; volumeKg: number }>;
+    longestWeekStreak: number;
+    totalTrainingDays: number;
+    dayOfWeekCounts: number[];
+    avgSessionsPerWeek: number;
+  };
+  intensity: {
+    avgRpe: number | null;
+    trend: Array<{ label: string; avgRpe: number | null; avgIntensityPct: number | null }>;
+  };
+  density: {
+    avgRestSeconds: number | null;
+    avgDensityKgPerMin: number | null;
+    avgSetsPerSession: number;
+  };
+  strengthStandards: StrengthStandards;
+  bodyComposition: {
+    series: BodyCompositionPoint[];
+    first: BodyCompositionPoint | null;
+    latest: BodyCompositionPoint | null;
+  };
+  cardio: {
+    totalSessions: number;
+    totalMinutes: number;
+    totalDistanceKm: number;
+    totalCalories: number;
+    avgHeartRate: number | null;
+    recent: Array<{ date: string; type: string | null; minutes: number | null; distanceKm: number | null; calories: number | null; avgHeartRate: number | null }>;
+  };
+  milestones: {
+    volume: MilestoneLadder;
+    sessions: MilestoneLadder;
+    reps: MilestoneLadder;
+    sets: MilestoneLadder;
+    prs: MilestoneLadder;
+  };
   wellbeing: {
     avgEnergyLevel: number | null;
     avgSleepHours: number | null;
