@@ -25,9 +25,13 @@ import {
 import { communityService } from '../../services/community.service';
 import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
 import { PostVideo } from '../../components/PostVideo';
+import { ExerciseAutocomplete } from '../../components/ExerciseAutocomplete';
+import { useExerciseName } from '../../hooks/useExerciseName';
+import { EXERCISE_NAMES, getLiftFamily } from '../../i18n/exerciseNames';
 import {
   Camera,
   Video,
+  VideoCamera,
   ImageSquare,
   X,
   CheckCircle,
@@ -138,9 +142,31 @@ const CoachRequestCard = ({ req }: { req: FormCheckRequest }) => {
   );
 };
 
+// Shown on the AI tab when one of the three competition lifts is selected —
+// a quick nudge on the camera angle that lets the AI grade most accurately.
+const CameraAngleTip = ({ family }: { family: 'squat' | 'bench' | 'deadlift' }) => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.tipCard}>
+      <View style={styles.tipHeader}>
+        <VideoCamera size={18} weight="fill" color={palette.brand[400]} />
+        <Text style={styles.tipTitle}>{t('formCheck.cameraTipTitle')}</Text>
+      </View>
+      <Text style={styles.tipBody}>{t(`formCheck.cameraTip_${family}`)}</Text>
+    </View>
+  );
+};
+
 export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
+  const { exName, canonical } = useExerciseName();
   const [activeTab, setActiveTab] = useState<Tab>('ai');
+
+  // Localized exercise catalog for the autocomplete suggestions.
+  const exerciseOptions = React.useMemo(
+    () => Array.from(new Set(EXERCISE_NAMES.map(exName))).sort((a, b) => a.localeCompare(b)),
+    [exName],
+  );
 
   // AI tab state
   const [aiImages, setAiImages] = useState<string[]>([]);
@@ -463,13 +489,18 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
 
             {/* Exercise input */}
             <Text style={styles.inputLabel}>{t('formCheck.exercise')}</Text>
-            <TextInput
-              style={styles.input}
+            <ExerciseAutocomplete
               value={aiExercise}
               onChangeText={setAiExercise}
-              placeholder={t('formCheck.exercisePlaceholder')}
-              placeholderTextColor={palette.gray[600]}
+              options={exerciseOptions}
+              placeholder={t('formCheck.exerciseSearchPlaceholder')}
             />
+
+            {/* Camera-angle tip for the big three lifts */}
+            {(() => {
+              const family = getLiftFamily(canonical(aiExercise.trim()));
+              return family ? <CameraAngleTip family={family} /> : null;
+            })()}
 
             {/* Notes */}
             <Text style={styles.inputLabel}>{t('formCheck.notesOptional')}</Text>
@@ -536,12 +567,11 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
             )}
 
             <Text style={styles.inputLabel}>{t('formCheck.exercise')}</Text>
-            <TextInput
-              style={styles.input}
+            <ExerciseAutocomplete
               value={coachExercise}
               onChangeText={setCoachExercise}
-              placeholder={t('formCheck.exercisePlaceholder')}
-              placeholderTextColor={palette.gray[600]}
+              options={exerciseOptions}
+              placeholder={t('formCheck.exerciseSearchPlaceholder')}
             />
 
             <Text style={styles.inputLabel}>{t('formCheck.notesCoach')}</Text>
@@ -631,12 +661,11 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
             )}
 
             <Text style={styles.inputLabel}>{t('formCheck.exercise')}</Text>
-            <TextInput
-              style={styles.input}
+            <ExerciseAutocomplete
               value={commExercise}
               onChangeText={setCommExercise}
-              placeholder={t('formCheck.exercisePlaceholder')}
-              placeholderTextColor={palette.gray[600]}
+              options={exerciseOptions}
+              placeholder={t('formCheck.exerciseSearchPlaceholder')}
             />
 
             <Text style={styles.inputLabel}>{t('formCheck.notesOptional')}</Text>
@@ -774,6 +803,18 @@ const styles = StyleSheet.create({
   primaryBtnText: { fontSize: 15, fontWeight: '700', color: '#000' },
 
   analyzingHint: { textAlign: 'center', color: theme.colors.textTertiary, fontSize: 12, marginBottom: 16 },
+
+  tipCard: {
+    backgroundColor: palette.brand[950],
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.brand[900],
+    padding: 14,
+    marginBottom: 16,
+  },
+  tipHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  tipTitle: { fontSize: 13, fontWeight: '700', color: palette.brand[300] },
+  tipBody: { fontSize: 13, color: theme.colors.textSecondary, lineHeight: 19 },
 
   communityNote: {
     flexDirection: 'row',

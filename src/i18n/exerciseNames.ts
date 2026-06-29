@@ -402,6 +402,25 @@ const TABLES: Record<string, Record<string, string>> = {
 };
 
 /**
+ * Canonical English exercise names — the master list used to power the
+ * exercise autocomplete. Free-text entries the user types are NOT added here;
+ * this stays a fixed, display-only catalog.
+ */
+export const EXERCISE_NAMES: string[] = Object.keys(BCS);
+
+/**
+ * Detects whether a canonical (English) exercise name belongs to one of the
+ * three competition lifts, so the UI can show a tailored camera-angle tip.
+ */
+export function getLiftFamily(canonicalName: string): 'squat' | 'bench' | 'deadlift' | null {
+  const n = canonicalName.toLowerCase();
+  if (n.includes('deadlift')) return 'deadlift';
+  if (n.includes('bench')) return 'bench';
+  if (n.includes('squat')) return 'squat';
+  return null;
+}
+
+/**
  * Returns the translated exercise name for the current UI language.
  * Falls back to the original English name if no translation exists.
  */
