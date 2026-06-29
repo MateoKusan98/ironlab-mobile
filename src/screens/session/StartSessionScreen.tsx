@@ -10,6 +10,7 @@ import {
   Modal,
 } from 'react-native';
 import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
+import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -95,6 +96,11 @@ export const StartSessionScreen: React.FC = () => {
   const [mood, setMood] = useState('good');
   const [loading, setLoading] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
+  // Full-screen pop-quiz that entertains the athlete through the ~20s AI workout
+  // build. `generating` shows the quiz; `planReady` flips its loading pill to the
+  // "Continue" CTA once the plan is back so they can finish the current question.
+  const [generating, setGenerating] = useState(false);
+  const [planReady, setPlanReady] = useState(false);
   // Reactive HIGH-fatigue alarm awaiting the athlete's call. Non-null = modal shown.
   const [fatigueGate, setFatigueGate] = useState<string[] | null>(null);
   const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[]>(() => {
@@ -175,7 +181,11 @@ export const StartSessionScreen: React.FC = () => {
   // the athlete's answer to the readiness gate ('accept' = recover, 'dismiss' = feel fine).
   const proceedGeneration = async (fatigueDecision?: 'accept' | 'dismiss') => {
     setFatigueGate(null);
-    setPlanLoading(true);
+    // Hand off from the button spinner (preflight) to the full-screen quiz takeover
+    // that covers the long AI build.
+    setPlanLoading(false);
+    setPlanReady(false);
+    setGenerating(true);
     const today = new Date().toISOString().split('T')[0];
 
     try {
@@ -208,12 +218,14 @@ export const StartSessionScreen: React.FC = () => {
         const marker: ReadinessMarker = { planAt: result.generatedAt, mood, energyLevel, sleepHours, bodyweight };
         await AsyncStorage.setItem(readinessAppliedKey(uid), JSON.stringify(marker)).catch(() => {});
       }
-      setStep(2);
+      // Plan is ready in the background — keep the quiz up and flip it to the
+      // "Continue" CTA. The step-2 reveal happens when the athlete taps Continue.
+      setPlanReady(true);
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
       Alert.alert(t('common.error'), String(Array.isArray(msg) ? msg.join('\n') : msg));
-    } finally {
-      setPlanLoading(false);
+      setGenerating(false);
+      setPlanReady(false);
     }
   };
 
@@ -298,6 +310,25 @@ export const StartSessionScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <ActivityIndicator color={palette.brand[500]} style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
+
+  // While the AI builds today's workout, keep the athlete engaged with the quiz
+  // instead of a bare spinner. Continue (revealed once ready) drops them into step 2.
+  if (generating) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <FitnessQuiz
+          loading={!planReady}
+          title={t('aiCoach.generating')}
+          subtitle={t('aiCoach.buildingWorkout')}
+          onFinish={() => {
+            setGenerating(false);
+            setPlanReady(false);
+            setStep(2);
+          }}
+        />
       </SafeAreaView>
     );
   }

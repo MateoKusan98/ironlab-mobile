@@ -918,6 +918,11 @@
     "clothingHint": "Minimal clothing = better accuracy",
     "holdStill": "Hold still while scanning...",
     "scanBody": "Scan Body",
+    "timerOff": "Off",
+    "getReady": "Get into position…",
+    "uploadPhoto": "Upload a photo",
+    "noGallery": "No access to photos",
+    "noGalleryMsg": "Please allow photo library access to upload a picture.",
     "analysisFailed": "Analysis Failed",
     "analysisFailedMsg": "Could not process the image. Please try again in better lighting."
   },

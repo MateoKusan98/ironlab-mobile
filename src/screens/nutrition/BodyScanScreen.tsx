@@ -10,6 +10,7 @@ import {
   Image,
 } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { theme, palette } from '../../theme';
@@ -28,7 +29,12 @@ export const BodyScanScreen: React.FC = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  // Self-timer: 0 = off, otherwise seconds to count down before capture
+  const TIMER_OPTIONS = [0, 3, 5, 10];
+  const [timerDuration, setTimerDuration] = useState(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const cameraRef = useRef<any>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
@@ -38,21 +44,22 @@ export const BodyScanScreen: React.FC = () => {
     })();
   }, []);
 
-  const takePicture = async () => {
-    if (!cameraRef.current || !cameraReady) return;
+  // Clean up any running countdown when leaving the screen
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, []);
 
+  // Shared: upload an image uri to the AI for analysis
+  const analyzeImage = async (uri: string) => {
     try {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.7,
-        base64: true,
-      });
-
       setIsAnalyzing(true);
       const returnTo = (route.params as any)?.returnTo;
 
       const formData = new FormData();
       formData.append('image', {
-        uri: photo.uri,
+        uri,
         name: 'scan.jpg',
         type: 'image/jpeg',
       } as any);
@@ -73,6 +80,61 @@ export const BodyScanScreen: React.FC = () => {
       Alert.alert(t('bodyScan.analysisFailed'), t('bodyScan.analysisFailedMsg'));
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const capturePhoto = async () => {
+    if (!cameraRef.current || !cameraReady) return;
+    try {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
+      await analyzeImage(photo.uri);
+    } catch (error) {
+      console.error('Capture error:', error);
+      Alert.alert(t('bodyScan.analysisFailed'), t('bodyScan.analysisFailedMsg'));
+    }
+  };
+
+  // Press "Scan Body": fire immediately, or run the self-timer countdown first
+  const handleScanPress = () => {
+    if (isAnalyzing || countdown !== null) return;
+    if (timerDuration === 0) {
+      capturePhoto();
+      return;
+    }
+    setCountdown(timerDuration);
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          if (countdownRef.current) clearInterval(countdownRef.current);
+          countdownRef.current = null;
+          capturePhoto();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const cycleTimer = () => {
+    const idx = TIMER_OPTIONS.indexOf(timerDuration);
+    setTimerDuration(TIMER_OPTIONS[(idx + 1) % TIMER_OPTIONS.length]);
+  };
+
+  // Pick an existing photo from the gallery and analyze it
+  const pickFromGallery = async () => {
+    if (isAnalyzing) return;
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(t('bodyScan.noGallery'), t('bodyScan.noGalleryMsg'));
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      await analyzeImage(result.assets[0].uri);
     }
   };
 
@@ -104,9 +166,15 @@ export const BodyScanScreen: React.FC = () => {
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
               <Text style={styles.closeText}>✕</Text>
             </TouchableOpacity>
-            <View style={styles.aiLogo}>
-              <Text style={styles.plusIcon}>+</Text>
-            </View>
+            <TouchableOpacity
+              onPress={cycleTimer}
+              style={[styles.timerBtn, timerDuration > 0 && styles.timerBtnActive]}
+              disabled={countdown !== null || isAnalyzing}
+            >
+              <Text style={[styles.timerBtnText, timerDuration > 0 && styles.timerBtnTextActive]}>
+                {timerDuration === 0 ? `⏱ ${t('bodyScan.timerOff')}` : `⏱ ${timerDuration}s`}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Title */}
@@ -129,25 +197,45 @@ export const BodyScanScreen: React.FC = () => {
                 
                 {/* Pulse Bar Effect (Simulated) */}
                 <View style={styles.pulseBar} />
+
+                {/* Self-timer countdown */}
+                {countdown !== null && (
+                  <View style={styles.countdownOverlay}>
+                    <Text style={styles.countdownText}>{countdown}</Text>
+                  </View>
+                )}
             </View>
-            <Text style={styles.frameHint}>{t('bodyScan.holdStill')}</Text>
+            <Text style={styles.frameHint}>
+              {countdown !== null ? t('bodyScan.getReady') : t('bodyScan.holdStill')}
+            </Text>
           </View>
 
           {/* Bottom Action */}
           <View style={styles.bottomContainer}>
-            <TouchableOpacity 
-              style={[styles.captureBtn, isAnalyzing && styles.btnDisabled]} 
-              onPress={takePicture}
-              disabled={isAnalyzing}
+            <TouchableOpacity
+              style={[styles.captureBtn, (isAnalyzing || countdown !== null) && styles.btnDisabled]}
+              onPress={handleScanPress}
+              disabled={isAnalyzing || countdown !== null}
             >
               {isAnalyzing ? (
                 <ActivityIndicator color="#000" />
               ) : (
                 <>
-                   <Text style={styles.captureBtnText}>{t('bodyScan.scanBody')}</Text>
+                   <Text style={styles.captureBtnText}>
+                     {countdown !== null ? `${countdown}…` : t('bodyScan.scanBody')}
+                   </Text>
                    <Text style={styles.captureIcon}>⚲</Text>
                 </>
               )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.galleryBtn, (isAnalyzing || countdown !== null) && styles.btnDisabled]}
+              onPress={pickFromGallery}
+              disabled={isAnalyzing || countdown !== null}
+            >
+              <Text style={styles.galleryIcon}>🖼️</Text>
+              <Text style={styles.galleryBtnText}>{t('bodyScan.uploadPhoto')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -313,8 +401,67 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 20,
   },
+  timerBtn: {
+    paddingHorizontal: 14,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(24, 24, 27, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  timerBtnActive: {
+    backgroundColor: palette.brand[600],
+    borderColor: palette.brand[500],
+  },
+  timerBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+  timerBtnTextActive: {
+    color: '#000',
+  },
+  countdownOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countdownText: {
+    fontSize: 120,
+    fontWeight: 'bold',
+    color: '#FFF',
+    textShadowColor: palette.brand[500],
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
+  },
   bottomContainer: {
     paddingBottom: 20,
+    gap: 12,
+  },
+  galleryBtn: {
+    height: 50,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(24, 24, 27, 0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  galleryIcon: {
+    fontSize: 18,
+  },
+  galleryBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
   },
   captureBtn: {
     backgroundColor: palette.brand[500],

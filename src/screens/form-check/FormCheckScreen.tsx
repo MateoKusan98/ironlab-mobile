@@ -23,6 +23,7 @@ import {
   FormCheckRequest,
 } from '../../services/form-check.service';
 import { communityService } from '../../services/community.service';
+import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
 import { PostVideo } from '../../components/PostVideo';
 import {
   Camera,
@@ -147,6 +148,9 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
   const [aiExercise, setAiExercise] = useState('');
   const [aiNotes, setAiNotes] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
+  // Once the AI analysis is back, the quiz stays up showing a "Continue" CTA so the
+  // athlete can finish their question before the result is revealed.
+  const [analysisReady, setAnalysisReady] = useState(false);
   const [aiResult, setAiResult] = useState<AIFormCheckAnalysis | null>(null);
 
   // Coach tab state
@@ -234,6 +238,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert(t('formCheck.exerciseRequired'), t('formCheck.exerciseRequiredMsg'));
       return;
     }
+    setAnalysisReady(false);
     setAnalyzing(true);
     try {
       const exercise = aiExercise.trim();
@@ -242,10 +247,12 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
         ? await formCheckService.analyzeVideo(aiVideo, exercise, notes)
         : await formCheckService.analyzeAI(aiImages, exercise, notes);
       setAiResult(aiAnalysis);
+      // Result is in — keep the quiz up and flip it to the "Continue" CTA.
+      setAnalysisReady(true);
     } catch (e: any) {
       Alert.alert(t('formCheck.analysisFailed'), e?.response?.data?.message || t('errors.unknownError'));
-    } finally {
       setAnalyzing(false);
+      setAnalysisReady(false);
     }
   };
 
@@ -353,6 +360,25 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
       setPosting(false);
     }
   };
+
+  // While the AI reviews the lift (often 10s+), entertain the athlete with the quiz
+  // instead of a button spinner. Continue (revealed once ready) returns to the
+  // result that's now rendered inline on the AI tab.
+  if (analyzing) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <FitnessQuiz
+          loading={!analysisReady}
+          title={t('formCheck.title')}
+          subtitle={aiVideo ? t('formCheck.analyzingVideo') : t('formCheck.analyzingPhoto')}
+          onFinish={() => {
+            setAnalyzing(false);
+            setAnalysisReady(false);
+          }}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
