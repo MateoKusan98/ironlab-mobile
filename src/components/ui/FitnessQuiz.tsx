@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { CheckCircle, XCircle, Brain, Sparkle } from 'phosphor-react-native';
 import { theme, palette } from '../../theme';
 import { Button } from './Button';
 import { FITNESS_QUIZ, shuffleQuestions, QuizQuestion } from '../../data/fitnessQuiz';
+import { badgesService } from '../../services/badges.service';
 
 export interface FitnessQuizProps {
   /**
@@ -61,6 +62,17 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
   const [showResults, setShowResults] = useState(false);
 
   const fade = useRef(new Animated.Value(1)).current;
+  const reported = useRef(false);
+
+  // Report a finished practice quiz once so the backend can award knowledge
+  // badges. Endless (loading) runs never reach a results screen, so they don't
+  // count — and the guard stops a re-render from posting twice.
+  useEffect(() => {
+    if (showResults && isPractice && !reported.current) {
+      reported.current = true;
+      badgesService.recordQuizComplete(score, questionLimit as number).catch(() => {});
+    }
+  }, [showResults, isPractice, score, questionLimit]);
 
   const question = deck[index % deck.length];
   const answered = selected !== null;

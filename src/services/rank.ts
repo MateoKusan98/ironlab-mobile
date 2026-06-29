@@ -9,13 +9,16 @@ export interface RankTierDef {
   minPoints: number;
 }
 
+// Thresholds were widened when the physique / technique / knowledge / community
+// badges landed: there are now more one-time points available (especially in the
+// early game), so each tier asks for a little more to keep the climb meaningful.
 export const RANK_TIERS: RankTierDef[] = [
   { tier: 'bronze',    minPoints: 0 },
-  { tier: 'silver',    minPoints: 500 },
-  { tier: 'gold',      minPoints: 1500 },
-  { tier: 'platinum',  minPoints: 3500 },
-  { tier: 'diamond',   minPoints: 7000 },
-  { tier: 'legendary', minPoints: 12000 },
+  { tier: 'silver',    minPoints: 650 },
+  { tier: 'gold',      minPoints: 1800 },
+  { tier: 'platinum',  minPoints: 4000 },
+  { tier: 'diamond',   minPoints: 8000 },
+  { tier: 'legendary', minPoints: 14000 },
 ];
 
 export interface RankInfo {

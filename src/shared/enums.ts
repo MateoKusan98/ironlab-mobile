@@ -70,4 +70,14 @@ export enum BadgeKey {
   LOCKED_IN_3 = 'LOCKED_IN_3',
   // Community
   IDEA_THANKED = 'IDEA_THANKED',
+  // Physique — body scans
+  SCAN_FIRST = 'SCAN_FIRST',
+  SCAN_5 = 'SCAN_5',
+  LEANER = 'LEANER',
+  // Technique — form checks
+  FORM_FIRST = 'FORM_FIRST',
+  FORM_10 = 'FORM_10',
+  // Knowledge — quiz
+  QUIZ_FIRST = 'QUIZ_FIRST',
+  QUIZ_PERFECT = 'QUIZ_PERFECT',
 }

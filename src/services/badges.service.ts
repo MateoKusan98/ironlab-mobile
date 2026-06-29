@@ -11,9 +11,15 @@ export type BadgeKey =
   | 'RPE_5' | 'NOTES_10' | 'BODYWEIGHT_20'
   | 'MEAL_FIRST' | 'MEAL_MAXDAY' | 'MEAL_STREAK_7' | 'MEAL_100'
   | 'SPITE_PR' | 'FUMES_PR' | 'LIVES_HERE' | 'EFFICIENT' | 'FULL_SEND' | 'NO_LIFE'
-  | 'LOCKED_IN' | 'LOCKED_IN_2' | 'LOCKED_IN_3';
+  | 'LOCKED_IN' | 'LOCKED_IN_2' | 'LOCKED_IN_3'
+  | 'IDEA_THANKED'
+  | 'SCAN_FIRST' | 'SCAN_5' | 'LEANER'
+  | 'FORM_FIRST' | 'FORM_10'
+  | 'QUIZ_FIRST' | 'QUIZ_PERFECT';
 
-export type BadgeGroup = 'strength' | 'grind' | 'detail' | 'nutrition' | 'chaos' | 'dedication';
+export type BadgeGroup =
+  | 'strength' | 'grind' | 'detail' | 'nutrition' | 'chaos' | 'dedication'
+  | 'physique' | 'technique' | 'knowledge' | 'community';
 
 export interface BadgeMeta {
   key: BadgeKey;
@@ -73,6 +79,22 @@ export const BADGE_CATALOG: BadgeMeta[] = [
   { key: 'FULL_SEND',      name: 'Full Send Day',            description: 'Session + 6 meals in one day',    icon: '🚀', group: 'chaos',      points: 50 },
   { key: 'NO_LIFE',        name: 'No Life Just Gains',       description: '30 days with a session and a meal', icon: '💀', group: 'chaos',    points: 150 },
 
+  // ── Physique (body scans) ──────────────────────────────────────────────────
+  { key: 'SCAN_FIRST',     name: 'Know Thyself',             description: 'Complete your first body scan',    icon: '📸', group: 'physique',   points: 15 },
+  { key: 'SCAN_5',         name: 'Tracking The Progress',    description: 'Complete 5 body scans',            icon: '📐', group: 'physique',   points: 50 },
+  { key: 'LEANER',         name: 'Cutting Weight',           description: 'Drop body-fat % between scans',    icon: '🔪', group: 'physique',   points: 75 },
+
+  // ── Technique (form checks) ─────────────────────────────────────────────────
+  { key: 'FORM_FIRST',     name: 'Send The Tape',            description: 'Submit your first form check',     icon: '🎥', group: 'technique',  points: 15 },
+  { key: 'FORM_10',        name: "Tape Don't Lie",           description: 'Submit 10 form checks',            icon: '📹', group: 'technique',  points: 75 },
+
+  // ── Knowledge (quiz) ────────────────────────────────────────────────────────
+  { key: 'QUIZ_FIRST',     name: 'Big Brain Energy',         description: 'Finish a fitness quiz',            icon: '🧠', group: 'knowledge',  points: 15 },
+  { key: 'QUIZ_PERFECT',   name: 'Galaxy Brain',             description: 'Ace a quiz with a perfect score',  icon: '🌌', group: 'knowledge',  points: 75 },
+
+  // ── Community ────────────────────────────────────────────────────────────────
+  { key: 'IDEA_THANKED',   name: 'Heard And Valued',         description: 'Get thanked for a submitted idea', icon: '💡', group: 'community',  points: 50 },
+
   // ── Dedication ────────────────────────────────────────────────────────────
   { key: 'LOCKED_IN',      name: 'Locked In',                description: 'Reach 1000 achievement points',   icon: '🔒', group: 'dedication', points: 0 },
   { key: 'LOCKED_IN_2',    name: 'Deep In The Sauce',        description: 'Reach 2500 achievement points',   icon: '🧪', group: 'dedication', points: 0 },
@@ -123,7 +145,11 @@ export const BADGE_GROUPS: Array<{ key: BadgeGroup; label: string }> = [
   { key: 'grind',      label: 'GRIND' },
   { key: 'detail',     label: 'DETAILS' },
   { key: 'nutrition',  label: 'NUTRITION' },
+  { key: 'physique',   label: 'PHYSIQUE' },
+  { key: 'technique',  label: 'TECHNIQUE' },
+  { key: 'knowledge',  label: 'KNOWLEDGE' },
   { key: 'chaos',      label: 'CHAOS' },
+  { key: 'community',  label: 'COMMUNITY' },
   { key: 'dedication', label: 'DEDICATION' },
 ];
 
@@ -134,6 +160,11 @@ export const badgesService = {
   },
   syncBadges: async (): Promise<{ newBadges: BadgeKey[] }> => {
     const res = await api.post('/badges/sync');
+    return res.data.data;
+  },
+  // Report a finished quiz so the backend can award the knowledge badges.
+  recordQuizComplete: async (score: number, total: number): Promise<BadgesResponse> => {
+    const res = await api.post('/badges/quiz-complete', { score, total });
     return res.data.data;
   },
 };
