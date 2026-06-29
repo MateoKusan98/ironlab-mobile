@@ -37,6 +37,10 @@ interface Exercise {
   isExpanded: boolean;
   techniqueRating?: number;
   exerciseNotes?: string;
+  // Coaching cue from the generated plan (e.g. "keep elbows tucked"). Surfaced
+  // during the workout so the user knows what to watch — and can answer the
+  // Technique self-report meaningfully instead of guessing.
+  cue?: string;
 }
 
 interface LocalSet {
@@ -224,6 +228,9 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const [restSecs, setRestSecs] = useState<number | null>(null);
   const [rpeGuideVisible, setRpeGuideVisible] = useState(false);
   const rpeGuideSeen = useRef(false);
+  // Remembers which (exercise, field, value) prefill prompts we've already shown,
+  // so blurring the same field repeatedly doesn't re-ask for the same value.
+  const prefillAskedRef = useRef<Set<string>>(new Set());
   const compoundRestSecs = useSettingsStore((s) => s.compoundRestSecs);
   const isolationRestSecs = useSettingsStore((s) => s.isolationRestSecs);
   // Active-time clock. The visible elapsed time is `accumulatedRef` (active
@@ -448,7 +455,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                   isCompleted: false,
                 }))
               : [];
-            return { name: pe.name, order, isExpanded: true, sets: [...loggedSets, ...remaining] };
+            return { name: pe.name, order, isExpanded: true, cue: pe.cue, sets: [...loggedSets, ...remaining] };
           });
           // Append any exercises added mid-workout that aren't in the plan
           for (const [name, { order, sets }] of loggedByName) {
@@ -476,6 +483,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
           name: pe.name,
           order,
           isExpanded: true,
+          cue: pe.cue,
           sets: Array.from({ length: pe.sets }, (_, i) => ({
             setNumber: i + 1,
             reps: String(pe.reps),
@@ -550,6 +558,46 @@ export const ActiveWorkoutScreen: React.FC = () => {
       updated[exIdx] = ex;
       return updated;
     });
+  };
+
+  // After editing one set's weight/RPE, offer to copy that value into the
+  // exercise's other not-yet-completed sets (e.g. bump Squat 120→125 and apply
+  // 125 to the remaining sets in one tap). Only prompts when there's actually a
+  // different value to copy into, and never re-asks for the same value.
+  const maybePromptPrefill = (exIdx: number, setIdx: number, field: 'weight' | 'rpe') => {
+    const ex = exercises[exIdx];
+    const value = ex?.sets[setIdx]?.[field];
+    if (!ex || !value) return;
+
+    const targets = ex.sets.filter((s, i) => i !== setIdx && !s.isCompleted && s[field] !== value);
+    if (targets.length === 0) return;
+
+    const key = `${exIdx}:${field}:${value}`;
+    if (prefillAskedRef.current.has(key)) return;
+    prefillAskedRef.current.add(key);
+
+    const isWeight = field === 'weight';
+    const display = isWeight ? `${value}kg` : `RPE ${value}`;
+    Alert.alert(
+      'Apply to other sets?',
+      `Use ${display} for the other ${targets.length} ${targets.length > 1 ? 'sets' : 'set'} of ${ex.name}?`,
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes',
+          onPress: () =>
+            setExercises((prev) => {
+              const updated = [...prev];
+              const e = { ...updated[exIdx] };
+              e.sets = e.sets.map((s, i) =>
+                i !== setIdx && !s.isCompleted ? { ...s, [field]: value } : s,
+              );
+              updated[exIdx] = e;
+              return updated;
+            }),
+        },
+      ],
+    );
   };
 
   const completeSet = async (exIdx: number, setIdx: number) => {
@@ -852,6 +900,10 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
               {ex.isExpanded && (
                 <>
+                  {/* Coaching cue from the plan — kept visible while logging so the
+                      user knows the technique focus for this exercise. */}
+                  {ex.cue ? <Text style={styles.exerciseCue}>"{ex.cue}"</Text> : null}
+
                   {/* Column Headers */}
                   <View style={styles.colHeaders}>
                     <Text style={[styles.colHeader, { width: 30 }]}>{t('activeWorkout.set')}</Text>
@@ -882,6 +934,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                           style={[styles.setInput, { flex: 1 }, set.isCompleted && styles.setInputDone]}
                           value={set.weight}
                           onChangeText={(v) => updateSetField(exIdx, setIdx, 'weight', v)}
+                          onEndEditing={() => maybePromptPrefill(exIdx, setIdx, 'weight')}
                           keyboardType="decimal-pad"
                           placeholder="—"
                           placeholderTextColor={palette.gray[600]}
@@ -900,6 +953,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                           style={[styles.setInput, { width: 50 }, set.isCompleted && styles.setInputDone]}
                           value={set.rpe}
                           onChangeText={(v) => updateSetField(exIdx, setIdx, 'rpe', v)}
+                          onEndEditing={() => maybePromptPrefill(exIdx, setIdx, 'rpe')}
                           onFocus={handleRpeFocus}
                           keyboardType="decimal-pad"
                           placeholder="—"
@@ -945,6 +999,15 @@ export const ActiveWorkoutScreen: React.FC = () => {
                   {ex.sets.some((s) => s.isCompleted) && (
                     <View style={styles.exerciseReview}>
                       <Text style={styles.reviewLabel}>HOW DID IT GO?</Text>
+
+                      {/* Remind the user what the plan asked them to focus on, so
+                          their Technique rating/notes are informed, not a guess. */}
+                      {ex.cue ? (
+                        <View style={styles.reviewCueRow}>
+                          <Text style={styles.reviewCueLabel}>{t('activeWorkout.coachFocus')}</Text>
+                          <Text style={styles.reviewCueText}>"{ex.cue}"</Text>
+                        </View>
+                      ) : null}
 
                       {/* Technique rating 1–5 */}
                       <View style={styles.techRow}>
@@ -1281,6 +1344,14 @@ const styles = StyleSheet.create({
   exerciseLeft: { flex: 1 },
   exerciseName: { fontSize: 16, fontWeight: '700', color: theme.colors.text },
   exerciseMeta: { fontSize: 12, color: palette.gray[400], marginTop: 2 },
+  exerciseCue: {
+    fontSize: 12,
+    color: palette.gray[400],
+    fontStyle: 'italic',
+    marginHorizontal: 12,
+    marginTop: 6,
+    marginBottom: 2,
+  },
   removeBtn: { padding: 8 },
   removeBtnText: { fontSize: 13, color: palette.gray[500] },
   chevron: { fontSize: 12, color: palette.gray[400], marginLeft: 4 },
@@ -1495,6 +1566,20 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 10,
   },
+  reviewCueRow: {
+    marginBottom: 10,
+    paddingLeft: 8,
+    borderLeftWidth: 2,
+    borderLeftColor: palette.brand[600],
+  },
+  reviewCueLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: palette.gray[500],
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  reviewCueText: { fontSize: 13, color: palette.gray[300], fontStyle: 'italic' },
   techRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -68,6 +68,7 @@ export interface AICoachProfileData {
   trainingDays?: string[];
   sessionDurationMinutes?: number;
   equipmentAccess?: string;
+  minPlateKg?: number; // smallest plate per side (kg): 0.25 | 0.5 | 1 | 1.25 | 2.5
   responseType?: string;
   deadliftRecoveryCost?: string;
   painfulExercises?: string;

@@ -158,7 +158,8 @@
     "cancelWorkout": "Anulo stërvitjen",
     "confirmCancel": "Jeni i/e sigurt që doni ta anuloni stërvitjen? Të gjitha të dhënat do të humbasin.",
     "techniqueNotes": "Dhimbje, shënime teknikë, vërejtje...",
-    "pr": "RR"
+    "pr": "RR",
+    "coachFocus": "FOKUSOHU TE"
   },
   "sessionSummary": {
     "greatWork": "Punë e shkëlqyer!",

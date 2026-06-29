@@ -158,7 +158,8 @@
     "cancelWorkout": "Otkaži trening",
     "confirmCancel": "Sigurno želite otkazati trening? Svi podaci će biti izgubljeni.",
     "techniqueNotes": "Bol, napomene o tehnici, bilješke...",
-    "pr": "RR"
+    "pr": "RR",
+    "coachFocus": "FOKUS NA"
   },
   "sessionSummary": {
     "greatWork": "Odličan rad!",

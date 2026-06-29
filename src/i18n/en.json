@@ -197,7 +197,8 @@
     "cancelWorkout": "Cancel Workout",
     "confirmCancel": "Are you sure you want to cancel this workout? All data will be lost.",
     "techniqueNotes": "Pain, form cues, anything notable...",
-    "pr": "PR"
+    "pr": "PR",
+    "coachFocus": "FOCUS ON"
   },
   "sessionSummary": {
     "greatWork": "Great Work!",
@@ -551,6 +552,13 @@
     "optionHomeFull": "Home – Full rack",
     "optionCommercialGym": "Commercial Gym",
     "optionPowerliftingGym": "Powerlifting Gym",
+    "questionMinPlate": "Smallest weight plate you have",
+    "questionMinPlateSubtitle": "The lightest plate available in your gym (per side). We'll never add weight in smaller jumps than your bar can actually load.",
+    "optionPlate025": "0.25 kg (micro plates)",
+    "optionPlate05": "0.5 kg",
+    "optionPlate1": "1 kg",
+    "optionPlate125": "1.25 kg",
+    "optionPlate25": "2.5 kg",
     "questionSquatFrequency": "Squat frequency preference",
     "questionSquatFrequencySubtitle": "How many times per week do you want to squat?",
     "questionBenchFrequency": "Bench frequency preference",

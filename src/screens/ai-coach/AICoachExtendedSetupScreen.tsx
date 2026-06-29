@@ -285,6 +285,17 @@ const getSections = (t: TFunction): Section[] => [
         ],
       },
       {
+        id: 'minPlateKg', label: t('aiCoachExtendedSetup.questionMinPlate'),
+        subtitle: t('aiCoachExtendedSetup.questionMinPlateSubtitle'), type: 'single',
+        options: [
+          { value: '0.25', label: t('aiCoachExtendedSetup.optionPlate025'), icon: '🟢' },
+          { value: '0.5',  label: t('aiCoachExtendedSetup.optionPlate05'),  icon: '🔵' },
+          { value: '1',    label: t('aiCoachExtendedSetup.optionPlate1'),   icon: '🟡' },
+          { value: '1.25', label: t('aiCoachExtendedSetup.optionPlate125'), icon: '🟠' },
+          { value: '2.5',  label: t('aiCoachExtendedSetup.optionPlate25'),  icon: '🔴' },
+        ],
+      },
+      {
         id: 'squatFrequencyPerWeek',
         label: t('aiCoachExtendedSetup.questionSquatFrequency'),
         subtitle: t('aiCoachExtendedSetup.questionSquatFrequencySubtitle'),
@@ -757,6 +768,11 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
         if (!EDITABLE_KEYS.has(k)) return; // skip id/userId/timestamps/internal columns
         if (v !== null && v !== undefined && v !== '') loaded[k] = v;
       });
+      // minPlateKg is a single-select whose option values are canonical strings
+      // ('0.5', '1', '2.5'). The backend stores it as a DECIMAL, which reads back
+      // padded ('0.50', '1.00', '2.50'), so normalise through Number → String to
+      // match an option and highlight the saved choice on the edit screen.
+      if (loaded.minPlateKg != null) loaded.minPlateKg = String(Number(loaded.minPlateKg));
       setAnswers((prev) => ({ ...prev, ...loaded }));
     }).catch(() => {});
     // The competition/PR date is owned by the dedicated endpoint, not the profile DTO,
@@ -862,7 +878,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
       const numericFields = ['yearsTraining', 'squatMax', 'benchMax', 'deadliftMax',
         'avgSleepHours', 'jobStressLevel', 'weeklyCardioSessions', 'trainingDaysPerWeek',
         'sessionDurationMinutes', 'dailyProteinTarget', 'meetExperience',
-        'squatFrequencyPerWeek', 'benchFrequencyPerWeek', 'deadliftFrequencyPerWeek'];
+        'squatFrequencyPerWeek', 'benchFrequencyPerWeek', 'deadliftFrequencyPerWeek', 'minPlateKg'];
 
       const profileData: AICoachProfileData = {};
 
