@@ -294,7 +294,7 @@ const PRRow: React.FC<{ pr: PRTimelineEntry }> = ({ pr }) => {
         <Text style={styles.prMeta}>{pr.weight}kg × {pr.reps} · {fmtDay(pr.date)}</Text>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
-        <Text style={[styles.prValue, { color: isTrue ? '#eab308' : palette.gray[200] }]}>{pr.e1rm}kg</Text>
+        <Text style={[styles.prValue, { color: isTrue ? '#eab308' : palette.gray[200] }]}>{pr.weight}kg</Text>
         <Text style={styles.prTier}>{isTrue ? 'PR' : 'Mini PR'}</Text>
       </View>
     </View>
