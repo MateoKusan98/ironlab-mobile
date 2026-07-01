@@ -32,6 +32,46 @@ export interface CoachPreferences {
   intensity: number;
 }
 
+export type PathTier = 'novice' | 'beginner' | 'intermediate' | 'advanced';
+export type PathBranchId = 'muscle' | 'powerbuilding' | 'strength';
+export type PathNodeState = 'completed' | 'current' | 'available' | 'locked';
+
+export interface PathTierNode {
+  tier: PathTier;
+  label: string;
+  state: PathNodeState;
+}
+
+export interface PathBranch {
+  id: PathBranchId;
+  label: string;
+  icon: string;
+  isCurrent: boolean;
+  tiers: PathTierNode[];
+}
+
+export interface PathMilestone {
+  id: string;
+  label: string;
+  description: string;
+  icon: string;
+  kind: 'consistency' | 'strength';
+  achieved: boolean;
+  progress: number;
+  current: number;
+  target: number;
+  unit: string;
+}
+
+export interface PathTree {
+  currentBranchId: PathBranchId;
+  currentTier: PathTier;
+  foundation: PathNodeState;
+  branches: PathBranch[];
+  milestones: PathMilestone[];
+  nextMilestones: PathMilestone[];
+}
+
 export interface AICoachProfileData {
   primaryGoal?: string;
   specificGoal?: string;
@@ -192,6 +232,11 @@ export const aiCoachService = {
       skipAheadDay: string | null;
       completedToday: boolean;
     } }>('/ai-coach/plan');
+    return data.data;
+  },
+
+  getPathTree: async (): Promise<PathTree> => {
+    const { data } = await api.get<{ data: PathTree }>('/ai-coach/path-tree');
     return data.data;
   },
 

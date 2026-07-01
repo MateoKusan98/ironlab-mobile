@@ -738,9 +738,28 @@ const q = StyleSheet.create({
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 
+// Express (beginner) onboarding — the shortest path to a first program. We ask
+// only what's needed to build a SAFE general plan; everything else gets a
+// beginner default and the coach infers the rest from logged sessions. No
+// hypertrophy-vs-strength choice here: beginners get a general get-in-shape
+// block (trainingFocus defaults to 'hypertrophy' = moderate reps, volume, never
+// tests a max) and we offer to pick a path after a few months of training.
+const EXPRESS_LAYOUT: Array<{ sectionId: string; questionIds: string[] }> = [
+  { sectionId: 'constraints', questionIds: ['trainingDays', 'equipmentAccess'] },
+  { sectionId: 'recovery', questionIds: ['injuryHistory'] },
+];
+
 export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
-  const SECTIONS = getSections(t);
+  const express = route.params?.express ?? false;
+  const forkedExperience = route.params?.experienceLevel;
+  const ALL_SECTIONS = getSections(t);
+  const SECTIONS = express
+    ? EXPRESS_LAYOUT.map(({ sectionId, questionIds }) => {
+        const sec = ALL_SECTIONS.find((s) => s.id === sectionId)!;
+        return { ...sec, questions: sec.questions.filter((qq) => questionIds.includes(String(qq.id))) };
+      })
+    : ALL_SECTIONS;
   const preferences = route.params?.preferences as CoachPreferences | undefined;
   const editMode = route.params?.editMode ?? false;
   const { user, setUser } = useAuthStore();
@@ -752,7 +771,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
   // (and later echo back) internal entity columns the save DTO rejects.
   const EDITABLE_KEYS = useRef(
     new Set<string>([
-      ...SECTIONS.flatMap((sec) => sec.questions.map((qq) => String(qq.id))),
+      ...ALL_SECTIONS.flatMap((sec) => sec.questions.map((qq) => String(qq.id))),
       'sessionDurationMinutes',
       'preferredIntensity',
     ]),
@@ -903,6 +922,22 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
       delete (profileData as any).competitionDate;
       delete (profileData as any).competitionType;
 
+      // Express (beginner) onboarding fills in sensible defaults for everything we
+      // deliberately didn't ask, so the coach can build a safe general program on
+      // day one and refine the rest from logged sessions.
+      if (express) {
+        const setDefault = <K extends keyof AICoachProfileData>(key: K, value: AICoachProfileData[K]) => {
+          if (profileData[key] === undefined) profileData[key] = value;
+        };
+        setDefault('experienceLevel', forkedExperience ?? 'novice');
+        // General "get in shape" block: moderate reps, volume, never tests a 1RM.
+        // The athlete picks a real path (hypertrophy/powerbuilding/strength) later.
+        setDefault('trainingFocus', 'hypertrophy');
+        setDefault('prefersStructure', true);
+        setDefault('nutritionTrackingEnabled', true);
+        setDefault('currentPhase', 'maintain');
+      }
+
       await aiCoachService.saveProfile(profileData);
 
       const compDate = answers.competitionDate as string | undefined;
@@ -1039,9 +1074,13 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
 
       {/* Section header — fixed, outside scroll */}
       <View style={s.sectionHeader}>
-        <Text style={s.sectionIcon}>{section.icon}</Text>
-        <Text style={s.sectionTitle}>{section.title}</Text>
-        <Text style={s.sectionSubtitle}>{section.subtitle}</Text>
+        <Text style={s.sectionIcon}>{express && sectionIndex === 0 ? '👋' : section.icon}</Text>
+        <Text style={s.sectionTitle}>
+          {express && sectionIndex === 0 ? t('aiCoachExtendedSetup.expressStartTitle') : section.title}
+        </Text>
+        <Text style={s.sectionSubtitle}>
+          {express && sectionIndex === 0 ? t('aiCoachExtendedSetup.expressStartSub') : section.subtitle}
+        </Text>
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">

@@ -26,7 +26,18 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AICoachSetup'>;
 };
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
+
+type SetupMode = 'easy' | 'advanced';
+
+// The first question forks onboarding by mode. Easy Mode is the short "express"
+// path (a general get-in-shape program, no hypertrophy-vs-strength choice, no
+// 1RMs); Advanced Mode is the full questionnaire. Easy is recommended for
+// beginners and is the default.
+const MODE_OPTIONS: { value: SetupMode; titleKey: string; subKey: string; badgeKey?: string; icon: string }[] = [
+  { value: 'easy', titleKey: 'aiCoachSetup.easyModeTitle', subKey: 'aiCoachSetup.easyModeSub', badgeKey: 'aiCoachSetup.easyModeBadge', icon: '🌱' },
+  { value: 'advanced', titleKey: 'aiCoachSetup.advancedModeTitle', subKey: 'aiCoachSetup.advancedModeSub', icon: '🏆' },
+];
 
 const TIME_OPTIONS = [
   { value: 'morning', labelKey: 'aiCoachSetup.morning', subKey: 'aiCoachSetup.morningSub' },
@@ -242,6 +253,7 @@ const wheel = StyleSheet.create({
 export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
+  const [mode, setMode] = useState<SetupMode>('easy');
   const [prefs, setPrefs] = useState<Omit<CoachPreferences, 'priority'>>({
     timeSlot: 'morning',
     duration: 45,
@@ -270,7 +282,15 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleFinish = () => {
-    navigation.replace('AICoachExtendedSetup', { preferences: prefs });
+    const express = mode === 'easy';
+    navigation.replace('AICoachExtendedSetup', {
+      preferences: prefs,
+      express,
+      // Easy Mode never asks experience, so seed 'novice' — the per-session linear
+      // tier that captures newbie gains (fast, visible early progress). The coach
+      // auto-promotes them up the ladder as they progress. Advanced Mode asks in the full flow.
+      experienceLevel: express ? 'novice' : undefined,
+    });
   };
 
   const progressWidth = progressAnim.interpolate({
@@ -304,6 +324,40 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
 
       {step === 0 && (
         <View style={styles.stepContainer}>
+          <Text style={styles.question}>{t('aiCoachSetup.questionMode')}</Text>
+          <View style={styles.optionList}>
+            {MODE_OPTIONS.map((opt) => {
+              const selected = mode === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.modeCard, selected && styles.optionCardSelected]}
+                  onPress={() => setMode(opt.value)}
+                >
+                  <View style={styles.modeTopRow}>
+                    <Text style={styles.optionIcon}>{opt.icon}</Text>
+                    <Text style={[styles.modeTitle, selected && styles.optionLabelSelected]}>
+                      {t(opt.titleKey)}
+                    </Text>
+                    <View style={[styles.radio, selected && styles.radioSelected]}>
+                      {selected && <View style={styles.radioInner} />}
+                    </View>
+                  </View>
+                  {opt.badgeKey && (
+                    <View style={styles.modeBadge}>
+                      <Text style={styles.modeBadgeText}>★ {t(opt.badgeKey)}</Text>
+                    </View>
+                  )}
+                  <Text style={styles.modeSub}>{t(opt.subKey)}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
+      {step === 1 && (
+        <View style={styles.stepContainer}>
           <Text style={styles.question}>{t('aiCoachSetup.questionTime')}</Text>
           <View style={styles.optionList}>
             {TIME_OPTIONS.map((opt) => {
@@ -330,7 +384,7 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       )}
 
-      {step === 1 && (
+      {step === 2 && (
         <View style={styles.stepContainer}>
           <Text style={styles.question}>{t('aiCoachSetup.questionDuration')}</Text>
           <WheelPicker
@@ -344,7 +398,7 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       )}
 
-      {step === 2 && (
+      {step === 3 && (
         <View style={styles.stepContainer}>
           <Text style={[styles.question, styles.questionCompact]}>{t('aiCoachSetup.questionIntensity')}</Text>
           <View style={styles.intensityInfo}>
@@ -417,9 +471,29 @@ const styles = StyleSheet.create({
     borderColor: palette.brand[600],
     backgroundColor: 'rgba(234, 88, 12, 0.08)',
   },
+  optionIcon: { fontSize: 24 },
   optionLabel: { color: '#FFF', fontSize: 15, fontWeight: '700', marginBottom: 4 },
   optionLabelSelected: { color: palette.brand[400] },
   optionSub: { color: palette.gray[500], fontSize: 12 },
+  modeCard: {
+    backgroundColor: palette.gray[900],
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: palette.gray[800],
+    gap: 10,
+  },
+  modeTopRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  modeTitle: { color: '#FFF', fontSize: 17, fontWeight: '800', flex: 1 },
+  modeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(234, 88, 12, 0.14)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  modeBadgeText: { color: palette.brand[400], fontSize: 11, fontWeight: '800' },
+  modeSub: { color: palette.gray[400], fontSize: 13, lineHeight: 19 },
   radio: {
     width: 22,
     height: 22,

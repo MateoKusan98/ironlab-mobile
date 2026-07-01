@@ -39,9 +39,10 @@ export type RootStackParamList = {
   ProgramCreatorDay: { blockIndex: number, weekIndex: number, dayIndex: number };
   AICoachWelcome: undefined;
   AICoachSetup: undefined;
-  AICoachExtendedSetup: { preferences?: import('../services/ai-coach.service').CoachPreferences; editMode?: boolean };
+  AICoachExtendedSetup: { preferences?: import('../services/ai-coach.service').CoachPreferences; editMode?: boolean; express?: boolean; experienceLevel?: 'novice' | 'beginner' | 'intermediate' | 'advanced' };
   AICoachChat: { preferences?: import('../services/ai-coach.service').CoachPreferences };
   AICoachPlan: undefined;
+  PathTree: undefined;
   WorkoutHistory: undefined;
   Progress: undefined;
   Stats: undefined;
@@ -91,6 +92,7 @@ import { AICoachSetupScreen } from '../screens/ai-coach/AICoachSetupScreen';
 import { AICoachExtendedSetupScreen } from '../screens/ai-coach/AICoachExtendedSetupScreen';
 import { AICoachChatScreen } from '../screens/ai-coach/AICoachChatScreen';
 import { AICoachPlanScreen } from '../screens/ai-coach/AICoachPlanScreen';
+import { PathTreeScreen } from '../screens/ai-coach/PathTreeScreen';
 
 // Session Logger Screens
 import { StartSessionScreen } from '../screens/session/StartSessionScreen';
@@ -184,6 +186,7 @@ export const AppNavigator: React.FC = () => {
               <Stack.Screen name="AICoachExtendedSetup" component={AICoachExtendedSetupScreen} />
               <Stack.Screen name="AICoachChat" component={AICoachChatScreen} />
               <Stack.Screen name="AICoachPlan" component={AICoachPlanScreen} />
+              <Stack.Screen name="PathTree" component={PathTreeScreen} />
             </Stack.Group>
 
             <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>

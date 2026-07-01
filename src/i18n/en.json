@@ -414,7 +414,23 @@
     "afternoon": "Afternoon (11 - 3PM)",
     "afternoonSub": "I do activity in the afternoon",
     "evening": "Evening (4 - 10PM)",
-    "eveningSub": "I do activities in the evening"
+    "eveningSub": "I do activities in the evening",
+    "questionExperience": "How much lifting experience do you have?",
+    "experienceHint": "This just helps us start you at the right place — you can change paths later.",
+    "expNoviceTitle": "Brand new",
+    "expNoviceSub": "I've never really trained before",
+    "expBeginnerTitle": "Beginner",
+    "expBeginnerSub": "A few months in, still learning the ropes",
+    "expIntermediateTitle": "Intermediate",
+    "expIntermediateSub": "Training consistently, I know the lifts",
+    "expAdvancedTitle": "Advanced",
+    "expAdvancedSub": "Experienced — I know my numbers",
+    "questionMode": "How do you want to set up?",
+    "easyModeTitle": "Easy Mode",
+    "easyModeBadge": "Recommended for beginners",
+    "easyModeSub": "A few quick questions and you're training. We build a general program and learn the rest as you go.",
+    "advancedModeTitle": "Advanced Mode",
+    "advancedModeSub": "Full questionnaire — your maxes, weak points, periodization and nutrition. Best if you know your numbers."
   },
   "aiCoachExtendedSetup": {
     "skipAll": "Skip all",
@@ -610,7 +626,9 @@
     "optionNothingYet": "Nothing yet",
     "focusHypertrophy": "Hypertrophy",
     "focusPowerbuilding": "Powerbuilding",
-    "focusStrength": "Strength"
+    "focusStrength": "Strength",
+    "expressStartTitle": "Let's keep it simple",
+    "expressStartSub": "Just a couple of things and we'll build your first program. We'll learn the rest as you train."
   },
   "prs": {
     "title": "Personal Records",
@@ -1217,5 +1235,18 @@
   "impersonation": {
     "viewingAs": "Viewing as {{name}}",
     "exit": "Exit"
+  },
+  "pathTree": {
+    "title": "Your Path",
+    "menuTitle": "Your Path",
+    "menuSub": "See your training journey & milestones",
+    "error": "Couldn't load your path. Pull to retry.",
+    "youAreHere": "YOU ARE HERE",
+    "nextUp": "Next up",
+    "yourJourney": "Your journey",
+    "foundation": "Foundation",
+    "foundationSub": "General fitness — building your base",
+    "consistency": "Consistency",
+    "strengthClubs": "Strength clubs"
   }
 }
