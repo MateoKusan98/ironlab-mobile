@@ -9,6 +9,23 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || `http://localhost:3020/api`;
 // get for that case — it logs a breadcrumb without altering behaviour.
 const STALL_MS = 12000;
 
+// Transparently retry requests that fail at the network level (no HTTP response
+// ever came back). The common trigger is a keep-alive socket the server/proxy
+// closed during a long idle stretch — e.g. resting between sets: the first save
+// after the rest writes onto a dead connection and errors instantly, while a
+// fresh connection succeeds. This automates the "just tap again" the user would
+// otherwise do by hand. Only no-response failures are retried; a real HTTP
+// error (4xx/5xx) is a genuine server answer and is never retried here.
+const MAX_NETWORK_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 400;
+
+function isRetryableNetworkError(error: AxiosError): boolean {
+  if (error.code === 'ERR_CANCELED') return false; // deliberate cancel — leave it
+  // A response means the server was reached and answered — not a transient
+  // connection failure, so don't retry (would risk masking real errors).
+  return !error.response;
+}
+
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 15000,
@@ -148,6 +165,27 @@ api.interceptors.response.use(
         clearTimeout(refreshStall);
         isRefreshing = false;
       }
+    }
+
+    // Transient network failure (dead keep-alive socket, brief connectivity
+    // blip): retry a couple of times with a short backoff before surfacing it,
+    // so a single stale connection doesn't turn into a user-facing error.
+    const retryCfg = error.config as (InternalAxiosRequestConfig & { _netRetryCount?: number }) | undefined;
+    if (retryCfg && isRetryableNetworkError(error)) {
+      retryCfg._netRetryCount = (retryCfg._netRetryCount ?? 0) + 1;
+      if (retryCfg._netRetryCount <= MAX_NETWORK_RETRIES) {
+        await new Promise((resolve) => setTimeout(() => resolve(undefined), RETRY_BASE_DELAY_MS * retryCfg._netRetryCount!));
+        return api(retryCfg);
+      }
+      logService.capture({
+        level: 'error',
+        source: 'api',
+        message: `${error.code ?? 'NETWORK_ERROR'} after ${MAX_NETWORK_RETRIES} retries: ${error.message}`,
+        route: retryCfg.url,
+        method: retryCfg.method?.toUpperCase(),
+        context: { code: error.code, retries: MAX_NETWORK_RETRIES },
+      });
+      return Promise.reject(error);
     }
 
     logApiError(error);

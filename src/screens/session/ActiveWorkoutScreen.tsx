@@ -43,8 +43,18 @@ interface Exercise {
   cue?: string;
 }
 
+// Stable, monotonically-increasing client-side id for a set row. Unlike
+// setNumber (a display position that shifts when sets are added/removed) this
+// never changes for the life of a row, so async saves and removals always
+// target the right set even after the list has been reordered.
+let setUidCounter = 0;
+const nextSetUid = () => `set-${++setUidCounter}`;
+
 interface LocalSet {
   id?: string;
+  // Stable client-side identity (see nextSetUid). Used for React keys and to
+  // patch the correct set after an async save, independent of its index.
+  uid: string;
   setNumber: number;
   reps: string;
   weight: string;
@@ -425,9 +435,12 @@ export const ActiveWorkoutScreen: React.FC = () => {
         }
 
         const mapLoggedSets = (sets: typeof session.sets): LocalSet[] =>
-          sets.sort((a, b) => a.setNumber - b.setNumber).map((s) => ({
+          sets.sort((a, b) => a.setNumber - b.setNumber).map((s, i) => ({
             id: s.id,
-            setNumber: s.setNumber,
+            uid: nextSetUid(),
+            // Renumber to a contiguous 1..N on load so a set removed in a prior
+            // session doesn't leave a gap that confuses the display or a later add.
+            setNumber: i + 1,
             reps: s.repsCompleted != null ? String(s.repsCompleted) : '',
             weight: s.weightUsed != null ? String(s.weightUsed) : '',
             rpe: s.rpe != null ? String(s.rpe) : '',
@@ -445,6 +458,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
             const loggedSets = logged ? mapLoggedSets(logged.sets) : [];
             const remaining: LocalSet[] = loggedSets.length < pe.sets
               ? Array.from({ length: pe.sets - loggedSets.length }, (_, i) => ({
+                  uid: nextSetUid(),
                   setNumber: loggedSets.length + i + 1,
                   reps: String(pe.reps),
                   weight: String(pe.weight),
@@ -485,6 +499,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
           isExpanded: true,
           cue: pe.cue,
           sets: Array.from({ length: pe.sets }, (_, i) => ({
+            uid: nextSetUid(),
             setNumber: i + 1,
             reps: String(pe.reps),
             weight: String(pe.weight),
@@ -513,7 +528,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
       name,
       order: exercises.length,
       isExpanded: true,
-      sets: [{ setNumber: 1, reps: '', weight: '', rpe: '', isCompleted: false }],
+      sets: [{ uid: nextSetUid(), setNumber: 1, reps: '', weight: '', rpe: '', isCompleted: false }],
     };
     setExercises((prev) => [...prev, newEx]);
     setShowAddExercise(false);
@@ -528,6 +543,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
       ex.sets = [
         ...ex.sets,
         {
+          uid: nextSetUid(),
           setNumber: ex.sets.length + 1,
           reps: lastSet?.reps ?? '',
           weight: lastSet?.weight ?? '',
@@ -555,6 +571,20 @@ export const ActiveWorkoutScreen: React.FC = () => {
       const updated = [...prev];
       const ex = { ...updated[exIdx] };
       ex.sets = ex.sets.map((s, i) => i === setIdx ? { ...s, ...patch } : s);
+      updated[exIdx] = ex;
+      return updated;
+    });
+  };
+
+  // Patch a set by its stable uid rather than its index. Use this from async
+  // callbacks (e.g. after a save resolves): by the time the promise settles the
+  // set may have shifted position — or been removed — so an index would be stale
+  // and could clobber the wrong row.
+  const patchSetByUid = (exIdx: number, uid: string, patch: Partial<LocalSet>) => {
+    setExercises((prev) => {
+      const updated = [...prev];
+      const ex = { ...updated[exIdx] };
+      ex.sets = ex.sets.map((s) => s.uid === uid ? { ...s, ...patch } : s);
       updated[exIdx] = ex;
       return updated;
     });
@@ -603,6 +633,10 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const completeSet = async (exIdx: number, setIdx: number) => {
     const ex = exercises[exIdx];
     const set = ex.sets[setIdx];
+    // Ignore taps while a save is already in flight — otherwise a double-tap can
+    // start a second save (or an un-complete) before the first has returned an id,
+    // leaving the server and the UI out of sync.
+    if (set.isSaving) return;
     if (!set.reps && !set.weight) {
       Alert.alert('Empty set', 'Enter at least reps or weight before marking complete.');
       return;
@@ -612,7 +646,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
     markActivity();
     const restDuration = classifyExercise(ex.name) === 'compound' ? compoundRestSecs : isolationRestSecs;
     startRest(restDuration);
-    updateSetField(exIdx, setIdx, 'isCompleted', true);
+    patchSetByUid(exIdx, set.uid, { isCompleted: true, isSaving: true });
 
     try {
       if (set.id) {
@@ -622,6 +656,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
           rpe: set.rpe ? parseFloat(set.rpe) : undefined,
           isCompleted: true,
         });
+        patchSetByUid(exIdx, set.uid, { isSaving: false });
       } else {
         const saved = await sessionService.addSet(sessionId, {
           exerciseName: ex.name,
@@ -638,22 +673,18 @@ export const ActiveWorkoutScreen: React.FC = () => {
         if (saved.prs && saved.prs.length > 0) {
           Vibration.vibrate([0, 60, 40, 60]);
         }
-        setExercises((prev) => {
-          const u = [...prev];
-          const e2 = { ...u[exIdx] };
-          e2.sets = e2.sets.map((s, i) => i === setIdx ? { ...s, id: saved.id, prs: saved.prs } : s);
-          u[exIdx] = e2;
-          return u;
-        });
+        patchSetByUid(exIdx, set.uid, { id: saved.id, prs: saved.prs, isSaving: false });
       }
     } catch {
-      updateSetField(exIdx, setIdx, 'isCompleted', false);
+      patchSetByUid(exIdx, set.uid, { isCompleted: false, isSaving: false });
       Alert.alert('Error', 'Could not save set. Check connection.');
     }
   };
 
   const uncompleteSet = async (exIdx: number, setIdx: number) => {
     const set = exercises[exIdx].sets[setIdx];
+    // Don't let an un-complete race an in-flight save of the same set.
+    if (set.isSaving) return;
     const prevPrs = set.prs;
 
     Vibration.vibrate(30);
@@ -661,13 +692,13 @@ export const ActiveWorkoutScreen: React.FC = () => {
     // Un-completing also clears any PR this set earned — the backend drops the
     // PR flag, so mirror that locally to hide the trophy (and keep it out of the
     // end-of-session summary).
-    setSetState(exIdx, setIdx, { isCompleted: false, prs: undefined });
+    patchSetByUid(exIdx, set.uid, { isCompleted: false, prs: undefined });
 
     if (set.id) {
       try {
         await sessionService.updateSet(set.id, { isCompleted: false });
       } catch {
-        setSetState(exIdx, setIdx, { isCompleted: true, prs: prevPrs });
+        patchSetByUid(exIdx, set.uid, { isCompleted: true, prs: prevPrs });
         Alert.alert('Error', 'Could not update set. Check connection.');
       }
     }
@@ -683,6 +714,48 @@ export const ActiveWorkoutScreen: React.FC = () => {
     setExercises((prev) => prev.map((ex, i) => i === exIdx ? { ...ex, name: newName } : ex));
     setSubstituteIdx(null);
     setSubstituteSearch('');
+  };
+
+  const removeSet = (exIdx: number, setIdx: number) => {
+    const ex = exercises[exIdx];
+    const set = ex.sets[setIdx];
+    // Don't pull a set out from under an in-flight save.
+    if (set.isSaving) return;
+
+    const doRemove = () => {
+      // Delete the persisted row if this set was already saved; ignore failures
+      // so the local UI still updates (it'll reconcile on next resume).
+      if (set.id) sessionService.deleteSet(set.id).catch(() => {});
+      // If we're deleting the set that kicked off the current rest countdown,
+      // stop the rest — there's no set left to rest from.
+      if (set.isCompleted) stopRest();
+      setExercises((prev) => {
+        const updated = [...prev];
+        const e = { ...updated[exIdx] };
+        // Drop by uid and renumber the survivors to a contiguous 1..N so the
+        // display and any subsequently-added set stay in sequence.
+        e.sets = e.sets
+          .filter((s) => s.uid !== set.uid)
+          .map((s, i) => ({ ...s, setNumber: i + 1 }));
+        updated[exIdx] = e;
+        return updated;
+      });
+    };
+
+    // Confirm before deleting a set that holds logged data; drop an empty,
+    // never-saved row instantly (nothing to lose).
+    if (set.id || set.isCompleted) {
+      Alert.alert(
+        'Remove set?',
+        `This will delete set ${set.setNumber} of ${exName(ex.name)}.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Remove', style: 'destructive', onPress: doRemove },
+        ],
+      );
+    } else {
+      doRemove();
+    }
   };
 
   const removeExercise = (exIdx: number) => {
@@ -917,14 +990,14 @@ export const ActiveWorkoutScreen: React.FC = () => {
                       <Text style={styles.colHeader}>{t('activeWorkout.rpeLabel')}</Text>
                       <Text style={{ fontSize: 10, color: palette.brand[400] }}>ℹ</Text>
                     </TouchableOpacity>
-                    <View style={{ width: 44 }} />
+                    <View style={{ width: 70 }} />
                   </View>
 
                   {/* Sets */}
                   {ex.sets.map((set, setIdx) => {
                     const hasTruePR = !!set.prs?.some((p) => p.tier === 'pr');
                     return (
-                    <View key={setIdx}>
+                    <View key={set.uid}>
                       <View style={[styles.setRow, set.isCompleted && styles.setRowDone, hasTruePR && styles.setRowPR]}>
                         <Text style={[styles.setNum, set.isCompleted && styles.setNumDone, hasTruePR && styles.setNumPR]}>
                           {hasTruePR ? <Trophy size={14} weight="fill" color={palette.brand[400]} /> : set.setNumber}
@@ -961,15 +1034,28 @@ export const ActiveWorkoutScreen: React.FC = () => {
                           editable={!set.isCompleted}
                         />
 
-                        {set.isCompleted ? (
-                          <TouchableOpacity style={styles.doneCheck} onPress={() => uncompleteSet(exIdx, setIdx)}>
-                            <Text style={styles.doneCheckText}>✓</Text>
+                        <View style={styles.setActions}>
+                          <TouchableOpacity
+                            style={styles.removeSetBtn}
+                            onPress={() => removeSet(exIdx, setIdx)}
+                            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                          >
+                            <Text style={styles.removeSetBtnText}>✕</Text>
                           </TouchableOpacity>
-                        ) : (
-                          <TouchableOpacity style={styles.logBtn} onPress={() => completeSet(exIdx, setIdx)}>
-                            <Text style={styles.logBtnText}>✓</Text>
-                          </TouchableOpacity>
-                        )}
+                          {set.isSaving ? (
+                            <View style={styles.logBtn}>
+                              <ActivityIndicator color="#fff" size="small" />
+                            </View>
+                          ) : set.isCompleted ? (
+                            <TouchableOpacity style={styles.doneCheck} onPress={() => uncompleteSet(exIdx, setIdx)}>
+                              <Text style={styles.doneCheckText}>✓</Text>
+                            </TouchableOpacity>
+                          ) : (
+                            <TouchableOpacity style={styles.logBtn} onPress={() => completeSet(exIdx, setIdx)}>
+                              <Text style={styles.logBtnText}>✓</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
                       </View>
 
                       {/* PR badges */}
@@ -1400,6 +1486,9 @@ const styles = StyleSheet.create({
   },
   setInputDone: { backgroundColor: palette.gray[900], color: palette.gray[300] },
 
+  setActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  removeSetBtn: { width: 28, height: 36, alignItems: 'center', justifyContent: 'center' },
+  removeSetBtnText: { fontSize: 15, color: palette.gray[500], fontWeight: '700' },
   logBtn: {
     width: 36,
     height: 36,
