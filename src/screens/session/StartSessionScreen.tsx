@@ -145,9 +145,10 @@ export const StartSessionScreen: React.FC = () => {
       // skip straight to the workout — only re-show it once a new workout is generated.
       const marker: ReadinessMarker | null = markerRaw ? JSON.parse(markerRaw) : null;
       const hasPlan = !!(plan?.plan || plan?.nextSessionJson?.exercises?.length);
-      // A make-up or skip-ahead always re-runs readiness → regenerate for the chosen
-      // slot, so never short-circuit to the already-generated (natural next-day) plan.
-      if (!route.params?.freeSession && !route.params?.makeUp && !route.params?.skipNext && plan && hasPlan && marker && plan.generatedAt && marker.planAt === plan.generatedAt) {
+      // A make-up, skip-ahead or train-ahead always re-runs readiness → regenerate for
+      // the chosen slot, so never short-circuit to the already-generated (natural
+      // next-day) plan.
+      if (!route.params?.freeSession && !route.params?.makeUp && !route.params?.skipNext && !route.params?.trainAhead && plan && hasPlan && marker && plan.generatedAt && marker.planAt === plan.generatedAt) {
         applyPlanResult(plan);
         if (marker.mood) setMood(marker.mood);
         if (typeof marker.energyLevel === 'number') setEnergyLevel(marker.energyLevel);
@@ -194,12 +195,16 @@ export const StartSessionScreen: React.FC = () => {
       const planFromToday = result.generatedAt ? result.generatedAt.startsWith(today) : false;
       const makeUp = route.params?.makeUp === true;
       const skipNext = route.params?.skipNext === true;
+      const trainAhead = route.params?.trainAhead === true;
 
       // Regenerate when there's no plan for today, OR when making up a missed day,
-      // OR when skipping the upcoming slot to do the one after it. In the make-up /
-      // skip cases the existing plan targets the natural next day, so it must be
-      // replaced with one for the chosen slot.
-      if (!planFromToday || makeUp || skipNext) {
+      // OR when skipping the upcoming slot to do the one after it, OR when training
+      // ahead after already completing today's session. In all three flag cases the
+      // existing plan targets the wrong (already-completed / natural next) day, so it
+      // must be replaced with one for the chosen slot — and the `planFromToday` guard
+      // must NOT suppress that (training twice in one calendar day is the case it
+      // otherwise mishandles: it re-serves the just-finished session).
+      if (!planFromToday || makeUp || skipNext || trainAhead) {
         // Generate fresh plan using today's readiness data
         await aiCoachService.generatePlan({
           mood,
@@ -241,7 +246,7 @@ export const StartSessionScreen: React.FC = () => {
       const existing = await aiCoachService.getPlan();
       const today = new Date().toISOString().split('T')[0];
       const planFromToday = existing.generatedAt ? existing.generatedAt.startsWith(today) : false;
-      const willRegenerate = !planFromToday || route.params?.makeUp === true || route.params?.skipNext === true;
+      const willRegenerate = !planFromToday || route.params?.makeUp === true || route.params?.skipNext === true || route.params?.trainAhead === true;
       if (willRegenerate) {
         const gate = await aiCoachService.fatigueCheck().catch(() => null);
         if (gate?.requiresAck && gate.reasons.length) {

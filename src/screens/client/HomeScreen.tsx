@@ -328,13 +328,21 @@ export const HomeScreen: React.FC = () => {
     });
   };
 
-  // Rest-day "train anyway": pull the next scheduled session forward. The backend
-  // already targets nextScheduledDay when today isn't a training day, so no flag.
+  // "Train anyway": pull the next scheduled session forward.
+  //  - Genuine rest day (nothing done today): the plan already targets
+  //    nextScheduledDay, so reuse it directly — no AI wait, no flag.
+  //  - Already trained today (training-ahead, e.g. did Wed and now want Fri): the
+  //    stored plan still targets the day just completed, and the `planFromToday`
+  //    guard would re-serve it. Force a fresh build for the next slot via trainAhead.
   const confirmTrainEarly = () => {
-    closeShiftSheet(() => navigation.navigate('StartSession', {
-      plan: planData?.planText ?? undefined,
-      nextSessionJson: planData?.nextSessionJson ?? undefined,
-    }));
+    closeShiftSheet(() => navigation.navigate('StartSession',
+      completedToday
+        ? { trainAhead: true }
+        : {
+            plan: planData?.planText ?? undefined,
+            nextSessionJson: planData?.nextSessionJson ?? undefined,
+          },
+    ));
   };
 
   // Skip the upcoming scheduled day and generate the one after it (skipNext).
