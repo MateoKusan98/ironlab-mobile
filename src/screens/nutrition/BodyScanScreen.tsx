@@ -68,12 +68,12 @@ export const BodyScanScreen: React.FC = () => {
         const response = await api.post('/nutrition/analyze-food', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        navigation.navigate('FoodDetails', { food: response.data });
+        navigation.replace('FoodDetails', { food: response.data });
       } else {
         const response = await api.post('/nutrition/analyze-body', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        navigation.navigate('ScanResult', { analysis: response.data.data });
+        navigation.replace('ScanResult', { analysis: response.data.data });
       }
     } catch (error) {
       console.error('Scan error:', error);
