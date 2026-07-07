@@ -21,6 +21,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Pedometer } from 'expo-sensors';
 import { useAuthStore } from '../../stores/auth.store';
 import { useFoodLogs } from '../../hooks/useNutrition';
+import { useExerciseName } from '../../hooks/useExerciseName';
 import { theme, palette } from '../../theme';
 import { aiCoachService, NextSession } from '../../services/ai-coach.service';
 import { sessionService, TodaySummary } from '../../services/session.service';
@@ -127,6 +128,7 @@ function useStepCounter() {
 
 export const HomeScreen: React.FC = () => {
   const { t } = useTranslation();
+  const { exName } = useExerciseName();
   const locale = LANGUAGE_LOCALES[useSettingsStore((s) => s.language)] ?? 'en-US';
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const user = useAuthStore((s) => s.user);
@@ -306,6 +308,26 @@ export const HomeScreen: React.FC = () => {
 
   const startMakeUpWorkout = () => {
     navigation.navigate('StartSession', { makeUp: true });
+  };
+
+  // Compact preview of the AI-generated upcoming session — rendered on training
+  // days (above Start) and on rest/done days (under "Next session: …"), so the
+  // plan produced after each workout is actually visible before StartSession.
+  const renderSessionPreview = (spaced = false) => {
+    const exercises = nextSession?.exercises;
+    if (!exercises?.length) return null;
+    return (
+      <View style={[styles.previewCard, spaced && styles.previewCardSpaced]}>
+        {exercises.map((ex, i) => (
+          <View key={i} style={[styles.previewRow, i === exercises.length - 1 && styles.previewRowLast]}>
+            <Text style={styles.previewExName} numberOfLines={1}>{exName(ex.name)}</Text>
+            <Text style={styles.previewExDetail}>
+              {ex.sets}×{ex.reps} @ {ex.weight > 0 ? `${ex.weight}kg` : 'BW'}{ex.weightPerc ? ` · ${ex.weightPerc}% 1RM` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
   };
 
   // Schedule-shift sheet animation — entrance runs after mount (rAF) so the native
@@ -521,6 +543,7 @@ export const HomeScreen: React.FC = () => {
               {nextScheduledDay && (
                 <Text style={styles.restDaySub}>{t('home.nextSession')}: {cap(nextScheduledDay)}</Text>
               )}
+              {renderSessionPreview(true)}
               {nextScheduledDay && (
                 <TouchableOpacity
                   style={styles.shiftLink}
@@ -536,6 +559,7 @@ export const HomeScreen: React.FC = () => {
                 <View style={styles.sessionReadyDot} />
                 <Text style={styles.sessionReadyText}>{t('home.sessionReady')}</Text>
               </View>
+              {renderSessionPreview()}
               <TouchableOpacity style={styles.startBtn} onPress={startTodayWorkout}>
                 <Text style={styles.startBtnText}>{t('home.startWorkout')}</Text>
               </TouchableOpacity>
@@ -836,6 +860,21 @@ restDayText: { fontSize: 18, fontWeight: '700', color: palette.gray[300], margin
   restDaySub: { fontSize: 13, color: palette.gray[500] },
   shiftLink: { marginTop: 12, paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'center' },
   shiftLinkText: { fontSize: 14, fontWeight: '600', color: palette.brand[400] },
+
+  previewCard: {
+    backgroundColor: palette.gray[800],
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+    alignSelf: 'stretch',
+    borderLeftWidth: 3,
+    borderLeftColor: palette.brand[500],
+  },
+  previewCardSpaced: { marginTop: 12 },
+  previewRow: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: palette.gray[700] },
+  previewRowLast: { borderBottomWidth: 0 },
+  previewExName: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
+  previewExDetail: { fontSize: 12, color: palette.brand[400], fontWeight: '600', marginTop: 2 },
 
   sessionReadyRow: {
     flexDirection: 'row',
