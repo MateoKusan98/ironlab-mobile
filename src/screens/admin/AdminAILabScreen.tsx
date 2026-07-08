@@ -778,7 +778,9 @@ export const AdminAILabScreen: React.FC = () => {
               <Btn
                 label={`Force ${editFatigue ?? 'none'}`}
                 loading={busy === 'fatigue'}
-                onPress={() => run('fatigue', () => adminAiService.setFatigue(uid, editFatigue), `Fatigue forced to ${editFatigue ?? 'none'}`)}
+                // null here means "clear override" server-side — with no chip selected the
+                // label promises "Force none", so send the literal 'none' override to match.
+                onPress={() => run('fatigue', () => adminAiService.setFatigue(uid, editFatigue ?? 'none'), `Fatigue forced to ${editFatigue ?? 'none'}`)}
               />
               <Btn
                 label="Clear override"

@@ -102,7 +102,7 @@ export const StartSessionScreen: React.FC = () => {
   const [generating, setGenerating] = useState(false);
   const [planReady, setPlanReady] = useState(false);
   // Reactive HIGH-fatigue alarm awaiting the athlete's call. Non-null = modal shown.
-  const [fatigueGate, setFatigueGate] = useState<string[] | null>(null);
+  const [fatigueGate, setFatigueGate] = useState<{ reasons: string[]; level: 'elevated' | 'high' } | null>(null);
   const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[]>(() => {
     if (route.params?.nextSessionJson?.exercises?.length) {
       return route.params.nextSessionJson.exercises;
@@ -249,9 +249,9 @@ export const StartSessionScreen: React.FC = () => {
       const willRegenerate = !planFromToday || route.params?.makeUp === true || route.params?.skipNext === true || route.params?.trainAhead === true;
       if (willRegenerate) {
         const gate = await aiCoachService.fatigueCheck().catch(() => null);
-        if (gate?.requiresAck && gate.reasons.length) {
+        if (gate?.requiresAck && gate.reasons.length && (gate.level === 'high' || gate.level === 'elevated')) {
           setPlanLoading(false);
-          setFatigueGate(gate.reasons);
+          setFatigueGate({ reasons: gate.reasons, level: gate.level });
           return;
         }
       }
@@ -487,27 +487,54 @@ export const StartSessionScreen: React.FC = () => {
 
       </KeyboardAwareScreen>
 
-      {/* Readiness gate — reactive HIGH-fatigue alarm awaiting the athlete's call. */}
+      {/* Readiness gate — reactive fatigue alarm awaiting the athlete's call.
+          HIGH: accept = full recovery deload. ELEVATED: accept = apply the volume
+          trim (plain generation — the fatigue context trims it); dismiss = "I feel
+          fine", which cancels the trim server-side. Never send 'accept' from an
+          elevated gate: the backend treats 'accept' as opting into a deload. */}
       <Modal visible={fatigueGate !== null} transparent animationType="fade" onRequestClose={() => setFatigueGate(null)}>
         <View style={styles.gateOverlay}>
           <View style={styles.gateCard}>
-            <View style={styles.gateIcon}><Fire size={28} color={palette.brand[500]} weight="fill" /></View>
-            <Text style={styles.gateTitle}>{t('session.fatigueGate.title')}</Text>
-            <Text style={styles.gateSubtitle}>{t('session.fatigueGate.subtitle')}</Text>
+            <View style={styles.gateIcon}><Fire size={28} color={fatigueGate?.level === 'high' ? palette.brand[500] : palette.warning[400]} weight="fill" /></View>
+            <Text style={styles.gateTitle}>
+              {fatigueGate?.level === 'high'
+                ? t('session.fatigueGate.title')
+                : t('session.fatigueGate.elevatedTitle', { defaultValue: 'Fatigue is building' })}
+            </Text>
+            <Text style={styles.gateSubtitle}>
+              {fatigueGate?.level === 'high'
+                ? t('session.fatigueGate.subtitle')
+                : t('session.fatigueGate.elevatedSubtitle', { defaultValue: 'Your coach wants to trim a few sets today to protect recovery. Your call:' })}
+            </Text>
             <View style={styles.gateReasons}>
-              {(fatigueGate ?? []).map((r, i) => (
+              {(fatigueGate?.reasons ?? []).map((r, i) => (
                 <View key={i} style={styles.gateReasonRow}>
                   <Text style={styles.gateBullet}>•</Text>
                   <Text style={styles.gateReasonText}>{r}</Text>
                 </View>
               ))}
             </View>
-            <Text style={styles.gateQuestion}>{t('session.fatigueGate.question')}</Text>
-            <TouchableOpacity style={styles.gateAcceptBtn} onPress={() => proceedGeneration('accept')}>
-              <Text style={styles.gateAcceptText}>{t('session.fatigueGate.accept')}</Text>
+            <Text style={styles.gateQuestion}>
+              {fatigueGate?.level === 'high'
+                ? t('session.fatigueGate.question')
+                : t('session.fatigueGate.elevatedQuestion', { defaultValue: 'Trim today’s session, or run it in full?' })}
+            </Text>
+            <TouchableOpacity
+              style={styles.gateAcceptBtn}
+              onPress={() => proceedGeneration(fatigueGate?.level === 'high' ? 'accept' : undefined)}
+            >
+              <Text style={styles.gateAcceptText}>
+                {fatigueGate?.level === 'high'
+                  ? t('session.fatigueGate.accept')
+                  : t('session.fatigueGate.elevatedAccept', { defaultValue: 'Trim it — protect recovery' })}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.gateDismissBtn} onPress={() => proceedGeneration('dismiss')}>
-              <Text style={styles.gateDismissText}>{t('session.fatigueGate.dismiss')}</Text>
+              <Text style={styles.gateDismissText}>
+                {fatigueGate?.level === 'high'
+                  ? t('session.fatigueGate.dismiss')
+                  : t('session.fatigueGate.elevatedDismiss', { defaultValue: 'I feel fine — full session' })}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
