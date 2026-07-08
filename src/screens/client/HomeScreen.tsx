@@ -30,6 +30,7 @@ import { devTimeService, DevTimeStatus } from '../../services/dev-time.service';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
 import { UserAvatar } from '../../components/ui/UserAvatar';
+import { HomeQuizCard } from '../../components/HomeQuizCard';
 import {
   CalendarBlank,
   Question,
@@ -696,6 +697,10 @@ export const HomeScreen: React.FC = () => {
             <Text style={styles.quickLabel}>{t('home.logWorkout')}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Rated quiz — one question, answered inline; shares the Elo rating
+            with the full quiz screen */}
+        <HomeQuizCard style={{ marginTop: theme.spacing.md }} />
 
       </ScrollView>
       {/* Creatine reminder (setup one-time OR daily check) */}

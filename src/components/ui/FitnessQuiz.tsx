@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,22 @@ import {
   ScrollView,
   Animated,
   ActivityIndicator,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import { CheckCircle, XCircle, Brain, Sparkle } from 'phosphor-react-native';
 import { theme, palette } from '../../theme';
 import { Button } from './Button';
-import { FITNESS_QUIZ, shuffleQuestions, QuizQuestion } from '../../data/fitnessQuiz';
+import {
+  buildDeck,
+  ratingTitle,
+  QuizQuestion,
+  QuizDifficulty,
+  DIFFICULTY_LABELS,
+} from '../../data/fitnessQuiz';
 import { badgesService } from '../../services/badges.service';
+import { useRatedQuiz } from '../../hooks/useRatedQuiz';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface FitnessQuizProps {
   /**
@@ -31,7 +41,20 @@ export interface FitnessQuizProps {
   title?: string;
   /** Sub-headline shown under the title. */
   subtitle?: string;
+  /**
+   * Lock the quiz to one difficulty level (unrated practice). When omitted
+   * the quiz runs RATED: an Elo rating (persisted on device, chess-style)
+   * picks questions near your level and moves with every answer — missing an
+   * easy question at a high rating costs a lot, beating a hard one pays well.
+   */
+  difficulty?: QuizDifficulty;
 }
+
+const LEVEL_COLORS: Record<QuizDifficulty, string> = {
+  1: '#34d399',
+  2: palette.brand[400],
+  3: '#fb7185',
+};
 
 const CATEGORY_COLORS: Record<string, string> = {
   Training: palette.brand[400],
@@ -50,19 +73,28 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
   onFinish,
   title,
   subtitle,
+  difficulty,
 }) => {
   const isPractice = typeof questionLimit === 'number';
+  const rated = difficulty === undefined;
+  const queryClient = useQueryClient();
 
-  // A shuffled deck we walk through; in endless mode we re-shuffle when exhausted.
-  const [deck, setDeck] = useState<QuizQuestion[]>(() => shuffleQuestions(FITNESS_QUIZ));
+  // Fixed-difficulty mode walks a shuffled deck; rated mode draws one
+  // question at a time near the player's rating (owned by the shared hook,
+  // which also persists the rating and reports badge milestones).
+  const { rating, question: ratedQuestion, scoreAnswer, nextQuestion } = useRatedQuiz();
+  const [deck, setDeck] = useState<QuizQuestion[]>(() => (rated ? [] : buildDeck(difficulty)));
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [ratingNote, setRatingNote] = useState<{ delta: number; text: string } | null>(null);
 
   const fade = useRef(new Animated.Value(1)).current;
   const reported = useRef(false);
+  // Net rating change across this run (shown on the practice results screen).
+  const runDelta = useRef(0);
 
   // Report a finished practice quiz once so the backend can award knowledge
   // badges. Endless (loading) runs never reach a results screen, so they don't
@@ -70,11 +102,15 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
   useEffect(() => {
     if (showResults && isPractice && !reported.current) {
       reported.current = true;
-      badgesService.recordQuizComplete(score, questionLimit as number).catch(() => {});
+      badgesService
+        .recordQuizComplete(score, questionLimit as number, rated ? rating : undefined)
+        .then(() => queryClient.invalidateQueries({ queryKey: ['badges'] }))
+        .catch(() => {});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults, isPractice, score, questionLimit]);
 
-  const question = deck[index % deck.length];
+  const question = rated ? ratedQuestion : deck[index % deck.length];
   const answered = selected !== null;
 
   const handleSelect = (optionIndex: number) => {
@@ -82,8 +118,17 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
     setSelected(optionIndex);
     const correct = optionIndex === question.correct;
     if (correct) setScore((s) => s + 1);
-    const nextAnswered = answeredCount + 1;
-    setAnsweredCount(nextAnswered);
+    setAnsweredCount(answeredCount + 1);
+
+    if (rated) {
+      // Elo update: the question is the "opponent".
+      const result = scoreAnswer(correct);
+      runDelta.current += result.delta;
+      setRatingNote({
+        delta: result.delta,
+        text: `Rating ${result.delta >= 0 ? '+' : ''}${result.delta} → ${result.rating} · ${ratingTitle(result.rating)}`,
+      });
+    }
   };
 
   const advance = () => {
@@ -94,27 +139,36 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
     }
 
     const nextIndex = index + 1;
-    const exhausted = nextIndex >= deck.length;
+    const exhausted = !rated && nextIndex >= deck.length;
 
     Animated.timing(fade, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => {
-      if (exhausted) {
-        setDeck(shuffleQuestions(FITNESS_QUIZ));
+      if (rated) {
+        nextQuestion();
+      } else if (exhausted) {
+        setDeck(buildDeck(difficulty));
         setIndex(0);
       } else {
         setIndex(nextIndex);
       }
       setSelected(null);
+      setRatingNote(null);
       Animated.timing(fade, { toValue: 1, duration: 160, useNativeDriver: true }).start();
     });
   };
 
   const restart = () => {
-    setDeck(shuffleQuestions(FITNESS_QUIZ));
-    setIndex(0);
+    runDelta.current = 0;
+    if (rated) {
+      nextQuestion();
+    } else {
+      setDeck(buildDeck(difficulty));
+      setIndex(0);
+    }
     setSelected(null);
     setAnsweredCount(0);
     setScore(0);
     setShowResults(false);
+    setRatingNote(null);
   };
 
   // ── Results screen (practice mode) ───────────────────────────
@@ -136,6 +190,16 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
           {score}/{total}
         </Text>
         <Text style={styles.resultsPct}>{pct}% correct</Text>
+        {rated && (
+          <Text style={styles.resultsRating}>
+            ⚡ {rating} · {ratingTitle(rating)}
+            {runDelta.current !== 0 && (
+              <Text style={{ color: runDelta.current > 0 ? theme.colors.success : theme.colors.error }}>
+                {'  '}({runDelta.current > 0 ? '+' : ''}{runDelta.current} this run)
+              </Text>
+            )}
+          </Text>
+        )}
         <View style={styles.resultsButtons}>
           <Button label="Try again" variant="outline" color="brand" onPress={restart} isFullWidth />
           {onFinish && (
@@ -160,6 +224,12 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
           <Text style={styles.title}>{title ?? 'Fitness Quiz'}</Text>
           {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
+        {rated && (
+          <View style={styles.ratingBadge}>
+            <Text style={styles.ratingValue}>⚡ {rating}</Text>
+            <Text style={styles.ratingTitleText}>{ratingTitle(rating)}</Text>
+          </View>
+        )}
       </View>
 
       {/* Endless-mode status pill */}
@@ -185,10 +255,25 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Category + progress */}
+          {/* Category + difficulty + progress */}
           <View style={styles.metaRow}>
-            <View style={[styles.catChip, { backgroundColor: catColor + '22', borderColor: catColor + '55' }]}>
-              <Text style={[styles.catChipText, { color: catColor }]}>{question.category}</Text>
+            <View style={styles.chipRow}>
+              <View style={[styles.catChip, { backgroundColor: catColor + '22', borderColor: catColor + '55' }]}>
+                <Text style={[styles.catChipText, { color: catColor }]}>{question.category}</Text>
+              </View>
+              <View
+                style={[
+                  styles.catChip,
+                  {
+                    backgroundColor: LEVEL_COLORS[question.difficulty] + '22',
+                    borderColor: LEVEL_COLORS[question.difficulty] + '55',
+                  },
+                ]}
+              >
+                <Text style={[styles.catChipText, { color: LEVEL_COLORS[question.difficulty] }]}>
+                  {DIFFICULTY_LABELS[question.difficulty]}
+                </Text>
+              </View>
             </View>
             <Text style={styles.progress}>{progressLabel}</Text>
           </View>
@@ -201,7 +286,7 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
             const isCorrect = i === question.correct;
             const isChosen = i === selected;
 
-            let optStyle = styles.option;
+            let optStyle: StyleProp<ViewStyle> = styles.option;
             let textColor = theme.colors.text;
             let icon: React.ReactNode = null;
 
@@ -241,6 +326,16 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
                 {selected === question.correct ? 'Correct ✓' : 'Not quite'}
               </Text>
               <Text style={styles.explainText}>{question.explanation}</Text>
+              {!!ratingNote && (
+                <Text
+                  style={[
+                    styles.ratingNote,
+                    { color: ratingNote.delta >= 0 ? theme.colors.success : theme.colors.error },
+                  ]}
+                >
+                  {ratingNote.text}
+                </Text>
+              )}
             </View>
           )}
         </ScrollView>
@@ -307,6 +402,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing.lg },
 
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.md },
+  chipRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs },
   catChip: { paddingVertical: 4, paddingHorizontal: theme.spacing.md, borderRadius: theme.borderRadius.full, borderWidth: 1 },
   catChipText: { ...theme.typography.textXs, fontWeight: theme.fontWeight.bold },
   progress: { ...theme.typography.textXs, color: theme.colors.textSecondary },
@@ -352,6 +448,26 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   explainText: { ...theme.typography.textSm, color: theme.colors.textSecondary, lineHeight: 20 },
+  ratingNote: {
+    ...theme.typography.textSm,
+    fontWeight: theme.fontWeight.bold,
+    marginTop: theme.spacing.sm,
+  },
+  ratingBadge: {
+    alignItems: 'flex-end',
+    backgroundColor: palette.brand[500] + '1A',
+    borderColor: palette.brand[500] + '44',
+    borderWidth: 1,
+    borderRadius: theme.borderRadius.lg,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+  },
+  ratingValue: {
+    ...theme.typography.textMd,
+    color: palette.brand[400],
+    fontWeight: theme.fontWeight.extrabold,
+  },
+  ratingTitleText: { ...theme.typography.textXs, color: theme.colors.textSecondary },
 
   footer: { paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.sm, paddingBottom: theme.spacing.md },
   hint: { ...theme.typography.textSm, color: theme.colors.textTertiary, textAlign: 'center', paddingVertical: theme.spacing.md },
@@ -360,5 +476,11 @@ const styles = StyleSheet.create({
   resultsHeadline: { ...theme.typography.heading2xl, color: theme.colors.text, fontWeight: theme.fontWeight.extrabold, marginTop: theme.spacing.lg },
   resultsScore: { fontSize: 56, fontWeight: '800', marginTop: theme.spacing.md },
   resultsPct: { ...theme.typography.textLg, color: theme.colors.textSecondary, marginTop: theme.spacing.xs },
+  resultsRating: {
+    ...theme.typography.textMd,
+    color: theme.colors.text,
+    fontWeight: theme.fontWeight.semibold,
+    marginTop: theme.spacing.md,
+  },
   resultsButtons: { width: '100%', marginTop: theme.spacing['3xl'] },
 });

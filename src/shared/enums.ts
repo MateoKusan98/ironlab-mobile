@@ -80,4 +80,12 @@ export enum BadgeKey {
   // Knowledge — quiz
   QUIZ_FIRST = 'QUIZ_FIRST',
   QUIZ_PERFECT = 'QUIZ_PERFECT',
+  QUIZ_MARATHON = 'QUIZ_MARATHON',
+  // Knowledge — chess-style quiz rating milestones (thresholds mirror the
+  // ratingTitle bands in data/fitnessQuiz.ts: Enthusiast/Athlete/Coach/Expert/Master)
+  QUIZ_RATING_1100 = 'QUIZ_RATING_1100',
+  QUIZ_RATING_1400 = 'QUIZ_RATING_1400',
+  QUIZ_RATING_1700 = 'QUIZ_RATING_1700',
+  QUIZ_RATING_2000 = 'QUIZ_RATING_2000',
+  QUIZ_RATING_2200 = 'QUIZ_RATING_2200',
 }

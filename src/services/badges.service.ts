@@ -15,7 +15,8 @@ export type BadgeKey =
   | 'IDEA_THANKED'
   | 'SCAN_FIRST' | 'SCAN_5' | 'LEANER'
   | 'FORM_FIRST' | 'FORM_10'
-  | 'QUIZ_FIRST' | 'QUIZ_PERFECT';
+  | 'QUIZ_FIRST' | 'QUIZ_PERFECT' | 'QUIZ_MARATHON'
+  | 'QUIZ_RATING_1100' | 'QUIZ_RATING_1400' | 'QUIZ_RATING_1700' | 'QUIZ_RATING_2000' | 'QUIZ_RATING_2200';
 
 export type BadgeGroup =
   | 'strength' | 'grind' | 'detail' | 'nutrition' | 'chaos' | 'dedication'
@@ -91,6 +92,12 @@ export const BADGE_CATALOG: BadgeMeta[] = [
   // ── Knowledge (quiz) ────────────────────────────────────────────────────────
   { key: 'QUIZ_FIRST',     name: 'Big Brain Energy',         description: 'Finish a fitness quiz',            icon: '🧠', group: 'knowledge',  points: 15 },
   { key: 'QUIZ_PERFECT',   name: 'Galaxy Brain',             description: 'Ace a quiz with a perfect score',  icon: '🌌', group: 'knowledge',  points: 75 },
+  { key: 'QUIZ_MARATHON',  name: 'Marathon Mind',            description: 'Finish a 20-question quiz',        icon: '🧩', group: 'knowledge',  points: 25 },
+  { key: 'QUIZ_RATING_1100', name: 'Certified Enthusiast',   description: 'Reach 1100 quiz rating',           icon: '📖', group: 'knowledge',  points: 25 },
+  { key: 'QUIZ_RATING_1400', name: 'Gym Scholar',            description: 'Reach 1400 quiz rating',           icon: '🎓', group: 'knowledge',  points: 50 },
+  { key: 'QUIZ_RATING_1700', name: 'Coach Material',         description: 'Reach 1700 quiz rating',           icon: '📋', group: 'knowledge',  points: 75 },
+  { key: 'QUIZ_RATING_2000', name: 'Walking Textbook',       description: 'Reach 2000 quiz rating',           icon: '📚', group: 'knowledge',  points: 100 },
+  { key: 'QUIZ_RATING_2200', name: 'Quiz Grandmaster',       description: 'Reach 2200 quiz rating',           icon: '♟️', group: 'knowledge',  points: 200 },
 
   // ── Community ────────────────────────────────────────────────────────────────
   { key: 'IDEA_THANKED',   name: 'Heard And Valued',         description: 'Get thanked for a submitted idea', icon: '💡', group: 'community',  points: 50 },
@@ -163,8 +170,15 @@ export const badgesService = {
     return res.data.data;
   },
   // Report a finished quiz so the backend can award the knowledge badges.
-  recordQuizComplete: async (score: number, total: number): Promise<BadgesResponse> => {
-    const res = await api.post('/badges/quiz-complete', { score, total });
+  // `rating` (rated mode only) lets the server award rating milestones too.
+  recordQuizComplete: async (score: number, total: number, rating?: number): Promise<BadgesResponse> => {
+    const res = await api.post('/badges/quiz-complete', { score, total, ...(rating !== undefined ? { rating } : {}) });
+    return res.data.data;
+  },
+  // Report a new quiz rating high-water mark (called when a milestone is crossed,
+  // so endless loading-screen runs can unlock rating badges without finishing a quiz).
+  recordQuizRating: async (rating: number): Promise<BadgesResponse> => {
+    const res = await api.post('/badges/quiz-rating', { rating });
     return res.data.data;
   },
 };
