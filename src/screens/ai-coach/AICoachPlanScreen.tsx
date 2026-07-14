@@ -23,6 +23,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { UserRole } from '@shared';
 import { MagnifyingGlass, Gear, Robot, Trophy, ChartBar } from 'phosphor-react-native';
 import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
+import { RecoveryModal, RecoveryBanner } from '../../components/ui/RecoveryWeekControl';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'AICoachPlan'>;
 
@@ -438,112 +439,6 @@ const CompBanner: React.FC<{
         </View>
       </View>
       <Text style={banner.edit}>Edit ›</Text>
-    </TouchableOpacity>
-  );
-};
-
-// ─── Recovery / Vacation Modal ────────────────────────────────────────────────
-
-const RecoveryModal: React.FC<{
-  visible: boolean;
-  busy: boolean;
-  onConfirm: (mode: 'recovery' | 'vacation') => void;
-  onClose: () => void;
-}> = ({ visible, busy, onConfirm, onClose }) => {
-  const { t } = useTranslation();
-  const [choice, setChoice] = useState<'recovery' | 'vacation' | null>(null);
-
-  useEffect(() => {
-    if (visible) setChoice(null);
-  }, [visible]);
-
-  return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <SafeAreaView style={inj.container}>
-        <View style={inj.header}>
-          <Text style={inj.title}>🛟 {t('aiCoach.recovery.title')}</Text>
-          <TouchableOpacity onPress={onClose} style={inj.closeBtn}>
-            <Text style={inj.closeText}>✕</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={inj.scroll} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-          <Text style={inj.intro}>{t('aiCoach.recovery.intro')}</Text>
-
-          <TouchableOpacity
-            style={[inj.optionCard, choice === 'recovery' && inj.optionCardActive]}
-            onPress={() => setChoice('recovery')}
-          >
-            <View style={inj.optionTop}>
-              <Text style={inj.optionEmoji}>🛟</Text>
-              <Text style={[inj.optionTitle, choice === 'recovery' && inj.optionTitleActive]}>
-                {t('aiCoach.recovery.recoveryTitle')}
-              </Text>
-              {choice === 'recovery' && <Text style={inj.optionCheck}>✓</Text>}
-            </View>
-            <Text style={inj.optionDesc}>{t('aiCoach.recovery.recoveryDesc')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[inj.optionCard, choice === 'vacation' && inj.optionCardActive]}
-            onPress={() => setChoice('vacation')}
-          >
-            <View style={inj.optionTop}>
-              <Text style={inj.optionEmoji}>🏖️</Text>
-              <Text style={[inj.optionTitle, choice === 'vacation' && inj.optionTitleActive]}>
-                {t('aiCoach.recovery.vacationTitle')}
-              </Text>
-              {choice === 'vacation' && <Text style={inj.optionCheck}>✓</Text>}
-            </View>
-            <Text style={inj.optionDesc}>{t('aiCoach.recovery.vacationDesc')}</Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        <View style={inj.footer}>
-          <TouchableOpacity
-            style={[inj.saveBtn, (!choice || busy) && inj.saveBtnDisabled]}
-            onPress={() => choice && onConfirm(choice)}
-            disabled={!choice || busy}
-          >
-            {busy
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={inj.saveBtnText}>{t('aiCoach.recovery.confirm')}</Text>}
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </Modal>
-  );
-};
-
-// ─── Recovery Banner ──────────────────────────────────────────────────────────
-
-const RecoveryBanner: React.FC<{
-  status: RecoveryWeekStatus;
-  onEnd: () => void;
-}> = ({ status, onEnd }) => {
-  const { t } = useTranslation();
-  const dateStr = new Date(`${status.until}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  const isVacation = status.mode === 'vacation';
-  const weekSuffix = status.resumeWeek != null && !isVacation
-    ? t('aiCoach.recovery.resumeWeekSuffix', { week: status.resumeWeek })
-    : '';
-
-  return (
-    <TouchableOpacity style={rec.banner} onPress={onEnd}>
-      <View style={rec.left}>
-        <Text style={rec.emoji}>{isVacation ? '🏖️' : '🛟'}</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={rec.title}>
-            {isVacation ? t('aiCoach.recovery.bannerVacation') : t('aiCoach.recovery.bannerRecovery')}
-          </Text>
-          <Text style={rec.sub}>
-            {isVacation
-              ? t('aiCoach.recovery.bannerVacationSub', { date: dateStr })
-              : t('aiCoach.recovery.bannerRecoverySub', { date: dateStr, week: weekSuffix })}
-          </Text>
-        </View>
-      </View>
-      <Text style={rec.end}>{t('aiCoach.recovery.end')}</Text>
     </TouchableOpacity>
   );
 };
@@ -1160,18 +1055,4 @@ const inj = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.4 },
   saveBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
-});
-
-const rec = StyleSheet.create({
-  banner: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 10,
-    backgroundColor: '#042f2e',
-    borderBottomWidth: 1, borderBottomColor: '#0f766e',
-  },
-  left: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  emoji: { fontSize: 18 },
-  title: { fontSize: 13, fontWeight: '700', color: '#5eead4' },
-  sub: { fontSize: 11, color: palette.gray[400], marginTop: 1 },
-  end: { fontSize: 13, color: palette.gray[500], fontWeight: '600', marginLeft: 8 },
 });

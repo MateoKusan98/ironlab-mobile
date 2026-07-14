@@ -17,6 +17,7 @@ import { UserAvatar } from '../../components/ui/UserAvatar';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
 import { Bell, PersonSimpleRun, Lightning, Robot, CalendarBlank, ChartBar, ArrowRight, Camera, Flask } from 'phosphor-react-native';
 import { UserRole } from '@shared';
+import { RecoveryWeekCard } from '../../components/ui/RecoveryWeekControl';
 
 // const CATEGORIES = [
 //   { id: '1', label: 'HIIT', Icon: Fire, color: '#1A3322', iconColor: '#f97316' },
@@ -95,6 +96,9 @@ export const WorkoutScreen: React.FC = () => {
           </View>
           <ArrowRight size={18} weight="bold" color={palette.gray[500]} />
         </TouchableOpacity>
+
+        {/* Recovery week / vacation — banner while active, entry card otherwise */}
+        {user?.isAICoachSetupComplete && <RecoveryWeekCard />}
 
         {/* Section: Track Progress */}
         <Text style={styles.sectionTitle}>Track Progress</Text>

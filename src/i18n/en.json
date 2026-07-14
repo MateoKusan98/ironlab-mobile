@@ -294,6 +294,10 @@
       "keep": "Keep resting",
       "vacationOnTitle": "Vacation mode on 🏖️",
       "vacationOnMsg": "Enjoy the break — nothing to log until {{date}}. Your training week will be waiting, not lost.",
+      "recoveryOnTitle": "Recovery week on 🛟",
+      "recoveryOnMsg": "The rest of this week is light by design. Your training week restarts {{date}} — your next session is being regenerated accordingly.",
+      "cardTitle": "Need a break?",
+      "cardSub": "Recovery week or vacation — pause without losing progress",
       "error": "Could not activate. Try again."
     },
     "regenUsed": "Used today",
