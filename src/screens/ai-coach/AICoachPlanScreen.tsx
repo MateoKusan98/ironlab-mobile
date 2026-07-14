@@ -18,7 +18,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette } from '../../theme';
-import { aiCoachService } from '../../services/ai-coach.service';
+import { aiCoachService, RecoveryWeekStatus } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserRole } from '@shared';
 import { MagnifyingGlass, Gear, Robot, Trophy, ChartBar } from 'phosphor-react-native';
@@ -442,6 +442,112 @@ const CompBanner: React.FC<{
   );
 };
 
+// ─── Recovery / Vacation Modal ────────────────────────────────────────────────
+
+const RecoveryModal: React.FC<{
+  visible: boolean;
+  busy: boolean;
+  onConfirm: (mode: 'recovery' | 'vacation') => void;
+  onClose: () => void;
+}> = ({ visible, busy, onConfirm, onClose }) => {
+  const { t } = useTranslation();
+  const [choice, setChoice] = useState<'recovery' | 'vacation' | null>(null);
+
+  useEffect(() => {
+    if (visible) setChoice(null);
+  }, [visible]);
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <SafeAreaView style={inj.container}>
+        <View style={inj.header}>
+          <Text style={inj.title}>🛟 {t('aiCoach.recovery.title')}</Text>
+          <TouchableOpacity onPress={onClose} style={inj.closeBtn}>
+            <Text style={inj.closeText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={inj.scroll} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+          <Text style={inj.intro}>{t('aiCoach.recovery.intro')}</Text>
+
+          <TouchableOpacity
+            style={[inj.optionCard, choice === 'recovery' && inj.optionCardActive]}
+            onPress={() => setChoice('recovery')}
+          >
+            <View style={inj.optionTop}>
+              <Text style={inj.optionEmoji}>🛟</Text>
+              <Text style={[inj.optionTitle, choice === 'recovery' && inj.optionTitleActive]}>
+                {t('aiCoach.recovery.recoveryTitle')}
+              </Text>
+              {choice === 'recovery' && <Text style={inj.optionCheck}>✓</Text>}
+            </View>
+            <Text style={inj.optionDesc}>{t('aiCoach.recovery.recoveryDesc')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[inj.optionCard, choice === 'vacation' && inj.optionCardActive]}
+            onPress={() => setChoice('vacation')}
+          >
+            <View style={inj.optionTop}>
+              <Text style={inj.optionEmoji}>🏖️</Text>
+              <Text style={[inj.optionTitle, choice === 'vacation' && inj.optionTitleActive]}>
+                {t('aiCoach.recovery.vacationTitle')}
+              </Text>
+              {choice === 'vacation' && <Text style={inj.optionCheck}>✓</Text>}
+            </View>
+            <Text style={inj.optionDesc}>{t('aiCoach.recovery.vacationDesc')}</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        <View style={inj.footer}>
+          <TouchableOpacity
+            style={[inj.saveBtn, (!choice || busy) && inj.saveBtnDisabled]}
+            onPress={() => choice && onConfirm(choice)}
+            disabled={!choice || busy}
+          >
+            {busy
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={inj.saveBtnText}>{t('aiCoach.recovery.confirm')}</Text>}
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+};
+
+// ─── Recovery Banner ──────────────────────────────────────────────────────────
+
+const RecoveryBanner: React.FC<{
+  status: RecoveryWeekStatus;
+  onEnd: () => void;
+}> = ({ status, onEnd }) => {
+  const { t } = useTranslation();
+  const dateStr = new Date(`${status.until}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const isVacation = status.mode === 'vacation';
+  const weekSuffix = status.resumeWeek != null && !isVacation
+    ? t('aiCoach.recovery.resumeWeekSuffix', { week: status.resumeWeek })
+    : '';
+
+  return (
+    <TouchableOpacity style={rec.banner} onPress={onEnd}>
+      <View style={rec.left}>
+        <Text style={rec.emoji}>{isVacation ? '🏖️' : '🛟'}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={rec.title}>
+            {isVacation ? t('aiCoach.recovery.bannerVacation') : t('aiCoach.recovery.bannerRecovery')}
+          </Text>
+          <Text style={rec.sub}>
+            {isVacation
+              ? t('aiCoach.recovery.bannerVacationSub', { date: dateStr })
+              : t('aiCoach.recovery.bannerRecoverySub', { date: dateStr, week: weekSuffix })}
+          </Text>
+        </View>
+      </View>
+      <Text style={rec.end}>{t('aiCoach.recovery.end')}</Text>
+    </TouchableOpacity>
+  );
+};
+
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 const REGEN_DATE_KEY = '@ironlab_regen_date';
@@ -466,6 +572,9 @@ export const AICoachPlanScreen: React.FC = () => {
   const [activeInjuries, setActiveInjuries] = useState<Array<{ id: string; exerciseName: string | null; description: string }>>([]);
   const [injuryHandling, setInjuryHandling] = useState<string | null>(null);
   const [injuryModalVisible, setInjuryModalVisible] = useState(false);
+  const [recoveryWeek, setRecoveryWeek] = useState<RecoveryWeekStatus | null>(null);
+  const [recoveryModalVisible, setRecoveryModalVisible] = useState(false);
+  const [recoveryBusy, setRecoveryBusy] = useState(false);
   const [showRegenInput, setShowRegenInput] = useState(false);
   const [regenNote, setRegenNote] = useState('');
   const dotAnim = useRef(new Animated.Value(0)).current;
@@ -499,11 +608,12 @@ export const AICoachPlanScreen: React.FC = () => {
     }).catch(() => {});
 
     aiCoachService.getPlan()
-      .then(({ plan: p, generatedAt: ga, competitionDate: cd, competitionType: ct, activeInjuries: ai, injuryHandling: ih }) => {
+      .then(({ plan: p, generatedAt: ga, competitionDate: cd, competitionType: ct, activeInjuries: ai, injuryHandling: ih, recoveryWeek: rw }) => {
         setCompDate(cd);
         setCompType(ct);
         setActiveInjuries(ai ?? []);
         setInjuryHandling(ih);
+        setRecoveryWeek(rw ?? null);
         setPlan(p);
         setGeneratedAt(ga);
         if (!p) navigation.replace('StartSession', {});
@@ -559,6 +669,55 @@ export const AICoachPlanScreen: React.FC = () => {
       Alert.alert('Error', 'Could not save injury preference.');
       setGenerating(false);
     }
+  };
+
+  const handleTriggerRecovery = async (mode: 'recovery' | 'vacation') => {
+    setRecoveryBusy(true);
+    try {
+      const res = await aiCoachService.triggerRecoveryWeek(mode);
+      setRecoveryWeek({ mode: res.mode, until: res.until, resumeWeek: res.resumeWeek });
+      setRecoveryModalVisible(false);
+      const dateStr = new Date(`${res.until}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+      if (mode === 'vacation') {
+        Alert.alert(t('aiCoach.recovery.vacationOnTitle'), t('aiCoach.recovery.vacationOnMsg', { date: dateStr }));
+      } else {
+        // Swap today's stale (heavy) plan for the light recovery session right away.
+        setPlanReady(false);
+        setGenerating(true);
+        try {
+          const newPlan = await aiCoachService.generatePlan();
+          setPlan(newPlan);
+          setGeneratedAt(new Date().toISOString());
+          setPlanReady(true);
+        } catch {
+          // Throttled or offline — the recovery window is active server-side either
+          // way; the next generated session will come out light.
+          setGenerating(false);
+        }
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message;
+      Alert.alert('Error', String(Array.isArray(msg) ? msg.join('\n') : msg ?? t('aiCoach.recovery.error')));
+    } finally {
+      setRecoveryBusy(false);
+    }
+  };
+
+  const handleEndRecovery = () => {
+    Alert.alert(t('aiCoach.recovery.endTitle'), t('aiCoach.recovery.endMsg'), [
+      { text: t('aiCoach.recovery.keep'), style: 'cancel' },
+      {
+        text: t('aiCoach.recovery.endConfirm'),
+        onPress: async () => {
+          try {
+            await aiCoachService.cancelRecoveryWeek();
+            setRecoveryWeek(null);
+          } catch {
+            Alert.alert('Error', t('aiCoach.recovery.error'));
+          }
+        },
+      },
+    ]);
   };
 
   const handleGenerate = async (note?: string) => {
@@ -634,6 +793,12 @@ export const AICoachPlanScreen: React.FC = () => {
         onClear={handleClearCompDate}
         onClose={() => setCompModalVisible(false)}
       />
+      <RecoveryModal
+        visible={recoveryModalVisible}
+        busy={recoveryBusy}
+        onConfirm={handleTriggerRecovery}
+        onClose={() => setRecoveryModalVisible(false)}
+      />
 
       {/* Header */}
       <View style={styles.header}>
@@ -708,6 +873,16 @@ export const AICoachPlanScreen: React.FC = () => {
       ) : (
         <TouchableOpacity style={styles.setCompRow} onPress={() => setCompModalVisible(true)}>
           <Text style={styles.setCompText}>{t('aiCoach.setCompDate')}</Text>
+          <Text style={styles.setCompArrow}>›</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Recovery week / vacation — active banner or entry row */}
+      {recoveryWeek ? (
+        <RecoveryBanner status={recoveryWeek} onEnd={handleEndRecovery} />
+      ) : (
+        <TouchableOpacity style={styles.setCompRow} onPress={() => setRecoveryModalVisible(true)}>
+          <Text style={styles.setCompText}>{t('aiCoach.recovery.entry')}</Text>
           <Text style={styles.setCompArrow}>›</Text>
         </TouchableOpacity>
       )}
@@ -985,4 +1160,18 @@ const inj = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.4 },
   saveBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+});
+
+const rec = StyleSheet.create({
+  banner: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 10,
+    backgroundColor: '#042f2e',
+    borderBottomWidth: 1, borderBottomColor: '#0f766e',
+  },
+  left: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  emoji: { fontSize: 18 },
+  title: { fontSize: 13, fontWeight: '700', color: '#5eead4' },
+  sub: { fontSize: 11, color: palette.gray[400], marginTop: 1 },
+  end: { fontSize: 13, color: palette.gray[500], fontWeight: '600', marginLeft: 8 },
 });

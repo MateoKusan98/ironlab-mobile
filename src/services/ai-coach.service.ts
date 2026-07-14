@@ -134,6 +134,12 @@ export interface AICoachProfileData {
   preferredIntensity?: number; // 1=Easy 2=Light 3=Moderate 4=Hard 5=Max
 }
 
+export interface RecoveryWeekStatus {
+  mode: 'recovery' | 'vacation';
+  until: string; // YYYY-MM-DD — the day hard training resumes
+  resumeWeek: number | null; // phase week that replays on return (null in comp prep)
+}
+
 export const aiCoachService = {
   chat: async (
     message: string,
@@ -213,6 +219,7 @@ export const aiCoachService = {
     nextScheduledDay: string | null;
     skipAheadDay: string | null;
     completedToday: boolean;
+    recoveryWeek: RecoveryWeekStatus | null;
   }> => {
     const { data } = await api.get<{ data: {
       plan: string | null;
@@ -231,8 +238,32 @@ export const aiCoachService = {
       nextScheduledDay: string | null;
       skipAheadDay: string | null;
       completedToday: boolean;
+      recoveryWeek: RecoveryWeekStatus | null;
     } }>('/ai-coach/plan');
     return data.data;
+  },
+
+  /**
+   * "Life fell apart" reset. 'recovery' turns the rest of this week into light deload
+   * sessions and replays the interrupted phase week from Monday; 'vacation' pauses the
+   * plan for `days` days (no logging expected, no make-up debt) and replays on return.
+   */
+  triggerRecoveryWeek: async (mode: 'recovery' | 'vacation', days?: number): Promise<{
+    until: string;
+    resumePhase: string;
+    resumeWeek: number | null;
+    mode: 'recovery' | 'vacation';
+    compCountdownContinues: boolean;
+  }> => {
+    const { data } = await api.post<{ data: { until: string; resumePhase: string; resumeWeek: number | null; mode: 'recovery' | 'vacation'; compCountdownContinues: boolean } }>(
+      '/ai-coach/recovery-week',
+      { mode, ...(days ? { days } : {}) },
+    );
+    return data.data;
+  },
+
+  cancelRecoveryWeek: async (): Promise<void> => {
+    await api.delete('/ai-coach/recovery-week');
   },
 
   getPathTree: async (): Promise<PathTree> => {
