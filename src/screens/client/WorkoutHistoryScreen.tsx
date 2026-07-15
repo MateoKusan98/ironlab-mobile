@@ -144,7 +144,12 @@ export const WorkoutHistoryScreen: React.FC = () => {
 
       {/* Week Navigator */}
       <View style={styles.weekNav}>
-        <TouchableOpacity style={styles.navArrow} onPress={() => setWeekOffset((w) => w - 1)}>
+        <TouchableOpacity
+          style={styles.navArrow}
+          onPress={() => setWeekOffset((w) => w - 1)}
+          accessibilityRole="button"
+          accessibilityLabel={t('history.previousWeek', { defaultValue: 'Previous week' })}
+        >
           <Text style={styles.navArrowText}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.weekLabel}>{label}</Text>
@@ -152,6 +157,9 @@ export const WorkoutHistoryScreen: React.FC = () => {
           style={[styles.navArrow, weekOffset >= 0 && styles.navArrowDisabled]}
           onPress={() => setWeekOffset((w) => Math.min(0, w + 1))}
           disabled={weekOffset >= 0}
+          accessibilityRole="button"
+          accessibilityLabel={t('history.nextWeek', { defaultValue: 'Next week' })}
+          accessibilityState={{ disabled: weekOffset >= 0 }}
         >
           <Text style={[styles.navArrowText, weekOffset >= 0 && styles.navArrowTextDisabled]}>›</Text>
         </TouchableOpacity>

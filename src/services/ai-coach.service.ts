@@ -19,6 +19,8 @@ export interface NextSessionExercise {
 export interface NextSession {
   focus: string;
   exercises: NextSessionExercise[];
+  /** 3-sentence coach rationale: key insight, why this load/focus, what to watch. */
+  coachsCall?: string;
 }
 
 export interface ChatMessage {

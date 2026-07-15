@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { theme, palette } from '../../theme';
+import i18n from '../../i18n';
 import { Button } from './Button';
 
 export interface DialogProps {
@@ -48,10 +49,18 @@ export const Dialog: React.FC<DialogProps> = ({
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
               style={styles.dialogContainer}
+              accessibilityViewIsModal
+              accessibilityLabel={title}
             >
               <View style={styles.header}>
                 {icon && <View style={styles.iconContainer}>{icon}</View>}
-                <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <TouchableOpacity
+                  onPress={onClose}
+                  style={styles.closeButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={i18n.t('common.close', { defaultValue: 'Close' })}
+                >
                   <Text style={styles.closeIcon}>✕</Text>
                 </TouchableOpacity>
               </View>

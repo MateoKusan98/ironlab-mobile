@@ -955,6 +955,8 @@ export const ActiveWorkoutScreen: React.FC = () => {
                   onPress={() => openTutorial(ex.name)}
                   style={styles.tutorialBtn}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('activeWorkout.watchTutorial', { defaultValue: 'Watch exercise tutorial' })}
                 >
                   <Text style={styles.tutorialBtnText}>▶</Text>
                 </TouchableOpacity>
@@ -962,10 +964,17 @@ export const ActiveWorkoutScreen: React.FC = () => {
                   onPress={() => { setSubstituteIdx(exIdx); setSubstituteSearch(''); }}
                   style={styles.substituteBtn}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('activeWorkout.substituteExercise', { defaultValue: 'Substitute exercise' })}
                 >
                   <Text style={styles.substituteBtnText}>⇄</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => removeExercise(exIdx)} style={styles.removeBtn}>
+                <TouchableOpacity
+                  onPress={() => removeExercise(exIdx)}
+                  style={styles.removeBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('activeWorkout.removeExercise', { defaultValue: 'Remove exercise' })}
+                >
                   <Text style={styles.removeBtnText}>✕</Text>
                 </TouchableOpacity>
                 <Text style={styles.chevron}>{ex.isExpanded ? '▲' : '▼'}</Text>
@@ -1039,6 +1048,8 @@ export const ActiveWorkoutScreen: React.FC = () => {
                             style={styles.removeSetBtn}
                             onPress={() => removeSet(exIdx, setIdx)}
                             hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('activeWorkout.removeSet', { defaultValue: 'Remove set' })}
                           >
                             <Text style={styles.removeSetBtnText}>✕</Text>
                           </TouchableOpacity>
@@ -1166,7 +1177,11 @@ export const ActiveWorkoutScreen: React.FC = () => {
             <SafeAreaView style={styles.modalContainer}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Substitute Exercise</Text>
-                <TouchableOpacity onPress={() => { setSubstituteIdx(null); setSubstituteSearch(''); }}>
+                <TouchableOpacity
+                  onPress={() => { setSubstituteIdx(null); setSubstituteSearch(''); }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
+                >
                   <Text style={styles.modalClose}>✕</Text>
                 </TouchableOpacity>
               </View>
@@ -1237,7 +1252,11 @@ export const ActiveWorkoutScreen: React.FC = () => {
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{t('activeWorkout.addExercise')}</Text>
-            <TouchableOpacity onPress={() => { setShowAddExercise(false); setExerciseSearch(''); }}>
+            <TouchableOpacity
+              onPress={() => { setShowAddExercise(false); setExerciseSearch(''); }}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
+            >
               <Text style={styles.modalClose}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -1275,7 +1294,11 @@ export const ActiveWorkoutScreen: React.FC = () => {
           <TouchableOpacity activeOpacity={1} style={rpeStyles.card}>
             <View style={rpeStyles.header}>
               <Text style={rpeStyles.title}>What is RPE?</Text>
-              <TouchableOpacity onPress={() => setRpeGuideVisible(false)}>
+              <TouchableOpacity
+                onPress={() => setRpeGuideVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
+              >
                 <Text style={rpeStyles.close}>✕</Text>
               </TouchableOpacity>
             </View>

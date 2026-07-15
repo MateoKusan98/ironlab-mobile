@@ -150,6 +150,7 @@
     "planNotLoaded": "Plan not available",
     "planNotLoadedSub": "M-7EO couldn't load a plan. Go back and generate one first.",
     "todaysProgram": "TODAY'S PROGRAM",
+    "coachsCall": "Coach's call",
     "readinessRequired": "Required — enter hours slept (e.g. 7.5)",
     "bodyweightRequired": "Required — enter your bodyweight",
     "fatigueGate": {
@@ -180,6 +181,10 @@
     "couldNotStart": "Could not start session. Try again."
   },
   "activeWorkout": {
+    "watchTutorial": "Watch exercise tutorial",
+    "substituteExercise": "Substitute exercise",
+    "removeExercise": "Remove exercise",
+    "removeSet": "Remove set",
     "time": "TIME",
     "setsDone": "SETS DONE",
     "finish": "Finish",
@@ -216,6 +221,8 @@
   },
   "history": {
     "title": "Workout History",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
     "prDay": "🏆 PR Day",
     "noWorkouts": "No workouts this week",
     "totalVolume": "Total Volume",
@@ -406,7 +413,10 @@
     "serverError": "Server error. Please try again.",
     "unknownError": "Something went wrong. Please try again.",
     "sessionNotFound": "Session not found.",
-    "couldNotLoad": "Could not load data. Pull to refresh."
+    "couldNotLoad": "Could not load data. Pull to refresh.",
+    "boundaryTitle": "Something went wrong",
+    "boundaryBody": "The app hit an unexpected error. Your data is safe — tap below to try again.",
+    "boundaryRetry": "Try again"
   },
   "aiCoachChat": {
     "personalFitnessCoach": "Personal Fitness Coach",

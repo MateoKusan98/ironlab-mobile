@@ -314,7 +314,7 @@ export const NutritionDashboardScreen: React.FC = () => {
                 <View style={styles.insightRing}>
                     <View style={[styles.ringFill, { 
                         borderColor: '#27272A',
-                        ...StyleSheet.absoluteFillObject
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
                     }]} />
                     
                     <View style={[styles.ringFill, { 
@@ -322,7 +322,7 @@ export const NutritionDashboardScreen: React.FC = () => {
                         borderRightColor: progressPercent >= 25 ? palette.brand[500] : 'transparent',
                         borderBottomColor: progressPercent >= 50 ? palette.brand[500] : 'transparent',
                         borderLeftColor: progressPercent >= 75 ? palette.brand[500] : 'transparent',
-                        ...StyleSheet.absoluteFillObject
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
                     }]} />
 
                     <View style={styles.ringInner}>
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   mealCardOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.4)',
     padding: 20,
     justifyContent: 'flex-end',

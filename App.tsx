@@ -9,6 +9,7 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { BadgeCelebrationProvider } from './src/contexts/BadgeCelebrationContext';
 import { WhatsNewProvider } from './src/contexts/WhatsNewContext';
 import { SplashScreen } from './src/screens/SplashScreen';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { useAuthStore } from './src/stores/auth.store';
 import { useSettingsStore } from './src/stores/settings.store';
 import { registerPushToken } from './src/services/pushNotification.service';
@@ -18,7 +19,7 @@ import { theme } from './src/theme';
 // Capture uncaught JS errors (crashes) so we can see them per-user in the admin
 // Error Logs screen. Installed once at module load; chains the default handler so
 // the app's normal red-box / crash behaviour is preserved.
-const ErrorUtilsRef = (global as any).ErrorUtils;
+const ErrorUtilsRef = (globalThis as any).ErrorUtils;
 if (ErrorUtilsRef?.setGlobalHandler) {
   const previousHandler = ErrorUtilsRef.getGlobalHandler?.();
   ErrorUtilsRef.setGlobalHandler((error: any, isFatal?: boolean) => {
@@ -69,14 +70,16 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <KeyboardProvider>
-        <QueryClientProvider client={queryClient}>
-          <StatusBar style="light" />
-          <BadgeCelebrationProvider>
-            <WhatsNewProvider>
-              <AppContent />
-            </WhatsNewProvider>
-          </BadgeCelebrationProvider>
-        </QueryClientProvider>
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <StatusBar style="light" />
+            <BadgeCelebrationProvider>
+              <WhatsNewProvider>
+                <AppContent />
+              </WhatsNewProvider>
+            </BadgeCelebrationProvider>
+          </QueryClientProvider>
+        </ErrorBoundary>
       </KeyboardProvider>
     </SafeAreaProvider>
   );

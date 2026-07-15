@@ -60,6 +60,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
         style={styles.trigger}
         activeOpacity={0.7}
         onPress={() => setIsOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={[label, selectedItem ? selectedItem.label : placeholder].filter(Boolean).join(', ')}
+        accessibilityState={{ expanded: isOpen }}
       >
         {selectedItem?.icon && <View style={styles.triggerIcon}>{selectedItem.icon}</View>}
         <Text style={[theme.typography.textMd, { color: selectedItem ? palette.gray[50] : palette.gray[500] }]}>
@@ -100,6 +103,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
                         item.value === value && styles.itemSelected,
                       ]}
                       onPress={() => handleSelect(item.value)}
+                      accessibilityRole="menuitem"
+                      accessibilityLabel={[item.label, item.subtitle].filter(Boolean).join(', ')}
+                      accessibilityState={{ selected: item.value === value }}
                     >
                       {item.icon && <View style={styles.itemIcon}>{item.icon}</View>}
                       <View style={styles.itemTexts}>

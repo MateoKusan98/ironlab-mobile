@@ -113,6 +113,7 @@ export const StartSessionScreen: React.FC = () => {
     return [];
   });
   const [cycleInfo, setCycleInfo] = useState<{ week: number; session: number; total: number } | null>(null);
+  const [coachsCall, setCoachsCall] = useState<string | undefined>(route.params?.nextSessionJson?.coachsCall);
   const [errors, setErrors] = useState<{ sleep?: string; bodyweight?: string }>({});
 
   const applyPlanResult = (result: Awaited<ReturnType<typeof aiCoachService.getPlan>>) => {
@@ -121,6 +122,7 @@ export const StartSessionScreen: React.FC = () => {
     } else if (result.plan) {
       setPlannedExercises(parsePlanExercises(result.plan));
     }
+    setCoachsCall(result.nextSessionJson?.coachsCall);
     if (result.trainingWeek && result.sessionInWeek && result.sessionsPerCycle) {
       setCycleInfo({ week: result.trainingWeek, session: result.sessionInWeek, total: result.sessionsPerCycle });
     }
@@ -457,6 +459,12 @@ export const StartSessionScreen: React.FC = () => {
                     {ex.cue ? <Text style={styles.planExCue}>"{ex.cue}"</Text> : null}
                   </View>
                 ))}
+                {coachsCall ? (
+                  <View style={styles.coachsCall}>
+                    <Text style={styles.coachsCallLabel}>{t('session.coachsCall', { defaultValue: "Coach's call" })}</Text>
+                    <Text style={styles.coachsCallText}>{coachsCall}</Text>
+                  </View>
+                ) : null}
               </View>
             ) : route.params?.freeSession ? (
               <View style={styles.card}>
@@ -658,4 +666,7 @@ const styles = StyleSheet.create({
   planExName: { fontSize: 15, fontWeight: '700', color: theme.colors.text },
   planExDetail: { fontSize: 13, color: palette.brand[400], fontWeight: '600', marginTop: 2 },
   planExCue: { fontSize: 11, color: palette.gray[500], fontStyle: 'italic', marginTop: 3 },
+  coachsCall: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: palette.gray[700] },
+  coachsCallLabel: { fontSize: 11, fontWeight: '700', color: palette.brand[400], letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
+  coachsCallText: { fontSize: 13, lineHeight: 19, color: palette.gray[300] },
 });

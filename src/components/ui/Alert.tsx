@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { theme, palette } from '../../theme';
+import i18n from '../../i18n';
 import { Button } from './Button';
 
 export type AlertVariant = 'solid' | 'outline' | 'tinted';
@@ -63,6 +64,8 @@ export const Alert: React.FC<AlertProps> = ({
 
   return (
     <View
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
       style={[
         styles.container,
         {
@@ -112,7 +115,12 @@ export const Alert: React.FC<AlertProps> = ({
               />
             )}
             {onClose && (
-              <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <TouchableOpacity
+                onPress={onClose}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityRole="button"
+                accessibilityLabel={i18n.t('common.close', { defaultValue: 'Close' })}
+              >
                 {/* Fallback X if no icon passed, usually handled by caller or generic Text */}
                 <Text style={{ color: vStyle.iconColor, fontSize: 18, fontWeight: 'bold' }}>×</Text>
               </TouchableOpacity>

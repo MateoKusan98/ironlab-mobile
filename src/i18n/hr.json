@@ -118,6 +118,7 @@
     "planNotLoaded": "Plan nije dostupan",
     "planNotLoadedSub": "M-7EO nije mogao učitati plan. Vrati se i prvo generiraj plan.",
     "todaysProgram": "DANAŠNJI PROGRAM",
+    "coachsCall": "Riječ trenera",
     "readinessRequired": "Obavezno — unesite sate spavanja (npr. 7.5)",
     "bodyweightRequired": "Obavezno — unesite tjelesnu težinu",
     "moods": {
@@ -141,6 +142,10 @@
     "couldNotStart": "Nije moguće pokrenuti trening. Pokušaj ponovo."
   },
   "activeWorkout": {
+    "watchTutorial": "Pogledaj upute za vježbu",
+    "substituteExercise": "Zamijeni vježbu",
+    "removeExercise": "Ukloni vježbu",
+    "removeSet": "Ukloni seriju",
     "time": "VRIJEME",
     "setsDone": "SERIJE",
     "finish": "Završi",
@@ -177,6 +182,8 @@
   },
   "history": {
     "title": "Povijest treninga",
+    "previousWeek": "Prethodni tjedan",
+    "nextWeek": "Sljedeći tjedan",
     "prDay": "🏆 Dan rekorda",
     "noWorkouts": "Nema treninga ovaj tjedan",
     "totalVolume": "Ukupni volumen",
@@ -336,7 +343,10 @@
     "serverError": "Greška poslužitelja. Pokušaj ponovo.",
     "unknownError": "Nešto je pošlo naopako. Pokušaj ponovo.",
     "sessionNotFound": "Sesija nije pronađena.",
-    "couldNotLoad": "Nije moguće učitati podatke. Povuci za osvježavanje."
+    "couldNotLoad": "Nije moguće učitati podatke. Povuci za osvježavanje.",
+    "boundaryTitle": "Nešto je pošlo po zlu",
+    "boundaryBody": "Aplikacija je naišla na neočekivanu grešku. Tvoji podaci su sigurni — dodirni ispod za ponovni pokušaj.",
+    "boundaryRetry": "Pokušaj ponovno"
   },
   "aiCoachChat": {
     "personalFitnessCoach": "Osobni fitness trener",

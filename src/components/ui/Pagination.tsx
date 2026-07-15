@@ -43,6 +43,9 @@ export const Pagination: React.FC<PaginationProps> = ({
         onPress={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         style={[styles.navButton, currentPage === 1 && styles.disabled]}
+        accessibilityRole="button"
+        accessibilityLabel="Previous page"
+        accessibilityState={{ disabled: currentPage === 1 }}
       >
         <Text style={styles.navText}>Previous</Text>
       </TouchableOpacity>
@@ -53,6 +56,9 @@ export const Pagination: React.FC<PaginationProps> = ({
             key={`page-${index}`}
             onPress={() => typeof page === 'number' && onPageChange(page)}
             disabled={page === '...'}
+            accessibilityRole={page === '...' ? 'none' : 'button'}
+            accessibilityLabel={typeof page === 'number' ? `Page ${page}` : undefined}
+            accessibilityState={{ selected: currentPage === page, disabled: page === '...' }}
             style={[
               styles.pageButton,
               currentPage === page && styles.activePageButton,
@@ -74,6 +80,9 @@ export const Pagination: React.FC<PaginationProps> = ({
         onPress={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         style={[styles.navButton, currentPage === totalPages && styles.disabled]}
+        accessibilityRole="button"
+        accessibilityLabel="Next page"
+        accessibilityState={{ disabled: currentPage === totalPages }}
       >
         <Text style={styles.navText}>Next</Text>
       </TouchableOpacity>

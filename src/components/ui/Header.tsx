@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { theme, palette } from '../../theme';
+import i18n from '../../i18n';
 import { ProgressBar } from './ProgressBar';
 
 export interface HeaderProps {
@@ -10,6 +11,7 @@ export interface HeaderProps {
   onBack?: () => void;
   rightIcon?: React.ReactNode;
   onRightPress?: () => void;
+  rightLabel?: string; // Accessibility label for the right icon button
   progress?: number; // If provided, shows a progress bar under the title
 }
 
@@ -20,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onBack,
   rightIcon,
   onRightPress,
+  rightLabel,
   progress,
 }) => {
   return (
@@ -28,7 +31,12 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Left Side (Back Button or Placeholder) */}
         <View style={styles.sideSlot}>
           {showBack && (
-            <TouchableOpacity onPress={onBack} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <TouchableOpacity
+              onPress={onBack}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel={i18n.t('common.back', { defaultValue: 'Back' })}
+            >
               <Text style={styles.icon}>‹</Text>
             </TouchableOpacity>
           )}
@@ -36,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Center Title / Subtitle */}
         <View style={styles.centerSlot}>
-          <Text style={[theme.typography.headingMd, styles.title]} numberOfLines={1}>
+          <Text style={[theme.typography.headingMd, styles.title]} numberOfLines={1} accessibilityRole="header">
             {title}
           </Text>
           {subtitle && (
@@ -49,7 +57,12 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Right Side */}
         <View style={[styles.sideSlot, { alignItems: 'flex-end' }]}>
           {rightIcon && (
-            <TouchableOpacity onPress={onRightPress} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <TouchableOpacity
+              onPress={onRightPress}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel={rightLabel}
+            >
               <View style={styles.rightIconWrapper}>
                 {rightIcon}
               </View>

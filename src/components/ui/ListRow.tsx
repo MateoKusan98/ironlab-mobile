@@ -13,6 +13,7 @@ export interface ListRowProps {
   progress?: number; // 0-100
   onPress?: () => void;
   onActionPress?: () => void; // Trailing action (e.g. edit/delete)
+  actionLabel?: string; // Accessibility label for the trailing action button
 }
 
 export const ListRow: React.FC<ListRowProps> = ({
@@ -24,6 +25,7 @@ export const ListRow: React.FC<ListRowProps> = ({
   progress,
   onPress,
   onActionPress,
+  actionLabel = 'More options',
 }) => {
   return (
     <TouchableOpacity
@@ -31,6 +33,8 @@ export const ListRow: React.FC<ListRowProps> = ({
       activeOpacity={onPress ? 0.7 : 1}
       onPress={onPress}
       disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={onPress ? [title, subtitle].filter(Boolean).join(', ') : undefined}
     >
       <View style={styles.leftContent}>
         {avatarUrl ? (
@@ -68,7 +72,13 @@ export const ListRow: React.FC<ListRowProps> = ({
 
       <View style={styles.rightContent}>
         {onActionPress && (
-          <TouchableOpacity onPress={onActionPress} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={styles.actionButton}>
+          <TouchableOpacity
+            onPress={onActionPress}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={styles.actionButton}
+            accessibilityRole="button"
+            accessibilityLabel={actionLabel}
+          >
             <Text style={styles.actionIcon}>⋮</Text>
           </TouchableOpacity>
         )}

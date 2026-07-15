@@ -327,6 +327,12 @@ export const HomeScreen: React.FC = () => {
             </Text>
           </View>
         ))}
+        {nextSession?.coachsCall ? (
+          <View style={styles.previewCoachsCall}>
+            <Text style={styles.previewCoachsCallLabel}>{t('session.coachsCall', { defaultValue: "Coach's call" })}</Text>
+            <Text style={styles.previewCoachsCallText}>{nextSession.coachsCall}</Text>
+          </View>
+        ) : null}
       </View>
     );
   };
@@ -517,6 +523,8 @@ export const HomeScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.resumeBtn}
               onPress={startTodayWorkout}
+              accessibilityRole="button"
+              accessibilityLabel={t('home.tapToResume')}
             >
               <View style={styles.resumePulse} />
               <Text style={styles.resumeBtnText}>{t('home.tapToResume')}</Text>
@@ -880,6 +888,9 @@ restDayText: { fontSize: 18, fontWeight: '700', color: palette.gray[300], margin
   previewRowLast: { borderBottomWidth: 0 },
   previewExName: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
   previewExDetail: { fontSize: 12, color: palette.brand[400], fontWeight: '600', marginTop: 2 },
+  previewCoachsCall: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: palette.gray[700] },
+  previewCoachsCallLabel: { fontSize: 10, fontWeight: '700', color: palette.brand[400], letterSpacing: 1, textTransform: 'uppercase', marginBottom: 5 },
+  previewCoachsCallText: { fontSize: 12, lineHeight: 18, color: palette.gray[300] },
 
   sessionReadyRow: {
     flexDirection: 'row',

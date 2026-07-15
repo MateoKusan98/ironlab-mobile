@@ -53,6 +53,9 @@ export const Accordion: React.FC<AccordionProps> = ({
         style={styles.header}
         onPress={toggleAccordion}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityState={{ expanded }}
       >
         <View style={styles.titleRow}>
           <Text
@@ -98,6 +101,8 @@ export const Accordion: React.FC<AccordionProps> = ({
             <TouchableOpacity
               style={styles.actionButton}
               onPress={onAction}
+              accessibilityRole="button"
+              accessibilityLabel={actionLabel}
             >
               <Text style={[theme.typography.textSm, styles.actionText]}>
                 {actionLabel}
