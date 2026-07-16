@@ -570,7 +570,7 @@ const CompDateField = ({
 }) => {
   const selected = date ? new Date(date) : null;
 
-  const monthOptions: Array<{ label: string; date: Date }> = [];
+  const monthOptions: { label: string; date: Date }[] = [];
   const now = new Date();
   for (let i = 1; i <= 14; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
@@ -744,7 +744,7 @@ const q = StyleSheet.create({
 // hypertrophy-vs-strength choice here: beginners get a general get-in-shape
 // block (trainingFocus defaults to 'hypertrophy' = moderate reps, volume, never
 // tests a max) and we offer to pick a path after a few months of training.
-const EXPRESS_LAYOUT: Array<{ sectionId: string; questionIds: string[] }> = [
+const EXPRESS_LAYOUT: { sectionId: string; questionIds: string[] }[] = [
   { sectionId: 'constraints', questionIds: ['trainingDays', 'equipmentAccess'] },
   { sectionId: 'recovery', questionIds: ['injuryHistory'] },
 ];

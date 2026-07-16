@@ -108,13 +108,13 @@ export interface TodaySummary {
     energyLevel: number | null;
     exercises: ExerciseSummary[];
   } | null;
-  cardio: Array<{
+  cardio: {
     cardioType: string;
     durationMinutes: number | null;
     distanceKm: number | null;
     caloriesBurned: number | null;
     avgHeartRate: number | null;
-  }>;
+  }[];
 }
 
 export interface MainLiftData {
@@ -142,7 +142,7 @@ export interface TopExercise {
 
 export interface ExerciseProgression {
   name: string;
-  points: Array<{ date: string; estimated1RM: number }>;
+  points: { date: string; estimated1RM: number }[];
 }
 
 export interface WeeklyVolume {
@@ -173,7 +173,7 @@ export interface PRTimelineEntry {
 export interface RepMaxRecord {
   exerciseName: string;
   muscleGroup: string;
-  maxes: Array<{ reps: number; weight: number; e1rm: number }>;
+  maxes: { reps: number; weight: number; e1rm: number }[];
 }
 
 export interface StrengthLift {
@@ -241,7 +241,7 @@ export interface AthleteStats {
     repMaxRecords: RepMaxRecord[];
   };
   consistency: {
-    heatmap: Array<{ date: string; sessions: number; volumeKg: number }>;
+    heatmap: { date: string; sessions: number; volumeKg: number }[];
     longestWeekStreak: number;
     totalTrainingDays: number;
     dayOfWeekCounts: number[];
@@ -249,7 +249,7 @@ export interface AthleteStats {
   };
   intensity: {
     avgRpe: number | null;
-    trend: Array<{ label: string; avgRpe: number | null; avgIntensityPct: number | null }>;
+    trend: { label: string; avgRpe: number | null; avgIntensityPct: number | null }[];
   };
   density: {
     avgRestSeconds: number | null;
@@ -268,7 +268,7 @@ export interface AthleteStats {
     totalDistanceKm: number;
     totalCalories: number;
     avgHeartRate: number | null;
-    recent: Array<{ date: string; type: string | null; minutes: number | null; distanceKm: number | null; calories: number | null; avgHeartRate: number | null }>;
+    recent: { date: string; type: string | null; minutes: number | null; distanceKm: number | null; calories: number | null; avgHeartRate: number | null }[];
   };
   milestones: {
     volume: MilestoneLadder;
@@ -284,7 +284,7 @@ export interface AthleteStats {
     sessionsLast30Days: number;
     sessionsLast7Days: number;
   };
-  bodyweight: Array<{ date: string; weight: number }>;
+  bodyweight: { date: string; weight: number }[];
 }
 
 export const sessionService = {

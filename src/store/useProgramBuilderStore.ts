@@ -82,7 +82,7 @@ interface ProgramBuilderState {
   resetDraft: () => void;
 }
 
-export const useProgramBuilderStore = create<ProgramBuilderState>((set, get) => ({
+export const useProgramBuilderStore = create<ProgramBuilderState>((set) => ({
   draft: { ...initialProgramState },
   
   setOverview: (data) => set((state) => ({ draft: { ...state.draft, ...data } })),

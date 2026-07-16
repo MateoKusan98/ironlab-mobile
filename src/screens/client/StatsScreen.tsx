@@ -325,7 +325,7 @@ const Heatmap: React.FC<{ data: AthleteStats['consistency']['heatmap'] }> = ({ d
   const maxVol = Math.max(...data.map(d => d.volumeKg), 1);
 
   const today = new Date();
-  const days: Array<{ date: string; vol: number; sessions: number } | null> = [];
+  const days: ({ date: string; vol: number; sessions: number } | null)[] = [];
   const start = new Date(today);
   start.setDate(start.getDate() - 363);
   const lead = start.getDay();
@@ -337,7 +337,7 @@ const Heatmap: React.FC<{ data: AthleteStats['consistency']['heatmap'] }> = ({ d
     const hit = byDate.get(key);
     days.push({ date: key, vol: hit?.volumeKg ?? 0, sessions: hit?.sessions ?? 0 });
   }
-  const weeks: Array<typeof days> = [];
+  const weeks: typeof days[] = [];
   for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
 
   const cellColor = (vol: number, sessions: number) => {

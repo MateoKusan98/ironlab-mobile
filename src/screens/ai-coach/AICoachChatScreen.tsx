@@ -138,7 +138,7 @@ export const AICoachChatScreen: React.FC<Props> = ({ route }) => {
       const history = updatedMessages.slice(0, -1);
       const reply = await aiCoachService.chat(text, history, preferences);
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: t('aiCoachChat.connectionError') },

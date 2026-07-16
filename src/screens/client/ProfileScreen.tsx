@@ -35,9 +35,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBadges } from '../../hooks/useBadges';
 import { rankForPoints } from '../../services/rank';
 import { Medallion, TIERS } from '../../components/ui/Medallion';
+import { UserRole } from '@shared';
 
 const CREATINE_ENABLED_KEY = '@ironlab_creatine_enabled';
-import { UserRole } from '@shared';
 
 const ROLE_LABELS: Record<string, string> = {
   [UserRole.ROLE_SUPER_ADMIN]: 'Super Admin',
@@ -90,7 +90,6 @@ export const ProfileScreen: React.FC = () => {
 
   const [trainingDays, setTrainingDays] = useState<string[]>([]);
   const [savingDays, setSavingDays] = useState(false);
-  const [daysLoaded, setDaysLoaded] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [nutritionTracking, setNutritionTracking] = useState(true);
   const [creatineReminder, setCreatineReminder] = useState(false);
@@ -105,8 +104,7 @@ export const ProfileScreen: React.FC = () => {
       .then((data) => {
         if (data.trainingDays) setTrainingDays(data.trainingDays);
       })
-      .catch(() => {})
-      .finally(() => setDaysLoaded(true));
+      .catch(() => {});
 
     aiCoachService.getProfile()
       .then((profile) => {

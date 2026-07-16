@@ -58,7 +58,7 @@ export const ManualFoodLogScreen: React.FC = () => {
   const [fat, setFat] = useState(String(prefill?.fat ?? 0));
 
   const [submitToDb, setSubmitToDb] = useState(true);
-  const [saveAsRecipe, setSaveAsRecipe] = useState(false);
+  const [saveAsRecipe] = useState(false);
 
   // Custom Ingredients
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,10 +74,10 @@ export const ManualFoodLogScreen: React.FC = () => {
   const [pasteModalVisible, setPasteModalVisible] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [parsing, setParsing] = useState(false);
-  const [parsedIngredients, setParsedIngredients] = useState<Array<{
+  const [parsedIngredients, setParsedIngredients] = useState<{
     name: string; quantity: number | string; unit: string;
     calories: number; protein: number; carbs: number; fat: number;
-  }>>(
+  }[]>(
     // Seed from an AI meal scan so detected ingredients are listed, not dropped.
     (prefill?.ingredients ?? []).map((ing) => ({
       name: ing.name ?? '',

@@ -10,7 +10,7 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import { theme, palette } from '../../../theme';
+import { palette } from '../../../theme';
 import { useExercises } from '../../../hooks/useWorkout';
 
 interface ExerciseSearchModalProps {

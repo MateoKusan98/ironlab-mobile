@@ -1,0 +1,25 @@
+name: CI
+
+# Typecheck and lint the app. There is no test job yet — the mobile suite does
+# not exist; the adaptive logic worth testing lives in ironlab-backend.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint

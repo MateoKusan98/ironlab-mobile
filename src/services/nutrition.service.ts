@@ -88,7 +88,7 @@ export const nutritionService = {
     totalProtein: number;
     totalCarbs: number;
     totalFat: number;
-    ingredients: Array<{ name: string; quantity: number; unit: string; calories: number; protein: number; carbs: number; fat: number }>;
+    ingredients: { name: string; quantity: number; unit: string; calories: number; protein: number; carbs: number; fat: number }[];
   }> => {
     const { data } = await api.post<ApiResponse<any>>('/nutrition/parse-ingredients', { text });
     return data.data;
@@ -127,7 +127,7 @@ export const nutritionService = {
     currentTarget: number;
     tdeeEstimate: number | null;
     lastAdjustedAt: string | null;
-    history: Array<{ date: string; fromCalories: number; toCalories: number; reason: string; weightTrendKgPerWeek: number }>;
+    history: { date: string; fromCalories: number; toCalories: number; reason: string; weightTrendKgPerWeek: number }[];
   }> => {
     const { data } = await api.get<ApiResponse<any>>('/nutrition/calorie-adaptation');
     return data.data;

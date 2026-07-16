@@ -9,8 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Camera, CameraView, BarcodeScanningResult } from 'expo-camera';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets , SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { palette } from '../../theme';

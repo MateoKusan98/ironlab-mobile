@@ -12,70 +12,6 @@ import { SetupWizardScreen } from '../screens/setup/SetupWizardScreen';
 import { ClientTabs } from './ClientTabs';
 import { CoachTabs } from './CoachTabs';
 import { theme } from '../theme';
-
-export type RootStackParamList = {
-  Auth: undefined;
-  Badges: undefined;
-  Setup: undefined;
-  ClientApp: undefined;
-  CoachApp: undefined;
-  CreatePost: undefined;
-  PostDetail: { postId: string };
-  UserProfile: { userId: string; userName: string };
-  Messages: undefined;
-  Conversation: { conversationId: string; otherUserId: string; otherUserName: string };
-  BodyScan: { returnTo?: string };
-  ScanResult: { analysis: any };
-  FoodScanOnboarding: undefined;
-  FoodDetails: { food?: any };
-  ManualFoodLog: { prefill?: { mealName?: string; calories?: number; protein?: number; carbs?: number; fat?: number; category?: string; imageUri?: string; ingredients?: Array<{ name: string; amount?: string; calories?: number; protein?: number; carbs?: number; fat?: number }> } } | undefined;
-  MealScan: undefined;
-  BarcodeScanner: undefined;
-  MyMeals: undefined;
-  BrowseMeals: undefined;
-  ProgramCreatorStart: undefined;
-  ProgramCreatorStructure: undefined;
-  ProgramCreatorWeeks: undefined;
-  ProgramCreatorDay: { blockIndex: number, weekIndex: number, dayIndex: number };
-  AICoachWelcome: undefined;
-  AICoachSetup: undefined;
-  AICoachExtendedSetup: { preferences?: import('../services/ai-coach.service').CoachPreferences; editMode?: boolean; express?: boolean; experienceLevel?: 'novice' | 'beginner' | 'intermediate' | 'advanced' };
-  AICoachChat: { preferences?: import('../services/ai-coach.service').CoachPreferences };
-  AICoachPlan: undefined;
-  PathTree: undefined;
-  WorkoutHistory: undefined;
-  Progress: undefined;
-  Stats: undefined;
-  SessionDetail: { sessionId: string };
-  StartSession: { plan?: string; nextSessionJson?: import('../services/ai-coach.service').NextSession | null; freeSession?: boolean; makeUp?: boolean; skipNext?: boolean; trainAhead?: boolean };
-  ActiveWorkout: { sessionId: string; plannedExercises?: Array<{ name: string; sets: number; reps: number; weight: number; rpe?: number; weightPerc?: number; cue?: string }> };
-  SessionSummary: { sessionId: string; durationMinutes: number; prs?: Array<{ type: string; label: string; value: number; previous: number | null; exerciseName: string; tier: 'pr' | 'mini'; e1rm?: number; prevE1rm?: number | null }> };
-  CardioLog: undefined;
-  SupportChat: undefined;
-  FormCheck: undefined;
-  AdminUsers: undefined;
-  AdminAILab: { userId?: string; userName?: string };
-  AdminIdeas: undefined;
-  AdminLogs: undefined;
-  SubmitIdea: undefined;
-  Quiz: undefined;
-};
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-const navTheme = {
-  ...DefaultTheme,
-  dark: true,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: theme.colors.primary,
-    background: theme.colors.background,
-    card: theme.colors.card,
-    text: theme.colors.text,
-    border: theme.colors.border,
-    notification: theme.colors.accent,
-  },
-};
 import { BodyScanScreen } from '../screens/nutrition/BodyScanScreen';
 import { ScanResultScreen } from '../screens/nutrition/ScanResultScreen';
 import { FoodScanOnboardingScreen } from '../screens/nutrition/FoodScanOnboardingScreen';
@@ -123,6 +59,70 @@ import { PostDetailScreen } from '../screens/community/PostDetailScreen';
 import { UserProfileScreen } from '../screens/community/UserProfileScreen';
 import { MessagesScreen } from '../screens/messaging/MessagesScreen';
 import { ConversationScreen } from '../screens/messaging/ConversationScreen';
+
+export type RootStackParamList = {
+  Auth: undefined;
+  Badges: undefined;
+  Setup: undefined;
+  ClientApp: undefined;
+  CoachApp: undefined;
+  CreatePost: undefined;
+  PostDetail: { postId: string };
+  UserProfile: { userId: string; userName: string };
+  Messages: undefined;
+  Conversation: { conversationId: string; otherUserId: string; otherUserName: string };
+  BodyScan: { returnTo?: string };
+  ScanResult: { analysis: any };
+  FoodScanOnboarding: undefined;
+  FoodDetails: { food?: any };
+  ManualFoodLog: { prefill?: { mealName?: string; calories?: number; protein?: number; carbs?: number; fat?: number; category?: string; imageUri?: string; ingredients?: { name: string; amount?: string; calories?: number; protein?: number; carbs?: number; fat?: number }[] } } | undefined;
+  MealScan: undefined;
+  BarcodeScanner: undefined;
+  MyMeals: undefined;
+  BrowseMeals: undefined;
+  ProgramCreatorStart: undefined;
+  ProgramCreatorStructure: undefined;
+  ProgramCreatorWeeks: undefined;
+  ProgramCreatorDay: { blockIndex: number, weekIndex: number, dayIndex: number };
+  AICoachWelcome: undefined;
+  AICoachSetup: undefined;
+  AICoachExtendedSetup: { preferences?: import('../services/ai-coach.service').CoachPreferences; editMode?: boolean; express?: boolean; experienceLevel?: 'novice' | 'beginner' | 'intermediate' | 'advanced' };
+  AICoachChat: { preferences?: import('../services/ai-coach.service').CoachPreferences };
+  AICoachPlan: undefined;
+  PathTree: undefined;
+  WorkoutHistory: undefined;
+  Progress: undefined;
+  Stats: undefined;
+  SessionDetail: { sessionId: string };
+  StartSession: { plan?: string; nextSessionJson?: import('../services/ai-coach.service').NextSession | null; freeSession?: boolean; makeUp?: boolean; skipNext?: boolean; trainAhead?: boolean };
+  ActiveWorkout: { sessionId: string; plannedExercises?: { name: string; sets: number; reps: number; weight: number; rpe?: number; weightPerc?: number; cue?: string }[] };
+  SessionSummary: { sessionId: string; durationMinutes: number; prs?: { type: string; label: string; value: number; previous: number | null; exerciseName: string; tier: 'pr' | 'mini'; e1rm?: number; prevE1rm?: number | null }[] };
+  CardioLog: undefined;
+  SupportChat: undefined;
+  FormCheck: undefined;
+  AdminUsers: undefined;
+  AdminAILab: { userId?: string; userName?: string };
+  AdminIdeas: undefined;
+  AdminLogs: undefined;
+  SubmitIdea: undefined;
+  Quiz: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const navTheme = {
+  ...DefaultTheme,
+  dark: true,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: theme.colors.primary,
+    background: theme.colors.background,
+    card: theme.colors.card,
+    text: theme.colors.text,
+    border: theme.colors.border,
+    notification: theme.colors.accent,
+  },
+};
 
 export const AppNavigator: React.FC = () => {
   const { isAuthenticated, user, impersonator } = useAuthStore();

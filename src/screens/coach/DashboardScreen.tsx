@@ -15,7 +15,7 @@ import { CoachStackParamList } from '../../navigation/CoachTabs';
 import { useClients } from '../../hooks/useUsers';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserResponse } from '@shared';
-import { theme, palette } from '../../theme';
+import { theme } from '../../theme';
 import { Users, Camera } from 'phosphor-react-native';
 
 type Nav = NativeStackNavigationProp<CoachStackParamList, 'Dashboard'>;

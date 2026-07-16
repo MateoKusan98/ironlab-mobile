@@ -11,7 +11,6 @@ import {
   NativeScrollEvent,
   TextInput as RNTextInput,
   Image,
-  ActivityIndicator,
   Animated,
   Easing
 } from 'react-native';
@@ -179,7 +178,6 @@ export const SetupWizardScreen: React.FC = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress] = useState(new Animated.Value(0));
-  const [uploadPercent, setUploadPercent] = useState(0);
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -205,7 +203,6 @@ export const SetupWizardScreen: React.FC = () => {
   const doRealUpload = async (uri: string) => {
     setIsUploading(true);
     uploadProgress.setValue(0);
-    setUploadPercent(0);
 
     // Start ring animation for visual feedback
     Animated.timing(uploadProgress, {
@@ -216,9 +213,7 @@ export const SetupWizardScreen: React.FC = () => {
     }).start();
 
     try {
-      const updatedUser = await usersService.uploadAvatar(uri, (percent) => {
-        setUploadPercent(percent);
-      });
+      const updatedUser = await usersService.uploadAvatar(uri);
       await setUser(updatedUser);
     } catch (err) {
       console.warn('Avatar upload failed, continuing without avatar:', err);

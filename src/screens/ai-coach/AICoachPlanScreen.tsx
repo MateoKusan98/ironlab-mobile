@@ -21,7 +21,7 @@ import { theme, palette } from '../../theme';
 import { aiCoachService, RecoveryWeekStatus } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserRole } from '@shared';
-import { MagnifyingGlass, Gear, Robot, Trophy, ChartBar } from 'phosphor-react-native';
+import { MagnifyingGlass, Trophy, ChartBar } from 'phosphor-react-native';
 import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
 import { RecoveryModal, RecoveryBanner } from '../../components/ui/RecoveryWeekControl';
 
@@ -125,7 +125,7 @@ const DebugModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
 
 const InjuryModal: React.FC<{
   visible: boolean;
-  injuries: Array<{ id: string; exerciseName: string | null; description: string }>;
+  injuries: { id: string; exerciseName: string | null; description: string }[];
   currentHandling: string | null;
   onSave: (handling: 'replace' | 'remove' | 'reduce') => void;
   onClose: () => void;
@@ -235,7 +235,7 @@ const InjuryModal: React.FC<{
 // ─── Injury Banner ────────────────────────────────────────────────────────────
 
 const InjuryBanner: React.FC<{
-  injuries: Array<{ id: string; exerciseName: string | null; description: string }>;
+  injuries: { id: string; exerciseName: string | null; description: string }[];
   handling: string | null;
   onPress: () => void;
 }> = ({ injuries, handling, onPress }) => {
@@ -285,7 +285,7 @@ const CompDateModal: React.FC<{
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Build next 14 months starting from current month
-  const monthOptions: Array<{ label: string; date: Date }> = [];
+  const monthOptions: { label: string; date: Date }[] = [];
   const now = new Date();
   for (let i = 1; i <= 14; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
@@ -464,7 +464,7 @@ export const AICoachPlanScreen: React.FC = () => {
   const [compDate, setCompDate] = useState<string | null>(null);
   const [compType, setCompType] = useState<string | null>(null);
   const [compModalVisible, setCompModalVisible] = useState(false);
-  const [activeInjuries, setActiveInjuries] = useState<Array<{ id: string; exerciseName: string | null; description: string }>>([]);
+  const [activeInjuries, setActiveInjuries] = useState<{ id: string; exerciseName: string | null; description: string }[]>([]);
   const [injuryHandling, setInjuryHandling] = useState<string | null>(null);
   const [injuryModalVisible, setInjuryModalVisible] = useState(false);
   const [recoveryWeek, setRecoveryWeek] = useState<RecoveryWeekStatus | null>(null);

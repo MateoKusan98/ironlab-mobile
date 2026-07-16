@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { theme, palette } from '../theme';
+import { palette } from '../theme';
 import { Loader } from '../components/ui/Loader';
 
 
@@ -33,7 +33,7 @@ export const SplashScreen: React.FC = () => {
 
       <View style={styles.footer}>
         {/* White loader against the brand background */}
-        <Loader size="large" color="#FFFFFF" variant="circle" />
+        <Loader size="large" color="#FFFFFF" />
       </View>
     </View>
   );

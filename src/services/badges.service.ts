@@ -122,14 +122,14 @@ export const SESSION_POINTS = {
 
 export interface SessionPointsBreakdown {
   total: number;
-  lines: Array<{ label: string; points: number; earned: boolean }>;
+  lines: { label: string; points: number; earned: boolean }[];
 }
 
 export function projectSessionPoints(session: {
   bodyweight: number | null;
   energyLevel: number | null;
   sleepHours: number | null;
-  sets: Array<{ isCompleted: boolean; rpe: number | null; techniqueNotes: string | null }>;
+  sets: { isCompleted: boolean; rpe: number | null; techniqueNotes: string | null }[];
 }): SessionPointsBreakdown {
   const completed = session.sets.filter((s) => s.isCompleted);
   const rpeCount = completed.filter((s) => s.rpe !== null && s.rpe !== undefined).length;
@@ -147,7 +147,7 @@ export function projectSessionPoints(session: {
   return { total, lines };
 }
 
-export const BADGE_GROUPS: Array<{ key: BadgeGroup; label: string }> = [
+export const BADGE_GROUPS: { key: BadgeGroup; label: string }[] = [
   { key: 'strength',   label: 'STRENGTH' },
   { key: 'grind',      label: 'GRIND' },
   { key: 'detail',     label: 'DETAILS' },

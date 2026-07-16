@@ -5,12 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   Image,
 } from 'react-native';
 import { UserAvatar } from '../../components/ui/UserAvatar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme, palette } from '../../theme';
+import { palette } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +21,6 @@ import { aiCoachService } from '../../services/ai-coach.service';
 import { NutritionSetupWizard } from '../setup/NutritionSetupWizard';
 import { Leaf, Coins, Robot, Fire, Trophy, Lightning, Flame, ForkKnife } from 'phosphor-react-native';
 
-const { width } = Dimensions.get('window');
 
 const timeFilters = ['1d', '1w', '1m', '1y', 'All Time'];
 
@@ -34,7 +32,7 @@ export const NutritionDashboardScreen: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('1w');
 
   const { data: summary, isLoading: summaryLoading } = useNutritionSummary(activeFilter);
-  const { data: calendar, isLoading: calendarLoading } = useNutritionCalendar();
+  const { data: calendar } = useNutritionCalendar();
   const [nutritionAdvice, setNutritionAdvice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,21 +72,6 @@ export const NutritionDashboardScreen: React.FC = () => {
 
   const calendarDates = getCalendarDates();
 
-  const getWeekDates = () => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(now.setDate(diff));
-
-    return Array.from({ length: 7 }).map((_, i) => {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      return d.toISOString().split('T')[0];
-    });
-  };
-
-  const weekDates = getWeekDates();
-
   // Gate the dashboard behind nutrition setup so calorie/macro targets are
   // personalized before any numbers are shown — otherwise the summary endpoint
   // falls back to a generic 2000 kcal / 30-40-30 split for every account.
@@ -113,7 +96,6 @@ export const NutritionDashboardScreen: React.FC = () => {
     );
   }
 
-  const chartData = summary?.weekly || [];
   const todayTotals = summary?.today || { calories: 0, protein: 0, carbs: 0, fat: 0 };
   const targets = summary?.targets || { calories: 2000, protein: 150, carbs: 200, fat: 60 };
   const netBalance = summary?.netBalance || 0;

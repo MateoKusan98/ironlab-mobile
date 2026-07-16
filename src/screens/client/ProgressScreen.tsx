@@ -17,12 +17,11 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../stores/auth.store';
 import { api } from '../../services/api';
-import { theme, palette } from '../../theme';
-import { ProgressPhotoResponse } from '@shared';
+import { palette } from '../../theme';
+import { ProgressPhotoResponse , ApiResponse } from '@shared';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { Camera, Trash, ScanSmiley } from 'phosphor-react-native';
-import { ApiResponse } from '@shared';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -574,10 +574,6 @@ export const AdminAILabScreen: React.FC = () => {
   const naturalSlot = state
     ? ((state.cycleSlot - (state.testCycleSlotOffset ?? 0)) % cycleN + cycleN) % cycleN
     : 0;
-  const slotLabels = sortedDays.length
-    ? sortedDays.map((d, i) => `${i}: ${d.slice(0, 3)}`)
-    : ['0: Day 1', '1: Day 2', '2: Day 3', '3: Day 4'];
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}

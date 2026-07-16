@@ -1,6 +1,5 @@
 import { api } from './api';
-import { AuthResponse, ApiResponse } from '@shared';
-import { RegisterDto, LoginDto, SocialAuthDto, ForgotPasswordDto, ResetPasswordDto } from '@shared';
+import { AuthResponse, ApiResponse , RegisterDto, LoginDto, SocialAuthDto, ForgotPasswordDto, ResetPasswordDto } from '@shared';
 
 export const authService = {
   register: async (dto: RegisterDto): Promise<AuthResponse> => {

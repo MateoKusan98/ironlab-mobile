@@ -7,18 +7,16 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
-  Image,
 } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { theme, palette } from '../../theme';
+import { palette } from '../../theme';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { api } from '../../services/api';
-import { useAuthStore } from '../../stores/auth.store';
 
 const { width, height } = Dimensions.get('window');
 
@@ -35,7 +33,6 @@ export const BodyScanScreen: React.FC = () => {
   const [countdown, setCountdown] = useState<number | null>(null);
   const cameraRef = useRef<any>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     (async () => {

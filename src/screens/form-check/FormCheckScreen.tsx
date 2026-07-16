@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -32,7 +32,6 @@ import {
   Camera,
   Video,
   VideoCamera,
-  ImageSquare,
   X,
   CheckCircle,
   WarningCircle,

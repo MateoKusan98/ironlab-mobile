@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { theme, palette } from '../../theme';
+import { palette } from '../../theme';
 
 export interface ProgressBarProps {
   progress: number; // 0 to 100

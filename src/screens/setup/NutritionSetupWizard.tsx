@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   Animated,
   Alert,
   ActivityIndicator,
@@ -20,7 +19,6 @@ import { nutritionService } from '../../services/nutrition.service';
 import { Button } from '../../components/ui/Button';
 import { FitnessGoal } from '@shared';
 
-const { width, height } = Dimensions.get('window');
 
 type Step = 'Intro' | 'Preferences' | 'Allergies' | 'Snacking' | 'Goal' | 'Training' | 'Calories';
 
@@ -111,10 +109,6 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
     else handleFinish();
   };
 
-  const prevStep = () => {
-    if (step > 0) setStep(step - 1);
-  };
-
   const handleFinish = async () => {
     setIsSubmitting(true);
     try {
@@ -129,7 +123,7 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
       });
       await setUser(updatedUser);
       onComplete();
-    } catch (error) {
+    } catch {
       Alert.alert(t('common.error'), t('nutritionSetup.saveError'));
     } finally {
       setIsSubmitting(false);

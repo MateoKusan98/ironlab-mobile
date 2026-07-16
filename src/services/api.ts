@@ -67,10 +67,10 @@ api.interceptors.request.use(
 
 // Response interceptor: auto-refresh on 401
 let isRefreshing = false;
-let failedQueue: Array<{
+let failedQueue: {
   resolve: (value: unknown) => void;
   reject: (reason: unknown) => void;
-}> = [];
+}[] = [];
 
 const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((promise) => {

@@ -8,14 +8,14 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme, palette } from '../../../theme';
+import { palette } from '../../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 
 export const ProgramCreatorStructureScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const { draft, generateBlocks, copyWeek } = useProgramBuilderStore();
+  const { draft, generateBlocks } = useProgramBuilderStore();
 
   const [localBlocks, setLocalBlocks] = useState<{name: string, weeks: number}[]>(
       draft.blocks.length > 0 

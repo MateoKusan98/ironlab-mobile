@@ -212,7 +212,7 @@ export const aiCoachService = {
     competitionDate: string | null;
     competitionType: string | null;
     injuryHandling: string | null;
-    activeInjuries: Array<{ id: string; exerciseName: string | null; description: string }>;
+    activeInjuries: { id: string; exerciseName: string | null; description: string }[];
     trainingWeek: number | null;
     sessionInWeek: number | null;
     sessionsPerCycle: number | null;
@@ -231,7 +231,7 @@ export const aiCoachService = {
       competitionDate: string | null;
       competitionType: string | null;
       injuryHandling: string | null;
-      activeInjuries: Array<{ id: string; exerciseName: string | null; description: string }>;
+      activeInjuries: { id: string; exerciseName: string | null; description: string }[];
       trainingWeek: number | null;
       sessionInWeek: number | null;
       sessionsPerCycle: number | null;

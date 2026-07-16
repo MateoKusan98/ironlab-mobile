@@ -23,7 +23,7 @@ const MOOD_ICON: Record<string, React.ReactElement> = {
   elite:   <Lightning size={20} weight="fill" color="#eab308" />,
 };
 
-function groupSetsByExercise(sets: SessionSet[]): Array<{ name: string; sets: SessionSet[] }> {
+function groupSetsByExercise(sets: SessionSet[]): { name: string; sets: SessionSet[] }[] {
   const sorted = [...sets]
     .filter((s) => s.isCompleted)
     .sort((a, b) => new Date(a.loggedAt ?? 0).getTime() - new Date(b.loggedAt ?? 0).getTime());

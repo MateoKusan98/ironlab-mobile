@@ -8,7 +8,7 @@ import {
   Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme, palette } from '../../../theme';
+import { palette } from '../../../theme';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 import { ExerciseSearchModal } from './ExerciseSearchModal';
@@ -109,7 +109,7 @@ export const ProgramCreatorDayScreen: React.FC = () => {
                                     <Text style={styles.setCol}>RPE</Text>
                                     <Text style={styles.setCol}>Rest</Text>
                                 </View>
-                                {ex.sets.map((set, sIdx) => (
+                                {ex.sets.map((set) => (
                                     <View key={set.id} style={styles.setRow}>
                                         <Text style={[styles.setVal, {flex: 0.5}]}>{set.setNumber}</Text>
                                         <Text style={styles.setValBadge}>{set.setType.replace('_', ' ')}</Text>

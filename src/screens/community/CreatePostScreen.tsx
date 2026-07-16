@@ -83,8 +83,6 @@ export const CreatePostScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const selectedType = POST_TYPES.find(t => t.type === type)!;
-
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView

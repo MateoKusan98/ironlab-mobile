@@ -4,7 +4,6 @@ import {
   Text, 
   StyleSheet, 
   PanResponder, 
-  Animated 
 } from 'react-native';
 import { theme, palette } from '../../theme';
 
@@ -33,7 +32,7 @@ export const Slider: React.FC<SliderProps> = ({
     PanResponder.create({
       onStartShouldSetPanResponder: () => !disabled,
       onMoveShouldSetPanResponder: () => !disabled,
-      onPanResponderMove: (evt, gestureState) => {
+      onPanResponderMove: (evt) => {
         if (trackWidth.current > 0 && onValueChange) {
           // Calculate percentage based on touch location relative to track
           // gestureState.moveX is root-relative, so we use evt.nativeEvent.locationX 

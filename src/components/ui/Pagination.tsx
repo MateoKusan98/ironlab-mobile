@@ -6,14 +6,12 @@ export interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  showEdges?: boolean; // Show first/last arrows
 }
 
 export const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  showEdges = true,
 }) => {
   // Generate array of page numbers to show (e.g. [1, 2, '...', 9, 10])
   const getPageNumbers = () => {

@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { workoutService } from '../services/workout.service';
 import { CreateWorkoutPlanDto, SubmitWorkoutLogDto } from '@shared';
 
+import { DraftProgram } from '../store/useProgramBuilderStore';
+
 export const useWorkoutPlans = () => {
   return useQuery({
     queryKey: ['workoutPlans'],
@@ -19,8 +21,6 @@ export const useCreateWorkoutPlan = () => {
     },
   });
 };
-
-import { DraftProgram } from '../store/useProgramBuilderStore';
 
 export const useCreateProgram = () => {
   const queryClient = useQueryClient();

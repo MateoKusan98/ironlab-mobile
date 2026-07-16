@@ -24,7 +24,6 @@ export const FileUploadItem: React.FC<FileUploadItemProps> = ({
 }) => {
   const isError = status === 'error';
   const isSuccess = status === 'success';
-  const isUploading = status === 'uploading';
 
   // Determine colors based on status
   const getColors = () => {

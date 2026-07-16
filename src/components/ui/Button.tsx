@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   View,
   StyleSheet,
-  ViewStyle,
   TextStyle,
   TouchableOpacityProps,
 } from 'react-native';
@@ -47,9 +46,6 @@ export const Button: React.FC<ButtonProps> = ({
 
   // Resolve base styles based on color & variant
   const getVariantStyle = (): { bg: string; border: string; text: string } => {
-    const isDarkBackground = theme.colors.background === '#09090B'; // Context awareness
-    const c = palette[color === 'gray' ? (isDarkBackground ? 'gray' : 'brand') : color]; // Gray defaults differently in dark mode for contrast if needed
-    
     // Default fallback to gray if mapping is weird
     const p = palette[color] || palette.brand;
 
