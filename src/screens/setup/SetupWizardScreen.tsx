@@ -177,7 +177,28 @@ export const SetupWizardScreen: React.FC = () => {
   // Avatar state
   const [avatar, setAvatar] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState(0);
   const [uploadProgress] = useState(new Animated.Value(0));
+
+  // The ring is an indeterminate spinner, so it loops for as long as the upload
+  // runs — a single pass leaves it frozen on screen for any slower upload.
+  // It starts here rather than in doRealUpload because the Animated.View it
+  // drives does not exist until isUploading puts it in the tree, and a
+  // native-driver animation started before its node mounts silently no-ops.
+  useEffect(() => {
+    if (!isUploading) return;
+    uploadProgress.setValue(0);
+    const spin = Animated.loop(
+      Animated.timing(uploadProgress, {
+        toValue: 1,
+        duration: 1200,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+    spin.start();
+    return () => spin.stop();
+  }, [isUploading, uploadProgress]);
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -202,24 +223,15 @@ export const SetupWizardScreen: React.FC = () => {
 
   const doRealUpload = async (uri: string) => {
     setIsUploading(true);
-    uploadProgress.setValue(0);
-
-    // Start ring animation for visual feedback
-    Animated.timing(uploadProgress, {
-      toValue: 1,
-      duration: 3000,
-      easing: Easing.linear,
-      useNativeDriver: false,
-    }).start();
+    setUploadPercent(0);
 
     try {
-      const updatedUser = await usersService.uploadAvatar(uri);
+      const updatedUser = await usersService.uploadAvatar(uri, setUploadPercent);
       await setUser(updatedUser);
     } catch (err) {
       console.warn('Avatar upload failed, continuing without avatar:', err);
     } finally {
       setIsUploading(false);
-      uploadProgress.stopAnimation();
       nextStep();
     }
   };
@@ -340,7 +352,9 @@ export const SetupWizardScreen: React.FC = () => {
               </View>
               
               <Text style={styles.titleBig}>{t('setup.uploadingImage')}</Text>
-              <Text style={styles.fileName}>profile_picture.jpeg</Text>
+              {/* Empty until the first progress event: some transports report no
+                  Content-Length, and a stuck "0%" reads worse than no number. */}
+              <Text style={styles.fileName}>{uploadPercent > 0 ? `${uploadPercent}%` : ''}</Text>
             </View>
           </View>
         </View>

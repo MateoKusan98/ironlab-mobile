@@ -719,6 +719,8 @@
     "analyzeBtn": "Analiziraj i popuni makroe →",
     "submitToDb": "Prijaviti obrok bazi podataka?",
     "submitToDbSub": "Uključi ovu opciju da doprineseš podacima. 🙏",
+    "saveAsRecipe": "Sačuvati u Moje obroke?",
+    "saveAsRecipeSub": "Sačuvaj ovaj obrok da ga možeš ponovo unijeti jednim dodirom.",
     "logMeal": "Unesi obrok",
     "mealLoggedSuccess": "Obrok uspješno unesen!",
     "invalidGrams": "Unesite valjanu količinu u gramima",

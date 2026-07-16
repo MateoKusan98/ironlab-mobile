@@ -58,7 +58,7 @@ export const ManualFoodLogScreen: React.FC = () => {
   const [fat, setFat] = useState(String(prefill?.fat ?? 0));
 
   const [submitToDb, setSubmitToDb] = useState(true);
-  const [saveAsRecipe] = useState(false);
+  const [saveAsRecipe, setSaveAsRecipe] = useState(false);
 
   // Custom Ingredients
   const [searchQuery, setSearchQuery] = useState('');
@@ -465,6 +465,14 @@ export const ManualFoodLogScreen: React.FC = () => {
                 <Text style={styles.toggleSub}>{t('manualFood.submitToDbSub')}</Text>
             </View>
             <Switch checked={submitToDb} onValueChange={setSubmitToDb} />
+          </View>
+
+          <View style={styles.toggleRow}>
+            <View style={{ flex: 1 }}>
+                <Text style={styles.toggleTitle}>{t('manualFood.saveAsRecipe')}</Text>
+                <Text style={styles.toggleSub}>{t('manualFood.saveAsRecipeSub')}</Text>
+            </View>
+            <Switch checked={saveAsRecipe} onValueChange={setSaveAsRecipe} />
           </View>
 
           {/* Log Meal Button */}

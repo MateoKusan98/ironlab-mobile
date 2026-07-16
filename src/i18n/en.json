@@ -903,6 +903,8 @@
     "analyzeBtn": "Analyse & Fill Macros →",
     "submitToDb": "Submit meal to database?",
     "submitToDbSub": "Toggle this option to contribute the data to us. 🙏",
+    "saveAsRecipe": "Save to My Meals?",
+    "saveAsRecipeSub": "Keep this meal so you can log it again in one tap.",
     "logMeal": "Log Meal",
     "mealLoggedSuccess": "Meal logged successfully!",
     "invalidGrams": "Please enter a valid gram amount",

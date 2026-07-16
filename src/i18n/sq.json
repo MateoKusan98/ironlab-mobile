@@ -699,6 +699,8 @@
     "analyzeBtn": "Analizoje dhe plotëso makrot →",
     "submitToDb": "Të dërgohet vakti në bazë të dhënave?",
     "submitToDbSub": "Aktivizo këtë opsion për të kontribuar me të dhëna. 🙏",
+    "saveAsRecipe": "Të ruhet vakti te Vaktet e mia?",
+    "saveAsRecipeSub": "Ruaje këtë vakt që ta regjistrosh sërish me një prekje.",
     "logMeal": "Regjistro vaktin",
     "mealLoggedSuccess": "Vakti u regjistrua me sukses!",
     "invalidGrams": "Shkruani një sasi të vlefshme në gram",
