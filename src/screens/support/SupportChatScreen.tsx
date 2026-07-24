@@ -105,7 +105,9 @@ export const SupportChatScreen: React.FC<Props> = () => {
     if (!trimmed || isLoading) return;
 
     const userMessage: SupportMessage = { role: 'user', content: trimmed };
-    const history = messages.slice(1); // exclude welcome message from history
+    // Exclude the welcome message; keep only the last 20 turns — the backend
+    // rejects longer histories (ArrayMaxSize cap on the support chat DTO).
+    const history = messages.slice(1).slice(-20);
     const updatedMessages = [...messages, userMessage];
 
     setMessages(updatedMessages);

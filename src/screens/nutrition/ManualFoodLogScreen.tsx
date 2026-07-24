@@ -511,6 +511,7 @@ export const ManualFoodLogScreen: React.FC = () => {
             value={pasteText}
             onChangeText={setPasteText}
             textAlignVertical="top"
+            maxLength={2000}
           />
 
           <View style={pm.footer}>
