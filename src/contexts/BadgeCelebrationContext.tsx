@@ -48,7 +48,10 @@ export const BadgeCelebrationProvider: React.FC<{ children: React.ReactNode }> =
   const needsSeedRef = useRef(false);
 
   const { data } = useQuery({
-    queryKey: ['badges'],
+    // Scope by user so an admin's cached badges never bleed into an
+    // impersonated session (which would seed the wrong "seen" set and replay
+    // the target's whole collection as fresh unlocks).
+    queryKey: ['badges', userId],
     queryFn: () => badgesService.getMyBadges(),
     enabled: !!userId,
     staleTime: 30 * 1000,

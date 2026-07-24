@@ -12,9 +12,14 @@ import {
   QUIZ_RATING_MILESTONES,
 } from '../data/fitnessQuiz';
 import { badgesService } from '../services/badges.service';
+import { useAuthStore } from '../stores/auth.store';
 
 /** How many recently-seen question ids to avoid re-drawing. */
 const RECENT_WINDOW = 40;
+
+/** Per-user storage key so impersonation never shows the admin's own rating. */
+const ratingKey = (userId?: string) =>
+  userId ? `${QUIZ_RATING_STORAGE_KEY}:${userId}` : QUIZ_RATING_STORAGE_KEY;
 
 export interface RatedAnswerResult {
   /** Rating change from this answer (already clamped). */
@@ -32,6 +37,7 @@ export interface RatedAnswerResult {
  */
 export function useRatedQuiz() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.user?.id);
   const [rating, setRating] = useState(DEFAULT_QUIZ_RATING);
   const [question, setQuestion] = useState<QuizQuestion>(() => drawRatedQuestion(DEFAULT_QUIZ_RATING));
 
@@ -43,8 +49,12 @@ export function useRatedQuiz() {
 
   // Restore the stored rating — applied only if nothing has been answered yet,
   // so a slow read never swaps a question the user is looking at mid-answer.
+  // Re-runs when the active user changes (e.g. impersonation) so we load that
+  // user's rating, not whoever's was last on the device.
   useEffect(() => {
-    AsyncStorage.getItem(QUIZ_RATING_STORAGE_KEY)
+    // New user session: allow the stored rating to be adopted again.
+    answeredAny.current = false;
+    AsyncStorage.getItem(ratingKey(userId))
       .then((v) => {
         const saved = Number(v);
         if (Number.isFinite(saved) && saved > 0 && !answeredAny.current) {
@@ -57,7 +67,7 @@ export function useRatedQuiz() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [userId]);
 
   /** Applies the Elo result of answering the current question. */
   const scoreAnswer = (correct: boolean): RatedAnswerResult => {
@@ -67,7 +77,7 @@ export function useRatedQuiz() {
     const next = clampRating(before + eloDelta(before, QUESTION_RATING[q.difficulty], correct));
     ratingRef.current = next;
     setRating(next);
-    AsyncStorage.setItem(QUIZ_RATING_STORAGE_KEY, String(next)).catch(() => {});
+    AsyncStorage.setItem(ratingKey(userId), String(next)).catch(() => {});
 
     // Crossed a rating milestone upward → let the server award the badge, then
     // refetch so the celebration pops (works mid-run, even in endless quizzes
