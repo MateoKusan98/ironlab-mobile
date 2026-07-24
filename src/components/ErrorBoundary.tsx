@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../theme';
 import { logService } from '../services/log.service';
+import { captureSentryException } from '../services/sentry';
 import i18n from '../i18n';
 
 interface Props {
@@ -33,6 +34,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
       message: `React render crash: ${error.message}`,
       stack: `${error.stack ?? ''}\n\nComponent stack:${info.componentStack ?? ''}`,
     });
+    // Also to Sentry, where it groups with the same crash from other users and
+    // keeps the breadcrumbs leading up to it. The boundary swallows the error,
+    // so without this Sentry would never see it.
+    captureSentryException(error, { componentStack: info.componentStack });
   }
 
   private handleRetry = (): void => {

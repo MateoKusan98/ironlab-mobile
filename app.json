@@ -65,7 +65,8 @@
             }
           }
         }
-      ]
+      ],
+      "@sentry/react-native"
     ],
     "extra": {
       "eas": {

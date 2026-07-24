@@ -14,7 +14,12 @@ import { useAuthStore } from './src/stores/auth.store';
 import { useSettingsStore } from './src/stores/settings.store';
 import { registerPushToken } from './src/services/pushNotification.service';
 import { logService } from './src/services/log.service';
+import { initSentry, setSentryUser, Sentry } from './src/services/sentry';
 import { theme } from './src/theme';
+
+// Before anything else installs an error handler, so Sentry's own handler is
+// the one ours chains into below.
+initSentry();
 
 // Capture uncaught JS errors (crashes) so we can see them per-user in the admin
 // Error Logs screen. Installed once at module load; chains the default handler so
@@ -46,12 +51,19 @@ const queryClient = new QueryClient({
 
 const AppContent: React.FC = () => {
   const { isLoading, isAuthenticated, loadStoredAuth } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
   const loadSettings = useSettingsStore((s) => s.load);
 
   useEffect(() => {
     loadStoredAuth();
     loadSettings();
   }, [loadStoredAuth, loadSettings]);
+
+  // One place to keep Sentry's identity in sync — covers login, logout, stored-
+  // session restore and both directions of impersonation.
+  useEffect(() => {
+    setSentryUser(user);
+  }, [user]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -66,7 +78,7 @@ const AppContent: React.FC = () => {
   return <AppNavigator />;
 };
 
-export default function App() {
+function App() {
   return (
     <SafeAreaProvider>
       <KeyboardProvider>
@@ -84,3 +96,7 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+// Sentry.wrap adds the native crash context (touch breadcrumbs, app-start
+// timings) that Sentry.init alone can't reach. No-ops when Sentry is disabled.
+export default Sentry.wrap(App);

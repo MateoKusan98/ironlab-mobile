@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../stores/auth.store';
 import { logService } from './log.service';
+import { addApiFailureBreadcrumb } from './sentry';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || `http://localhost:3020/api`;
 
@@ -49,6 +50,12 @@ function logApiError(error: AxiosError) {
     method: cfg.method?.toUpperCase(),
     statusCode: status,
     context: { durationMs, code: error.code },
+  });
+  addApiFailureBreadcrumb({
+    method: cfg.method?.toUpperCase(),
+    url: cfg.url,
+    statusCode: status,
+    code: error.code,
   });
 }
 
