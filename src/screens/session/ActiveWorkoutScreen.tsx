@@ -22,6 +22,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette } from '../../theme';
 import { sessionService } from '../../services/session.service';
+import { exerciseCueService, exerciseCueKey, ExerciseCue } from '../../services/exerciseCue.service';
 import { scheduleRestTimerAlert, cancelRestTimerAlert } from '../../services/pushNotification.service';
 import { useSettingsStore } from '../../stores/settings.store';
 import { classifyExercise } from '../../utils/exerciseType';
@@ -238,6 +239,27 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const [restSecs, setRestSecs] = useState<number | null>(null);
   const [rpeGuideVisible, setRpeGuideVisible] = useState(false);
   const rpeGuideSeen = useRef(false);
+
+  // Personal exercise cues the athlete has saved for future sessions, keyed by
+  // normalized exercise name. Kept in a map (rather than merged onto `exercises`)
+  // so adding/deleting a cue and matching it to the current exercise stay simple
+  // and never fight the set-logging state.
+  const [cuesByKey, setCuesByKey] = useState<Map<string, ExerciseCue[]>>(new Map());
+  // The reminder currently popped up (the exercise the athlete is about to do and
+  // the cues they saved for it), or null when nothing is showing.
+  const [cueReminder, setCueReminder] = useState<{ name: string; cues: ExerciseCue[] } | null>(null);
+  // Which exercise (by index) has its inline "add a cue" form open.
+  const [addCueFor, setAddCueFor] = useState<number | null>(null);
+  const [newCueText, setNewCueText] = useState('');
+  const [savingCue, setSavingCue] = useState(false);
+  // Exercise keys we've already reminded about this session, so completing sets
+  // (or resuming the workout) doesn't pop the same reminder twice. Persisted to
+  // disk keyed by session so a resume mid-workout stays quiet.
+  const remindedRef = useRef<Set<string>>(new Set());
+  const cueRemindedKey = `cueReminded:${sessionId}`;
+  const persistReminded = useCallback(() => {
+    AsyncStorage.setItem(cueRemindedKey, JSON.stringify([...remindedRef.current])).catch(() => {});
+  }, [cueRemindedKey]);
   // Remembers which (exercise, field, value) prefill prompts we've already shown,
   // so blurring the same field repeatedly doesn't re-ask for the same value.
   const prefillAskedRef = useRef<Set<string>>(new Set());
@@ -514,6 +536,94 @@ export const ActiveWorkoutScreen: React.FC = () => {
       setResumeLoading(false);
     }).catch(() => setResumeLoading(false));
   }, [sessionId]);
+
+  // Load the athlete's saved cues (and which reminders already fired this
+  // session) so the right cue can pop up the moment its exercise comes up.
+  useEffect(() => {
+    AsyncStorage.getItem(cueRemindedKey)
+      .then((raw) => {
+        if (raw) {
+          try {
+            for (const k of JSON.parse(raw) as string[]) remindedRef.current.add(k);
+          } catch {
+            /* ignore malformed cache */
+          }
+        }
+      })
+      .catch(() => {});
+
+    exerciseCueService.getCues()
+      .then((cues) => {
+        const map = new Map<string, ExerciseCue[]>();
+        for (const c of cues) {
+          const list = map.get(c.exerciseKey) ?? [];
+          list.push(c);
+          map.set(c.exerciseKey, list);
+        }
+        setCuesByKey(map);
+      })
+      .catch(() => {});
+  }, [cueRemindedKey]);
+
+  // Pop the reminder for the exercise the athlete is about to do — the first one
+  // (in order) that still has an incomplete set. Fires immediately on load when
+  // that exercise is first, and again each time completing the prior exercise
+  // makes a new cued exercise current. remindedRef keeps it to once per session.
+  useEffect(() => {
+    if (resumeLoading) return;
+    if (cueReminder) return; // don't stack reminders
+    if (cuesByKey.size === 0) return;
+    const current = exercises.find((ex) => ex.sets.some((s) => !s.isCompleted));
+    if (!current) return;
+    const key = exerciseCueKey(current.name);
+    const cues = cuesByKey.get(key);
+    if (cues?.length && !remindedRef.current.has(key)) {
+      remindedRef.current.add(key);
+      persistReminded();
+      setCueReminder({ name: current.name, cues });
+    }
+  }, [exercises, cuesByKey, resumeLoading, cueReminder, persistReminded]);
+
+  const savePersonalCue = async (exIdx: number) => {
+    const ex = exercises[exIdx];
+    const text = newCueText.trim();
+    if (!text || savingCue) return;
+    setSavingCue(true);
+    try {
+      const saved = await exerciseCueService.addCue({ exerciseName: ex.name, text });
+      setCuesByKey((prev) => {
+        const next = new Map(prev);
+        next.set(saved.exerciseKey, [saved, ...(next.get(saved.exerciseKey) ?? [])]);
+        return next;
+      });
+      // Don't turn around and remind them of a cue they just wrote this session.
+      remindedRef.current.add(saved.exerciseKey);
+      persistReminded();
+      setAddCueFor(null);
+      setNewCueText('');
+    } catch {
+      Alert.alert('Error', 'Could not save cue. Check connection.');
+    } finally {
+      setSavingCue(false);
+    }
+  };
+
+  const deletePersonalCue = async (cue: ExerciseCue) => {
+    const prev = cuesByKey;
+    setCuesByKey((p) => {
+      const next = new Map(p);
+      const list = (next.get(cue.exerciseKey) ?? []).filter((c) => c.id !== cue.id);
+      if (list.length) next.set(cue.exerciseKey, list);
+      else next.delete(cue.exerciseKey);
+      return next;
+    });
+    try {
+      await exerciseCueService.deleteCue(cue.id);
+    } catch {
+      setCuesByKey(prev); // restore on failure
+      Alert.alert('Error', 'Could not delete cue.');
+    }
+  };
 
   const formatTime = (secs: number) => {
     const h = Math.floor(secs / 3600);
@@ -986,6 +1096,71 @@ export const ActiveWorkoutScreen: React.FC = () => {
                       user knows the technique focus for this exercise. */}
                   {ex.cue ? <Text style={styles.exerciseCue}>"{ex.cue}"</Text> : null}
 
+                  {/* Personal cues the athlete saved for this exercise, plus the
+                      inline form to add another for next time. */}
+                  {(() => {
+                    const myCues = cuesByKey.get(exerciseCueKey(ex.name)) ?? [];
+                    return (
+                      <View style={styles.personalCuesBlock}>
+                        {myCues.map((c) => (
+                          <View key={c.id} style={styles.personalCueRow}>
+                            <Text style={styles.personalCueText}>💡 {c.text}</Text>
+                            <TouchableOpacity
+                              onPress={() => deletePersonalCue(c)}
+                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              accessibilityRole="button"
+                              accessibilityLabel={t('activeWorkout.deleteCue', { defaultValue: 'Delete cue' })}
+                            >
+                              <Text style={styles.personalCueDelete}>✕</Text>
+                            </TouchableOpacity>
+                          </View>
+                        ))}
+                        {addCueFor === exIdx ? (
+                          <View style={styles.addCueForm}>
+                            <TextInput
+                              style={styles.addCueInput}
+                              value={newCueText}
+                              onChangeText={setNewCueText}
+                              placeholder={t('activeWorkout.cuePlaceholder', { defaultValue: 'e.g. Pull the elbows down' })}
+                              placeholderTextColor={palette.gray[600]}
+                              autoFocus
+                              multiline
+                              maxLength={500}
+                            />
+                            <View style={styles.addCueActions}>
+                              <TouchableOpacity
+                                onPress={() => { setAddCueFor(null); setNewCueText(''); }}
+                                accessibilityRole="button"
+                              >
+                                <Text style={styles.addCueCancel}>{t('common.cancel', { defaultValue: 'Cancel' })}</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={[styles.addCueSave, (!newCueText.trim() || savingCue) && styles.addCueSaveDisabled]}
+                                onPress={() => savePersonalCue(exIdx)}
+                                disabled={savingCue || !newCueText.trim()}
+                                accessibilityRole="button"
+                              >
+                                {savingCue
+                                  ? <ActivityIndicator color="#fff" size="small" />
+                                  : <Text style={styles.addCueSaveText}>{t('common.save', { defaultValue: 'Save' })}</Text>}
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        ) : (
+                          <TouchableOpacity
+                            style={styles.addCueBtn}
+                            onPress={() => { setAddCueFor(exIdx); setNewCueText(''); }}
+                            accessibilityRole="button"
+                          >
+                            <Text style={styles.addCueBtnText}>
+                              + {t('activeWorkout.addCue', { defaultValue: 'Add a cue for next time' })}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    );
+                  })()}
+
                   {/* Column Headers */}
                   <View style={styles.colHeaders}>
                     <Text style={[styles.colHeader, { width: 30 }]}>{t('activeWorkout.set')}</Text>
@@ -1334,6 +1509,46 @@ export const ActiveWorkoutScreen: React.FC = () => {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {/* Cue Reminder — pops up when a cued exercise becomes the one you're about
+          to do, so a technique cue from a past session isn't forgotten. */}
+      <Modal
+        visible={cueReminder !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCueReminder(null)}
+      >
+        <TouchableOpacity style={rpeStyles.overlay} activeOpacity={1} onPress={() => setCueReminder(null)}>
+          <TouchableOpacity activeOpacity={1} style={rpeStyles.card}>
+            <View style={rpeStyles.header}>
+              <Text style={rpeStyles.title}>
+                💡 {t('activeWorkout.cueReminderTitle', { defaultValue: 'Remember for' })} {cueReminder ? exName(cueReminder.name) : ''}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setCueReminder(null)}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
+              >
+                <Text style={rpeStyles.close}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={rpeStyles.subtitle}>
+              {t('activeWorkout.cueReminderSubtitle', { defaultValue: 'Cues you saved last time:' })}
+            </Text>
+
+            {(cueReminder?.cues ?? []).map((c) => (
+              <View key={c.id} style={styles.cueReminderRow}>
+                <Text style={styles.cueReminderBullet}>•</Text>
+                <Text style={styles.cueReminderText}>{c.text}</Text>
+              </View>
+            ))}
+
+            <TouchableOpacity style={rpeStyles.gotIt} onPress={() => setCueReminder(null)}>
+              <Text style={rpeStyles.gotItText}>{t('activeWorkout.cueReminderGotIt', { defaultValue: "Got it — let's go" })}</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1464,6 +1679,52 @@ const styles = StyleSheet.create({
   removeBtn: { padding: 8 },
   removeBtnText: { fontSize: 13, color: palette.gray[500] },
   chevron: { fontSize: 12, color: palette.gray[400], marginLeft: 4 },
+
+  // Personal cues (saved for next time) + inline add form
+  personalCuesBlock: { marginHorizontal: 12, marginTop: 6, marginBottom: 4, gap: 6 },
+  personalCueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    backgroundColor: '#78350f22',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  personalCueText: { flex: 1, fontSize: 13, color: '#fbbf24' },
+  personalCueDelete: { fontSize: 12, color: palette.gray[500] },
+  addCueBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
+  addCueBtnText: { fontSize: 12, color: palette.brand[400], fontWeight: '600' },
+  addCueForm: { gap: 8 },
+  addCueInput: {
+    backgroundColor: palette.gray[900],
+    borderWidth: 1,
+    borderColor: palette.gray[700],
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: theme.colors.text,
+    fontSize: 14,
+    minHeight: 40,
+  },
+  addCueActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 16 },
+  addCueCancel: { fontSize: 13, color: palette.gray[400], fontWeight: '600' },
+  addCueSave: {
+    backgroundColor: palette.brand[600],
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minWidth: 64,
+    alignItems: 'center',
+  },
+  addCueSaveDisabled: { opacity: 0.5 },
+  addCueSaveText: { fontSize: 13, color: '#fff', fontWeight: '700' },
+
+  // Cue reminder modal rows
+  cueReminderRow: { flexDirection: 'row', gap: 8, paddingVertical: 6 },
+  cueReminderBullet: { fontSize: 15, color: palette.brand[400], lineHeight: 22 },
+  cueReminderText: { flex: 1, fontSize: 15, color: theme.colors.text, lineHeight: 22 },
 
   colHeaders: {
     flexDirection: 'row',

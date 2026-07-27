@@ -221,6 +221,7 @@ export const aiCoachService = {
     nextScheduledDay: string | null;
     skipAheadDay: string | null;
     completedToday: boolean;
+    regenerating: boolean;
     recoveryWeek: RecoveryWeekStatus | null;
   }> => {
     const { data } = await api.get<{ data: {
@@ -240,6 +241,7 @@ export const aiCoachService = {
       nextScheduledDay: string | null;
       skipAheadDay: string | null;
       completedToday: boolean;
+      regenerating: boolean;
       recoveryWeek: RecoveryWeekStatus | null;
     } }>('/ai-coach/plan');
     return data.data;

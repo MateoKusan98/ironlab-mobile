@@ -148,6 +148,7 @@ export const HomeScreen: React.FC = () => {
     nextScheduledDay: string | null;
     skipAheadDay: string | null;
     completedToday: boolean | null;
+    regenerating: boolean | null;
   } | null>(null);
   const [catchUpDismissed, setCatchUpDismissed] = useState(false);
   // Schedule-shift confirm sheet: 'early' = train on a rest day (pull next session
@@ -173,7 +174,7 @@ export const HomeScreen: React.FC = () => {
         proposalsService.getPending().catch(() => null),
         sessionService.getTodaySummary(today).catch(() => null),
       ]);
-      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation, nextScheduledDay: plan.nextScheduledDay, skipAheadDay: plan.skipAheadDay, completedToday: plan.completedToday } : null);
+      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation, nextScheduledDay: plan.nextScheduledDay, skipAheadDay: plan.skipAheadDay, completedToday: plan.completedToday, regenerating: plan.regenerating } : null);
       setActiveSessionId(active?.id ?? null);
       setProposal(pending);
       setTodaySummary(summary);
@@ -284,6 +285,15 @@ export const HomeScreen: React.FC = () => {
     loadDevTime();
   }, [loadDashboard, checkCreatine, loadDevTime]));
 
+  // While the next-session plan regenerates in the background, poll silently until it
+  // lands so the spinner flips to the fresh workout without needing a manual pull-to-refresh.
+  const regeneratingFlag = planData?.regenerating ?? false;
+  useEffect(() => {
+    if (!regeneratingFlag) return;
+    const id = setInterval(() => { loadDashboard(); }, 4000);
+    return () => clearInterval(id);
+  }, [regeneratingFlag, loadDashboard]);
+
   const handleRefresh = () => {
     loadDashboard(true);
     refetchLogs();
@@ -295,6 +305,10 @@ export const HomeScreen: React.FC = () => {
   // re-issuing the session just completed.
   const completedToday = planData?.completedToday ?? false;
   const isTrainingDay = (planData?.trainingDays?.includes(todayDayName) ?? false) && !completedToday;
+  // The next session's plan is regenerated in the background after finishing a workout.
+  // While that runs, the stored nextSessionJson is still the session just completed, so
+  // hide the stale preview behind a spinner instead of re-surfacing the old workout.
+  const regenerating = planData?.regenerating ?? false;
   const nextSession = planData?.nextSessionJson;
   const hasTrainingSchedule = (planData?.trainingDays?.length ?? 0) > 0;
 
@@ -552,14 +566,28 @@ export const HomeScreen: React.FC = () => {
               {nextScheduledDay && (
                 <Text style={styles.restDaySub}>{t('home.nextSession')}: {cap(nextScheduledDay)}</Text>
               )}
-              {renderSessionPreview(true)}
-              {nextScheduledDay && (
-                <TouchableOpacity
-                  style={styles.shiftLink}
-                  onPress={() => setShiftSheet({ kind: 'early', day: nextScheduledDay })}
-                >
-                  <Text style={styles.shiftLinkText}>{t('home.trainEarly.cta', { defaultValue: 'Train anyway' })}</Text>
-                </TouchableOpacity>
+              {regenerating ? (
+                /* Next session's plan is still regenerating in the background — show a
+                   spinner instead of the just-completed workout, and hide "Train anyway"
+                   until the fresh session lands (polled in silently). */
+                <View style={styles.regenBlock}>
+                  <ActivityIndicator color={palette.brand[500]} />
+                  <Text style={styles.regenText}>
+                    {t('home.preparingNext', { defaultValue: 'Preparing your next session…' })}
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  {renderSessionPreview(true)}
+                  {nextScheduledDay && (
+                    <TouchableOpacity
+                      style={styles.shiftLink}
+                      onPress={() => setShiftSheet({ kind: 'early', day: nextScheduledDay })}
+                    >
+                      <Text style={styles.shiftLinkText}>{t('home.trainEarly.cta', { defaultValue: 'Train anyway' })}</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
               )}
             </View>
           ) : nextSession ? (
@@ -873,6 +901,8 @@ restDayText: { fontSize: 18, fontWeight: '700', color: palette.gray[300], margin
   restDaySub: { fontSize: 13, color: palette.gray[500] },
   shiftLink: { marginTop: 12, paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'center' },
   shiftLinkText: { fontSize: 14, fontWeight: '600', color: palette.brand[400] },
+  regenBlock: { alignItems: 'center', gap: 10, marginTop: 16, paddingVertical: 8 },
+  regenText: { fontSize: 13, color: palette.gray[400], textAlign: 'center' },
 
   previewCard: {
     backgroundColor: palette.gray[800],

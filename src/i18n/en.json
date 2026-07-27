@@ -103,6 +103,7 @@
     "trainingDay": "Training Day 💪",
     "restDay": "Rest Day",
     "nextSession": "Next session",
+    "preparingNext": "Preparing your next session…",
     "workoutInProgress": "Workout In Progress",
     "todaysWorkout": "Today's Workout",
     "sessionReady": "Session ready",
@@ -203,7 +204,13 @@
     "confirmCancel": "Are you sure you want to cancel this workout? All data will be lost.",
     "techniqueNotes": "Pain, form cues, anything notable...",
     "pr": "PR",
-    "coachFocus": "FOCUS ON"
+    "coachFocus": "FOCUS ON",
+    "addCue": "Add a cue for next time",
+    "cuePlaceholder": "e.g. Pull the elbows down",
+    "deleteCue": "Delete cue",
+    "cueReminderTitle": "Remember for",
+    "cueReminderSubtitle": "Cues you saved last time:",
+    "cueReminderGotIt": "Got it — let's go"
   },
   "sessionSummary": {
     "greatWork": "Great Work!",
