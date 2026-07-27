@@ -8,6 +8,7 @@ import './src/i18n';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { BadgeCelebrationProvider } from './src/contexts/BadgeCelebrationContext';
 import { WhatsNewProvider } from './src/contexts/WhatsNewContext';
+import { ForceUpdateProvider } from './src/contexts/ForceUpdateContext';
 import { SplashScreen } from './src/screens/SplashScreen';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { useAuthStore } from './src/stores/auth.store';
@@ -85,11 +86,13 @@ function App() {
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
             <StatusBar style="light" />
-            <BadgeCelebrationProvider>
-              <WhatsNewProvider>
-                <AppContent />
-              </WhatsNewProvider>
-            </BadgeCelebrationProvider>
+            <ForceUpdateProvider>
+              <BadgeCelebrationProvider>
+                <WhatsNewProvider>
+                  <AppContent />
+                </WhatsNewProvider>
+              </BadgeCelebrationProvider>
+            </ForceUpdateProvider>
           </QueryClientProvider>
         </ErrorBoundary>
       </KeyboardProvider>

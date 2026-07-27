@@ -1032,5 +1032,12 @@
     "badgeUnlocked": "BEDŽ OTKLJUČAN",
     "nextBadge": "SLJEDEĆI BEDŽ  →",
     "letsGo": "IDEMO! 💪"
+  },
+  "forceUpdate": {
+    "title": "Potrebna nadogradnja",
+    "message": "Dostupna je nova verzija IronLaba. Ažuriraj na najnoviju verziju kako bi nastavio/la s treningom.",
+    "currentVersion": "Imaš v{{version}}",
+    "requiredVersion": "Potrebna v{{version}}",
+    "updateNow": "Ažuriraj sada"
   }
 }

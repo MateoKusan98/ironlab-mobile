@@ -1296,5 +1296,12 @@
     "foundationSub": "General fitness — building your base",
     "consistency": "Consistency",
     "strengthClubs": "Strength clubs"
+  },
+  "forceUpdate": {
+    "title": "Update required",
+    "message": "A new version of IronLab is available. Please update to the latest version to keep training.",
+    "currentVersion": "You have v{{version}}",
+    "requiredVersion": "Requires v{{version}}",
+    "updateNow": "Update now"
   }
 }

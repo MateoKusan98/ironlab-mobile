@@ -13,7 +13,9 @@
         "EXPO_PUBLIC_API_URL": "https://ironlab-backend-production.up.railway.app/api",
         "EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID": "186413260022-ti9f7cimn0psh4nado4793def0bgn1ft.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "186413260022-0i2nf209mcu8vblsso9ai11e841kt396.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "186413260022-fs3fs2me6tkspfuqi69tdm8ojt89ftqa.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "186413260022-fs3fs2me6tkspfuqi69tdm8ojt89ftqa.apps.googleusercontent.com",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://965e53f0ff833795100e5ba772da62e7@o4511806344921088.ingest.de.sentry.io/4511806387650640",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     },
     "preview": {
@@ -22,7 +24,9 @@
         "EXPO_PUBLIC_API_URL": "https://ironlab-backend-production.up.railway.app/api",
         "EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID": "186413260022-ti9f7cimn0psh4nado4793def0bgn1ft.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "186413260022-0i2nf209mcu8vblsso9ai11e841kt396.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "186413260022-fs3fs2me6tkspfuqi69tdm8ojt89ftqa.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "186413260022-fs3fs2me6tkspfuqi69tdm8ojt89ftqa.apps.googleusercontent.com",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://965e53f0ff833795100e5ba772da62e7@o4511806344921088.ingest.de.sentry.io/4511806387650640",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       },
       "android": {
         "buildType": "apk"
