@@ -178,9 +178,14 @@ const MainLiftCard: React.FC<{ liftKey: string; data: MainLiftData | null }> = (
       <Text style={styles.liftName}>{exName(meta.label)}</Text>
       {data ? (
         <>
-          <Text style={styles.liftEst1RM}>{data.est1RM}<Text style={styles.liftUnit}>kg</Text></Text>
-          <Text style={styles.liftSub}>{t('stats.est1RM')}</Text>
-          <Text style={styles.liftDetail}>{data.weight}kg × {data.reps}</Text>
+          <Text style={styles.liftEst1RM}>{data.coach1RM ?? data.est1RM}<Text style={styles.liftUnit}>kg</Text></Text>
+          <Text style={styles.liftSub}>{data.coach1RM != null ? t('stats.coachEst') : t('stats.epleyEst')}</Text>
+          {data.coach1RM != null && (
+            <Text style={styles.liftAltEst}>{t('stats.epleyEst')} · {data.est1RM}kg</Text>
+          )}
+          {data.weight != null && data.reps != null && (
+            <Text style={styles.liftDetail}>{data.weight}kg × {data.reps}</Text>
+          )}
         </>
       ) : (
         <Text style={styles.liftNoData}>—</Text>
@@ -1000,6 +1005,7 @@ const styles = StyleSheet.create({
   liftEst1RM: { fontSize: 28, fontWeight: '800', color: palette.brand[400], marginTop: 4 },
   liftUnit: { fontSize: 14, fontWeight: '600' },
   liftSub: { fontSize: 10, color: palette.gray[500] },
+  liftAltEst: { fontSize: 11, color: palette.gray[400], marginTop: 4 },
   liftDetail: { fontSize: 11, color: palette.gray[400], marginTop: 2 },
   liftNoData: { fontSize: 28, color: palette.gray[600], marginTop: 4 },
   liftFootnote: { fontSize: 10, color: palette.gray[600], marginTop: 12, textAlign: 'center', fontStyle: 'italic' },

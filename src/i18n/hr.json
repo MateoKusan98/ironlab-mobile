@@ -626,6 +626,8 @@
     "allTimeTotals": "UKUPNO SVE VRIJEME",
     "weightMoved": "Premještena težina",
     "est1RM": "proc. 1RM",
+    "epleyEst": "Epley",
+    "coachEst": "Trener",
     "sessionCount": "{{count}} sesija",
     "sets": "serija",
     "best": "najbolje"

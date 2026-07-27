@@ -118,9 +118,10 @@ export interface TodaySummary {
 }
 
 export interface MainLiftData {
-  est1RM: number;
-  weight: number;
-  reps: number;
+  est1RM: number;              // classic Epley on your best logged comp set
+  coach1RM: number | null;     // the AI coach's RPE-aware / true-max estimate
+  weight: number | null;
+  reps: number | null;
   achievedAt: string | null;
 }
 

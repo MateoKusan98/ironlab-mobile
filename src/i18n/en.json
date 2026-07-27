@@ -734,6 +734,8 @@
     "allTimeTotals": "ALL-TIME TOTALS",
     "weightMoved": "Weight moved",
     "est1RM": "est. 1RM",
+    "epleyEst": "Epley",
+    "coachEst": "Coach",
     "sessionCount": "{{count}} sessions",
     "sets": "sets",
     "best": "best",
