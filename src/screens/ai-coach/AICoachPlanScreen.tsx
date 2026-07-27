@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,12 +13,12 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette } from '../../theme';
-import { aiCoachService, RecoveryWeekStatus } from '../../services/ai-coach.service';
+import { aiCoachService, RecoveryWeekStatus, FatigueStatus, FatigueLevel, CoachNote } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserRole } from '@shared';
 import { MagnifyingGlass, Trophy, ChartBar } from 'phosphor-react-native';
@@ -443,6 +443,169 @@ const CompBanner: React.FC<{
   );
 };
 
+// ─── Fatigue status (recovery) ────────────────────────────────────────────────
+
+const FATIGUE_META: Record<FatigueLevel, { color: string; bg: string; border: string; emoji: string; label: string }> = {
+  none:     { color: '#4ade80', bg: '#0a1a0f', border: '#166534', emoji: '🟢', label: 'Recovered' },
+  mild:     { color: '#a3e635', bg: '#12180a', border: '#3f6212', emoji: '🟢', label: 'Mostly fresh' },
+  elevated: { color: '#fbbf24', bg: '#1c1009', border: '#92400e', emoji: '🟡', label: 'Elevated fatigue' },
+  high:     { color: '#f87171', bg: '#1c0a0a', border: '#991b1b', emoji: '🔴', label: 'High fatigue' },
+};
+
+const FatigueBanner: React.FC<{ status: FatigueStatus; onPress: () => void }> = ({ status, onPress }) => {
+  const m = FATIGUE_META[status.level];
+  const sub = status.scheduledDeload
+    ? 'Scheduled deload — planned recovery'
+    : status.dismissed
+    ? "You cleared this — feeling fine"
+    : status.canDismiss
+    ? 'Tap to review or clear it'
+    : 'Recovery looks good';
+  return (
+    <TouchableOpacity style={[fat.banner, { backgroundColor: m.bg, borderBottomColor: m.border }]} onPress={onPress}>
+      <View style={fat.bannerLeft}>
+        <Text style={fat.bannerEmoji}>{m.emoji}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[fat.bannerTitle, { color: m.color }]}>Recovery: {m.label}{status.dismissed ? ' (cleared)' : ''}</Text>
+          <Text style={fat.bannerSub}>{sub}</Text>
+        </View>
+      </View>
+      <Text style={fat.bannerEdit}>Details ›</Text>
+    </TouchableOpacity>
+  );
+};
+
+const FatigueModal: React.FC<{
+  visible: boolean;
+  status: FatigueStatus | null;
+  busy: boolean;
+  onDismiss: () => void;
+  onResume: () => void;
+  onClose: () => void;
+}> = ({ visible, status, busy, onDismiss, onResume, onClose }) => {
+  if (!status) return null;
+  const m = FATIGUE_META[status.level];
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} presentationStyle="pageSheet">
+      <SafeAreaView style={fat.container} edges={['top']}>
+        <View style={fat.header}>
+          <Text style={fat.title}>Recovery status</Text>
+          <TouchableOpacity style={fat.closeBtn} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
+            <Text style={fat.closeText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView style={fat.scroll} contentContainerStyle={{ padding: 16 }}>
+          <View style={[fat.levelCard, { borderColor: m.border, backgroundColor: m.bg }]}>
+            <Text style={fat.levelEmoji}>{m.emoji}</Text>
+            <Text style={[fat.levelLabel, { color: m.color }]}>{m.label}</Text>
+            {status.dismissed && <Text style={fat.clearedTag}>You cleared this alarm — it'll recheck after your next workout.</Text>}
+          </View>
+
+          {status.reasons.length > 0 ? (
+            <>
+              <Text style={fat.sectionLabel}>What the coach is seeing</Text>
+              {status.reasons.map((r, i) => (
+                <View key={i} style={fat.reasonRow}>
+                  <Text style={fat.reasonDot}>•</Text>
+                  <Text style={fat.reasonText}>{r}</Text>
+                </View>
+              ))}
+            </>
+          ) : (
+            <Text style={fat.intro}>No fatigue warnings right now — your recent RPE, energy, and strength trends look healthy. Keep logging honestly and I'll flag it the moment that changes.</Text>
+          )}
+
+          {status.scheduledDeload && (
+            <Text style={fat.deloadNote}>This is a scheduled deload week — planned recovery baked into your program, not a reactive alarm. Loads are light on purpose and can't be cleared.</Text>
+          )}
+        </ScrollView>
+
+        <View style={fat.footer}>
+          {status.canDismiss && (
+            <TouchableOpacity style={fat.clearBtn} onPress={onDismiss} disabled={busy}>
+              {busy ? <ActivityIndicator color="#fff" /> : <Text style={fat.clearBtnText}>I feel fine — clear it</Text>}
+            </TouchableOpacity>
+          )}
+          {status.dismissed && (
+            <TouchableOpacity style={fat.resumeBtn} onPress={onResume} disabled={busy}>
+              {busy ? <ActivityIndicator color={palette.gray[300]} /> : <Text style={fat.resumeBtnText}>Actually, I need to recover</Text>}
+            </TouchableOpacity>
+          )}
+          {status.canDismiss && (
+            <Text style={fat.footerHint}>Clearing tells the coach you feel good — it stays cleared until your next logged workout, then rechecks against fresh data.</Text>
+          )}
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+};
+
+// ─── Coach notes ("remember this about me") ───────────────────────────────────
+
+const NotesModal: React.FC<{
+  visible: boolean;
+  notes: CoachNote[];
+  busy: boolean;
+  onAdd: (text: string) => void;
+  onDelete: (id: string) => void;
+  onClose: () => void;
+}> = ({ visible, notes, busy, onAdd, onDelete, onClose }) => {
+  const [text, setText] = useState('');
+  const submit = () => {
+    const trimmed = text.trim();
+    if (trimmed.length < 2) return;
+    onAdd(trimmed);
+    setText('');
+  };
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} presentationStyle="pageSheet">
+      <SafeAreaView style={fat.container} edges={['top']}>
+        <View style={fat.header}>
+          <Text style={fat.title}>Coach memory</Text>
+          <TouchableOpacity style={fat.closeBtn} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
+            <Text style={fat.closeText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView style={fat.scroll} contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+          <Text style={fat.intro}>Tell your coach anything worth remembering — how you like to train, what to avoid, a niggle. Write it however you want; I'll save it in my own words.</Text>
+
+          <View style={fat.noteInputRow}>
+            <TextInput
+              style={fat.noteInput}
+              placeholder='e.g. "big weights feel good for me"'
+              placeholderTextColor={palette.gray[600]}
+              value={text}
+              onChangeText={setText}
+              maxLength={500}
+              multiline
+              returnKeyType="done"
+              blurOnSubmit
+              onSubmitEditing={submit}
+            />
+            <TouchableOpacity style={[fat.noteAddBtn, (busy || text.trim().length < 2) && fat.noteAddBtnDisabled]} onPress={submit} disabled={busy || text.trim().length < 2}>
+              {busy ? <ActivityIndicator color="#fff" /> : <Text style={fat.noteAddBtnText}>Save</Text>}
+            </TouchableOpacity>
+          </View>
+
+          {notes.length > 0 && <Text style={fat.sectionLabel}>What I'm remembering</Text>}
+          {notes.map((n) => (
+            <View key={n.id} style={fat.noteCard}>
+              <View style={{ flex: 1 }}>
+                <Text style={fat.noteCat}>{n.category.replace(/_/g, ' ')}{n.exerciseName ? ` · ${n.exerciseName}` : ''}{n.autoGenerated ? ' · observed' : ''}</Text>
+                <Text style={fat.noteDesc}>{n.description}</Text>
+              </View>
+              <TouchableOpacity style={fat.noteDelBtn} onPress={() => onDelete(n.id)} accessibilityRole="button" accessibilityLabel={`Delete note: ${n.description}`}>
+                <Text style={fat.noteDelText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          {notes.length === 0 && <Text style={fat.emptyNote}>Nothing saved yet.</Text>}
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
+};
+
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 const REGEN_DATE_KEY = '@ironlab_regen_date';
@@ -472,6 +635,12 @@ export const AICoachPlanScreen: React.FC = () => {
   const [recoveryBusy, setRecoveryBusy] = useState(false);
   const [showRegenInput, setShowRegenInput] = useState(false);
   const [regenNote, setRegenNote] = useState('');
+  const [fatigue, setFatigue] = useState<FatigueStatus | null>(null);
+  const [fatigueModalVisible, setFatigueModalVisible] = useState(false);
+  const [fatigueBusy, setFatigueBusy] = useState(false);
+  const [notes, setNotes] = useState<CoachNote[]>([]);
+  const [notesModalVisible, setNotesModalVisible] = useState(false);
+  const [notesBusy, setNotesBusy] = useState(false);
   const dotAnim = useRef(new Animated.Value(0)).current;
 
   // Pulsing dots while generating
@@ -515,7 +684,68 @@ export const AICoachPlanScreen: React.FC = () => {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    aiCoachService.fatigueCheck().then(setFatigue).catch(() => {});
+    aiCoachService.getNotes().then(setNotes).catch(() => {});
   }, []);
+
+  // Refresh the session + recovery status whenever the screen regains focus — the
+  // athlete may have adjusted a load or cleared fatigue over in the coach chat.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      aiCoachService.getPlan()
+        .then(({ plan: p, generatedAt: ga }) => { if (!cancelled) { setPlan(p); setGeneratedAt(ga); } })
+        .catch(() => {});
+      aiCoachService.fatigueCheck().then((f) => { if (!cancelled) setFatigue(f); }).catch(() => {});
+      return () => { cancelled = true; };
+    }, []),
+  );
+
+  const handleDismissFatigue = async () => {
+    setFatigueBusy(true);
+    try {
+      setFatigue(await aiCoachService.dismissFatigue());
+    } catch (e: any) {
+      Alert.alert('Not available', e?.response?.data?.message ?? 'Could not clear your fatigue status.');
+    } finally {
+      setFatigueBusy(false);
+    }
+  };
+
+  const handleResumeFatigue = async () => {
+    setFatigueBusy(true);
+    try {
+      setFatigue(await aiCoachService.resumeFatigue());
+    } catch {
+      Alert.alert('Error', 'Could not update your recovery status.');
+    } finally {
+      setFatigueBusy(false);
+    }
+  };
+
+  const handleAddNote = async (text: string) => {
+    setNotesBusy(true);
+    try {
+      await aiCoachService.addNote(text);
+      setNotes(await aiCoachService.getNotes());
+    } catch {
+      Alert.alert('Error', 'Could not save your note. Try again.');
+    } finally {
+      setNotesBusy(false);
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    const prev = notes;
+    setNotes((n) => n.filter((x) => x.id !== id)); // optimistic
+    try {
+      await aiCoachService.deleteNote(id);
+    } catch {
+      setNotes(prev);
+      Alert.alert('Error', 'Could not delete that note.');
+    }
+  };
 
   const handleSaveCompDate = async (date: string, type: 'meet' | 'pr_test') => {
     try {
@@ -694,6 +924,22 @@ export const AICoachPlanScreen: React.FC = () => {
         onConfirm={handleTriggerRecovery}
         onClose={() => setRecoveryModalVisible(false)}
       />
+      <FatigueModal
+        visible={fatigueModalVisible}
+        status={fatigue}
+        busy={fatigueBusy}
+        onDismiss={handleDismissFatigue}
+        onResume={handleResumeFatigue}
+        onClose={() => setFatigueModalVisible(false)}
+      />
+      <NotesModal
+        visible={notesModalVisible}
+        notes={notes}
+        busy={notesBusy}
+        onAdd={handleAddNote}
+        onDelete={handleDeleteNote}
+        onClose={() => setNotesModalVisible(false)}
+      />
 
       {/* Header */}
       <View style={styles.header}>
@@ -753,6 +999,11 @@ export const AICoachPlanScreen: React.FC = () => {
         </View>
       )}
 
+      {/* Recovery / fatigue status — always visible so the athlete can manage it */}
+      {fatigue && (
+        <FatigueBanner status={fatigue} onPress={() => setFatigueModalVisible(true)} />
+      )}
+
       {/* Injury banner — shown whenever there are active injuries */}
       {activeInjuries.length > 0 && (
         <InjuryBanner
@@ -761,6 +1012,14 @@ export const AICoachPlanScreen: React.FC = () => {
           onPress={() => setInjuryModalVisible(true)}
         />
       )}
+
+      {/* Coach memory — free-form notes the athlete wants the coach to remember */}
+      <TouchableOpacity style={styles.setCompRow} onPress={() => setNotesModalVisible(true)}>
+        <Text style={styles.setCompText}>
+          🧠 Coach memory{notes.length > 0 ? ` (${notes.length})` : ' — tell me what to remember'}
+        </Text>
+        <Text style={styles.setCompArrow}>›</Text>
+      </TouchableOpacity>
 
       {/* Competition countdown banner or "set date" nudge */}
       {compDate ? (
@@ -1055,4 +1314,84 @@ const inj = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.4 },
   saveBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+});
+
+const fat = StyleSheet.create({
+  // Banner
+  banner: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1,
+  },
+  bannerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  bannerEmoji: { fontSize: 16 },
+  bannerTitle: { fontSize: 13, fontWeight: '700' },
+  bannerSub: { fontSize: 11, color: palette.gray[500], marginTop: 1 },
+  bannerEdit: { fontSize: 13, color: palette.gray[500], fontWeight: '600' },
+
+  // Modal shell
+  container: { flex: 1, backgroundColor: '#09090b' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: palette.gray[800],
+  },
+  title: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  closeBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  closeText: { fontSize: 18, color: palette.gray[400] },
+  scroll: { flex: 1 },
+  intro: { fontSize: 14, color: palette.gray[400], lineHeight: 21, marginBottom: 18 },
+  sectionLabel: {
+    fontSize: 11, fontWeight: '700', color: palette.gray[500],
+    letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10, marginTop: 6,
+  },
+
+  // Fatigue level card
+  levelCard: {
+    alignItems: 'center', borderRadius: 14, borderWidth: 1,
+    paddingVertical: 20, paddingHorizontal: 16, marginBottom: 20,
+  },
+  levelEmoji: { fontSize: 34, marginBottom: 8 },
+  levelLabel: { fontSize: 18, fontWeight: '800' },
+  clearedTag: { fontSize: 12, color: palette.gray[400], textAlign: 'center', marginTop: 8, lineHeight: 17 },
+
+  reasonRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  reasonDot: { fontSize: 14, color: palette.gray[500] },
+  reasonText: { flex: 1, fontSize: 13, color: palette.gray[300], lineHeight: 19 },
+  deloadNote: { fontSize: 13, color: palette.gray[500], lineHeight: 19, marginTop: 16, fontStyle: 'italic' },
+
+  footer: { padding: 16, borderTopWidth: 1, borderTopColor: palette.gray[800] },
+  clearBtn: { backgroundColor: palette.brand[600], borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  clearBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  resumeBtn: {
+    borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 10,
+    borderWidth: 1, borderColor: palette.gray[700],
+  },
+  resumeBtnText: { fontSize: 14, fontWeight: '600', color: palette.gray[300] },
+  footerHint: { fontSize: 11, color: palette.gray[600], lineHeight: 16, marginTop: 12, textAlign: 'center' },
+
+  // Notes
+  noteInputRow: { flexDirection: 'row', gap: 10, marginBottom: 22, alignItems: 'flex-end' },
+  noteInput: {
+    flex: 1, minHeight: 48, maxHeight: 120, backgroundColor: palette.gray[900],
+    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12,
+    color: '#fff', fontSize: 14, borderWidth: 1, borderColor: palette.gray[800],
+  },
+  noteAddBtn: {
+    backgroundColor: palette.brand[600], borderRadius: 12,
+    paddingHorizontal: 18, height: 48, alignItems: 'center', justifyContent: 'center',
+  },
+  noteAddBtnDisabled: { opacity: 0.4 },
+  noteAddBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  noteCard: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 10,
+    backgroundColor: palette.gray[900], borderRadius: 10, padding: 12, marginBottom: 10,
+  },
+  noteCat: {
+    fontSize: 10, fontWeight: '700', color: palette.brand[400],
+    letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 3,
+  },
+  noteDesc: { fontSize: 13, color: palette.gray[200], lineHeight: 19 },
+  noteDelBtn: { width: 26, height: 26, alignItems: 'center', justifyContent: 'center' },
+  noteDelText: { fontSize: 15, color: palette.gray[600] },
+  emptyNote: { fontSize: 13, color: palette.gray[600], fontStyle: 'italic' },
 });
