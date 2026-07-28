@@ -1,6 +1,7 @@
 import React from 'react';
 import Svg, { Defs, LinearGradient, Stop, Rect, Path } from 'react-native-svg';
 
+import { theme, palette } from '../theme';
 interface Props {
   size?: number;
   /** Show a dark rounded-square background badge */
@@ -51,12 +52,12 @@ export const IronLabIcon: React.FC<Props> = ({ size = 48, bg = false }) => {
     <Svg width={size} height={size} viewBox="0 0 100 100">
       <Defs>
         <LinearGradient id="il_gear" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#FB923C" stopOpacity="1" />
-          <Stop offset="1" stopColor="#C2410C" stopOpacity="1" />
+          <Stop offset="0" stopColor={palette.brand[400]} stopOpacity="1" />
+          <Stop offset="1" stopColor={palette.brand[700]} stopOpacity="1" />
         </LinearGradient>
       </Defs>
 
-      {bg && <Rect width="100" height="100" rx="22" fill="#09090B" />}
+      {bg && <Rect width="100" height="100" rx="22" fill={theme.colors.background} />}
 
       <Path d={gearPath} fill="url(#il_gear)" fillRule="evenodd" />
     </Svg>

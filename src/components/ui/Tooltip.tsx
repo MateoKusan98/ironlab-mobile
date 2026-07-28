@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     ...theme.shadow.md,
   },
   title: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: theme.fontWeight.bold,
     marginBottom: theme.spacing.xs,
   },

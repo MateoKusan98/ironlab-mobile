@@ -6,6 +6,9 @@
     "lib": [
       "ES2022"
     ],
+    "types": [
+      "jest"
+    ],
     "jsx": "react-native",
     "strict": true,
 "allowSyntheticDefaultImports": true,

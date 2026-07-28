@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   actionText: {
-    color: '#FFF',
+    color: palette.white,
     fontWeight: theme.fontWeight.semibold,
   },
 });

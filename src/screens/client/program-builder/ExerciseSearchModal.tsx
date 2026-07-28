@@ -10,7 +10,7 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import { palette } from '../../../theme';
+import { theme, palette } from '../../../theme';
 import { useExercises } from '../../../hooks/useWorkout';
 
 interface ExerciseSearchModalProps {
@@ -119,7 +119,7 @@ export const ExerciseSearchModal: React.FC<ExerciseSearchModalProps> = ({ visibl
 const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
   modalContent: { 
-      backgroundColor: '#18181B', 
+      backgroundColor: theme.colors.card, 
       height: '85%', 
       borderTopLeftRadius: 24, 
       borderTopRightRadius: 24,
@@ -132,17 +132,17 @@ const styles = StyleSheet.create({
       paddingHorizontal: 20,
       marginBottom: 20,
   },
-  title: { color: '#FFF', fontSize: 20, fontWeight: 'bold' },
+  title: { color: palette.white, fontSize: 20, fontWeight: 'bold' },
   closeBtn: { padding: 8 },
   closeText: { color: palette.brand[500], fontWeight: '600' },
   
   searchBox: { paddingHorizontal: 20, marginBottom: 16 },
   searchInput: {
-      backgroundColor: '#09090B',
+      backgroundColor: theme.colors.background,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
       borderRadius: 12,
-      color: '#FFF',
+      color: palette.white,
       paddingHorizontal: 16,
       paddingVertical: 12,
       fontSize: 16,
@@ -154,9 +154,9 @@ const styles = StyleSheet.create({
       paddingHorizontal: 16, 
       paddingVertical: 8, 
       borderRadius: 20, 
-      backgroundColor: '#27272A',
+      backgroundColor: theme.colors.cardElevated,
       borderWidth: 1,
-      borderColor: '#3F3F46',
+      borderColor: palette.zinc[700],
   },
   muscleChipActive: { backgroundColor: palette.brand[500] + '33', borderColor: palette.brand[500] },
   muscleChipText: { color: palette.gray[400], fontSize: 13 },
@@ -167,15 +167,15 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: '#09090B',
+      backgroundColor: theme.colors.background,
       padding: 16,
       borderRadius: 16,
       marginBottom: 12,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
   },
   exerciseInfo: { flex: 1 },
-  exerciseName: { color: '#FFF', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  exerciseName: { color: palette.white, fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
   exerciseMeta: { color: palette.gray[500], fontSize: 12, textTransform: 'capitalize' },
   addIcon: { color: palette.brand[500], fontSize: 24, fontWeight: '300' },
   

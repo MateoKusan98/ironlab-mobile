@@ -36,7 +36,7 @@ export const Alert: React.FC<AlertProps> = ({
         return {
           bg: color === 'gray' ? palette.gray[800] : p[600],
           border: 'transparent',
-          textTitle: color === 'gray' ? palette.gray[50] : '#FFF',
+          textTitle: color === 'gray' ? palette.gray[50] : palette.white,
           textDesc: color === 'gray' ? palette.gray[300] : p[100],
           iconColor: color === 'gray' ? palette.gray[300] : p[100],
         };

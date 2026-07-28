@@ -33,5 +33,5 @@ export const UserAvatar: React.FC<Props> = ({ user, size = 40 }) => {
 
 const styles = StyleSheet.create({
   circle: { alignItems: 'center', justifyContent: 'center' },
-  text: { color: '#fff', fontWeight: '700', letterSpacing: 0.5 },
+  text: { color: palette.white, fontWeight: '700', letterSpacing: 0.5 },
 });

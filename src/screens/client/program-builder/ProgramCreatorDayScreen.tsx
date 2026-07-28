@@ -8,7 +8,7 @@ import {
   Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { palette } from '../../../theme';
+import { theme, palette } from '../../../theme';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 import { ExerciseSearchModal } from './ExerciseSearchModal';
@@ -87,7 +87,7 @@ export const ProgramCreatorDayScreen: React.FC = () => {
                 <Switch 
                     value={day.isRestDay} 
                     onValueChange={handleToggleRestDay}
-                    trackColor={{ false: '#3F3F46', true: palette.brand[500] }}
+                    trackColor={{ false: palette.zinc[700], true: palette.brand[500] }}
                 />
             </View>
 
@@ -144,7 +144,7 @@ export const ProgramCreatorDayScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -153,9 +153,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backIcon: { color: '#FFF', fontSize: 24 },
+  backIcon: { color: palette.white, fontSize: 24 },
   headerTitles: { alignItems: 'center' },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  headerTitle: { color: palette.white, fontSize: 18, fontWeight: 'bold' },
   headerSubtitle: { color: palette.gray[400], fontSize: 12 },
   content: { paddingHorizontal: 20, paddingBottom: 100 },
   
@@ -163,39 +163,39 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: '#18181B',
+      backgroundColor: theme.colors.card,
       borderRadius: 16,
       padding: 16,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
       marginBottom: 24,
   },
-  restDayLabel: { color: '#FFF', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  restDayLabel: { color: palette.white, fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
   restDaySub: { color: palette.gray[400], fontSize: 12 },
 
   exerciseCard: {
-      backgroundColor: '#18181B',
+      backgroundColor: theme.colors.card,
       borderRadius: 16,
       padding: 16,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
       marginBottom: 16,
   },
   exHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  exOrder: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#27272A', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  exOrderText: { color: '#FFF', fontSize: 12, fontWeight: 'bold' },
-  exName: { flex: 1, color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  exOrder: { width: 24, height: 24, borderRadius: 12, backgroundColor: theme.colors.cardElevated, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  exOrderText: { color: palette.white, fontSize: 12, fontWeight: 'bold' },
+  exName: { flex: 1, color: palette.white, fontSize: 16, fontWeight: 'bold' },
   exMenuIcon: { color: palette.gray[500], fontSize: 20, fontWeight: 'bold' },
 
   setsContainer: { marginBottom: 16 },
-  setRowHeader: { flexDirection: 'row', paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#27272A', marginBottom: 8 },
+  setRowHeader: { flexDirection: 'row', paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.cardElevated, marginBottom: 8 },
   setCol: { flex: 1, color: palette.gray[500], fontSize: 11, fontWeight: 'bold', textAlign: 'center' },
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
-  setVal: { flex: 1, color: '#FFF', fontSize: 13, textAlign: 'center' },
+  setVal: { flex: 1, color: palette.white, fontSize: 13, textAlign: 'center' },
   setValBadge: {
       flex: 1,
-      backgroundColor: '#27272A',
-      color: '#A1A1AA',
+      backgroundColor: theme.colors.cardElevated,
+      color: palette.zinc[400],
       fontSize: 8,
       fontWeight: 'bold',
       paddingVertical: 4,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   addExerciseBtn: {
       paddingVertical: 16,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
       borderRadius: 16,
       borderStyle: 'dashed',
       alignItems: 'center',

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -19,12 +19,12 @@ import { useBrowseMeals } from '../../hooks/useNutrition';
 import { MealType, FoodLogResponse } from '@shared';
 
 const CATEGORIES = [
-  { label: 'Vegetarian', value: 'Vegetarian', icon: '🍃', color: '#1A3322', iconColor: '#A3E635' },
-  { label: 'Keto', value: 'Keto', icon: '🌾', color: '#3A2016', iconColor: '#F59E0B' },
-  { label: 'Paleo', value: 'Paleo', icon: '🍎', color: '#3D1525', iconColor: '#F43F5E' },
-  { label: 'High Protein', value: 'Heavy Protein', icon: '🦴', color: '#31230D', iconColor: '#EAB308' },
-  { label: 'High Carb', value: 'Heavy Carbs', icon: '🍚', color: '#1E293B', iconColor: '#3B82F6' },
-  { label: 'High Fat', value: 'Heavy Fat', icon: '🧀', color: '#422006', iconColor: '#D97706' },
+  { label: 'Vegetarian', value: 'Vegetarian', icon: '🍃', color: theme.categoryTint.green, iconColor: palette.lime[400] },
+  { label: 'Keto', value: 'Keto', icon: '🌾', color: theme.categoryTint.amber, iconColor: palette.warning[500] },
+  { label: 'Paleo', value: 'Paleo', icon: '🍎', color: theme.categoryTint.rose, iconColor: palette.rose[500] },
+  { label: 'High Protein', value: 'Heavy Protein', icon: '🦴', color: theme.categoryTint.yellow, iconColor: palette.yellow[500] },
+  { label: 'High Carb', value: 'Heavy Carbs', icon: '🍚', color: palette.slate[800], iconColor: palette.info[500] },
+  { label: 'High Fat', value: 'Heavy Fat', icon: '🧀', color: theme.categoryTint.orange, iconColor: palette.warning[600] },
 ];
 
 const CALORIE_RANGES = [
@@ -121,7 +121,7 @@ export const BrowseMealsScreen: React.FC = () => {
         {meal.imageUrl ? (
             <Image source={{ uri: meal.imageUrl }} style={styles.hCardImage} />
         ) : (
-            <View style={[styles.hCardImage, { backgroundColor: '#27272A', alignItems: 'center', justifyContent: 'center' }]}>
+            <View style={[styles.hCardImage, { backgroundColor: theme.colors.cardElevated, alignItems: 'center', justifyContent: 'center' }]}>
                 <Text>🍽️</Text>
             </View>
         )}
@@ -202,12 +202,12 @@ export const BrowseMealsScreen: React.FC = () => {
                     {featuredMeal.imageUrl ? (
                         <Image source={{ uri: featuredMeal.imageUrl }} style={styles.featuredImage} />
                     ) : (
-                        <View style={[styles.featuredImage, { backgroundColor: '#27272A' }]} />
+                        <View style={[styles.featuredImage, { backgroundColor: theme.colors.cardElevated }]} />
                     )}
                     <View style={styles.featuredOverlay}>
                         <View style={styles.featuredTopRow}>
                             <View style={styles.newBadge}><Text style={styles.newBadgeText}>New</Text></View>
-                            <TouchableOpacity style={styles.saveBtn}><Text style={{ color: '#FFF' }}>🔖</Text></TouchableOpacity>
+                            <TouchableOpacity style={styles.saveBtn}><Text style={{ color: palette.white }}>🔖</Text></TouchableOpacity>
                         </View>
                         <View style={styles.featuredDetails}>
                             <Text style={styles.featuredTitle}>{featuredMeal.mealName || 'Untitled Meal'}</Text>
@@ -241,7 +241,7 @@ export const BrowseMealsScreen: React.FC = () => {
                             {meal.imageUrl ? (
                                 <Image source={{ uri: meal.imageUrl }} style={styles.vCardImage} />
                             ) : (
-                                <View style={[styles.vCardImage, { backgroundColor: '#27272A' }]} />
+                                <View style={[styles.vCardImage, { backgroundColor: theme.colors.cardElevated }]} />
                             )}
                         </View>
                         <View style={styles.vCardContent}>
@@ -313,7 +313,7 @@ export const BrowseMealsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
   scrollContent: {
     padding: 20,
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   backIcon: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 28,
   },
   headerTextGroup: {
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     marginBottom: 4,
   },
   headerSubtitle: {
@@ -350,13 +350,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 50,
     marginBottom: 30,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   searchIcon: {
     fontSize: 16,
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: '#FFF',
+    color: palette.white,
     fontSize: 15,
   },
   filterIcon: {
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
   },
   categoryScroll: {
     paddingRight: 20,
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   categoryLabel: {
     fontSize: 10,
@@ -417,13 +417,13 @@ const styles = StyleSheet.create({
   rangeBtn: {
     flex: 1,
     height: 40,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 4,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   rangeBtnActive: {
     backgroundColor: palette.brand[500] + '33',
@@ -441,9 +441,9 @@ const styles = StyleSheet.create({
     height: 380,
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   featuredImage: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 12,
   },
-  newBadgeText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
+  newBadgeText: { color: palette.white, fontSize: 10, fontWeight: 'bold' },
   saveBtn: {
     width: 36,
     height: 36,
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   featuredTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     marginBottom: 12,
   },
   featuredAuthorRow: {
@@ -490,14 +490,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   authorAvatar: { width: 20, height: 20, borderRadius: 10, marginRight: 8 },
-  authorName: { color: '#FFF', fontSize: 12 },
+  authorName: { color: palette.white, fontSize: 12 },
   featuredBottomRow: {
     flexDirection: 'row',
     gap: 16,
   },
   fMetric: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   fMetricIcon: { fontSize: 14 },
-  fMetricVal: { color: '#FFF', fontSize: 13, fontWeight: 'bold' },
+  fMetricVal: { color: palette.white, fontSize: 13, fontWeight: 'bold' },
   fMetricUnit: { color: palette.gray[300], fontSize: 9 },
   
   horizontalScroll: {
@@ -507,10 +507,10 @@ const styles = StyleSheet.create({
   horizontalCard: {
     width: 260,
     height: 120,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     flexDirection: 'row',
     overflow: 'hidden',
   },
@@ -520,16 +520,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hCardTag: {
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     marginBottom: 8,
   },
-  hCardTagText: { fontSize: 8, color: '#A1A1AA' },
+  hCardTagText: { fontSize: 8, color: palette.zinc[400] },
   hCardTitle: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 8,
@@ -563,11 +563,11 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   verticalCard: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 20,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
   vCardImage: { width: '100%', height: '100%' },
   vCardContent: { flex: 1, justifyContent: 'center' },
   vCardTitle: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 8,
@@ -595,19 +595,19 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 32,
     borderWidth: 1,
-    borderColor: '#3F3F46',
+    borderColor: palette.zinc[700],
     borderRadius: 24,
     paddingHorizontal: 24,
     paddingVertical: 12,
     gap: 12,
   },
   loadMoreText: {
-    color: '#D4D4D8',
+    color: palette.zinc[300],
     fontSize: 18,
     fontWeight: '500',
   },
   loadMoreIcon: {
-    color: '#D4D4D8',
+    color: palette.zinc[300],
     fontSize: 24,
     fontWeight: '300',
     marginTop: -2,

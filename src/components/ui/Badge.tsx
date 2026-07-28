@@ -34,7 +34,7 @@ export const Badge: React.FC<BadgeProps> = ({
         return {
           bg: color === 'gray' ? palette.gray[700] : p[600],
           border: 'transparent',
-          text: color === 'gray' ? palette.gray[50] : '#FFF',
+          text: color === 'gray' ? palette.gray[50] : palette.white,
         };
       case 'outline':
         return {

@@ -9,12 +9,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useAuthStore } from '../../stores/auth.store';
 
+import { Card } from '../../components/ui';
 const { width } = Dimensions.get('window');
 
 type LimbLength = 'long' | 'average' | 'short';
@@ -119,7 +120,7 @@ export const ScanResultScreen: React.FC = () => {
         <Text style={styles.subtitle}>{t('scanResult.subtitle')}</Text>
 
         {/* ── Body Fat Ring Card ── */}
-        <View style={styles.card}>
+        <Card background={CARD_BG} borderColor={CARD_BORDER} radius={20} padding={20} style={styles.cardSpacing}>
           <View style={styles.ringRow}>
             <View style={styles.ringOuter}>
               <View style={[styles.ringProgress, { borderColor: fatRating.color }]}>
@@ -166,7 +167,7 @@ export const ScanResultScreen: React.FC = () => {
               </View>
             </View>
           </View>
-        </View>
+        </Card>
 
         {/* ── Metrics Grid ── */}
         <View style={styles.grid}>
@@ -195,7 +196,7 @@ export const ScanResultScreen: React.FC = () => {
 
         {/* ── Lifting Leverages ── */}
         {analysis.leverages && (
-          <View style={styles.card}>
+          <Card background={CARD_BG} borderColor={CARD_BORDER} radius={20} padding={20} style={styles.cardSpacing}>
             <View style={styles.leverageHeader}>
               <Text style={styles.sectionTitle}>{t('scanResult.leveragesTitle')}</Text>
               <Text style={styles.leverageBuild}>{analysis.leverages.build}</Text>
@@ -215,12 +216,12 @@ export const ScanResultScreen: React.FC = () => {
                 ))}
               </View>
             )}
-          </View>
+          </Card>
         )}
 
         {/* ── Water Retention ── */}
         {analysis.waterRetention && (
-          <View style={styles.card}>
+          <Card background={CARD_BG} borderColor={CARD_BORDER} radius={20} padding={20} style={styles.cardSpacing}>
             <View style={styles.leverageHeader}>
               <Text style={styles.sectionTitle}>{t('scanResult.waterRetentionTitle')}</Text>
               <View style={[styles.ratingBadge, { backgroundColor: retentionColor(analysis.waterRetention.level) + '22' }]}>
@@ -238,27 +239,27 @@ export const ScanResultScreen: React.FC = () => {
                     {
                       backgroundColor: n <= analysis.waterRetention!.score
                         ? retentionColor(analysis.waterRetention!.level)
-                        : '#27272A',
+                        : theme.colors.cardElevated,
                     },
                   ]}
                 />
               ))}
             </View>
             <Text style={styles.retentionNote}>{analysis.waterRetention.note}</Text>
-          </View>
+          </Card>
         )}
 
         {/* ── AI Strategy ── */}
-        <View style={[styles.card, styles.strategyCard]}>
+        <Card background={CARD_BG} borderColor={CARD_BORDER} radius={20} padding={20} style={[styles.cardSpacing, styles.strategyCard]}>
           <View style={styles.strategyHeader}>
             <Text style={styles.strategyGoalBadge}>{analysis.goal}</Text>
             <Text style={styles.strategyTitle}>{t('scanResult.aiStrategy')}</Text>
           </View>
           <Text style={styles.strategyText}>{analysis.explanation}</Text>
-        </View>
+        </Card>
 
         {/* ── Nutrition Targets ── */}
-        <View style={styles.card}>
+        <Card background={CARD_BG} borderColor={CARD_BORDER} radius={20} padding={20} style={styles.cardSpacing}>
           <Text style={styles.sectionTitle}>{t('scanResult.nutritionTargets')}</Text>
           <View style={styles.calorieRow}>
             <Text style={styles.calorieValue}>{analysis.calories.toLocaleString()}</Text>
@@ -269,7 +270,7 @@ export const ScanResultScreen: React.FC = () => {
             <MacroChip label="Carbs" value={analysis.macros.carbs} color={palette.warning[400]} />
             <MacroChip label="Fat" value={analysis.macros.fat} color={palette.error[400]} />
           </View>
-        </View>
+        </Card>
 
         {/* ── CTA ── */}
         <TouchableOpacity
@@ -293,14 +294,14 @@ const MetricCard: React.FC<{
   sub?: string;
   accent: string;
 }> = ({ icon, value, label, sub, accent }) => (
-  <View style={metricStyles.card}>
+  <Card background={CARD_BG} borderColor={CARD_BORDER} radius={16} padding={16} gap={4} style={metricStyles.cardBox}>
     <Text style={metricStyles.icon}>{icon}</Text>
     <View style={metricStyles.valueRow}>
       <Text style={[metricStyles.value, { color: accent }]}>{value}</Text>
       {sub && <Text style={metricStyles.sub}>{sub}</Text>}
     </View>
     <Text style={metricStyles.label}>{label}</Text>
-  </View>
+  </Card>
 );
 
 const MacroChip: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
@@ -344,12 +345,12 @@ const LeverageRow: React.FC<{
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
-const CARD_BG = '#18181B';
-const CARD_BORDER = '#27272A';
-const TEXT_MUTED = '#71717A';
+const CARD_BG = theme.colors.card;
+const CARD_BORDER = theme.colors.cardElevated;
+const TEXT_MUTED = palette.zinc[500];
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   scroll: { padding: 20, paddingBottom: 40 },
 
   header: {
@@ -359,7 +360,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   closeBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  closeText: { fontSize: 20, color: '#FFF' },
+  closeText: { fontSize: 20, color: palette.white },
   aiLogo: {
     width: 44,
     height: 44,
@@ -373,19 +374,12 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8,
   },
-  plusIcon: { fontSize: 26, color: '#000', fontWeight: 'bold' },
+  plusIcon: { fontSize: 26, color: palette.black, fontWeight: 'bold' },
 
-  title: { fontSize: 22, fontWeight: 'bold', color: '#FFF', marginBottom: 4 },
+  title: { fontSize: 22, fontWeight: 'bold', color: palette.white, marginBottom: 4 },
   subtitle: { fontSize: 14, color: TEXT_MUTED, marginBottom: 24 },
 
-  card: {
-    backgroundColor: CARD_BG,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: CARD_BORDER,
-    padding: 20,
-    marginBottom: 16,
-  },
+  cardSpacing: { marginBottom: 16 },
   strategyCard: { gap: 12 },
 
   // Ring section
@@ -403,13 +397,13 @@ const styles = StyleSheet.create({
     borderWidth: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#111',
+    backgroundColor: palette.mono[11],
   },
   ringValue: { fontSize: 22, fontWeight: 'bold' },
   ringLabel: { fontSize: 10, color: TEXT_MUTED, marginTop: 2 },
   ringStats: { flex: 1, gap: 12, alignItems: 'flex-start' },
   ringStat: { gap: 2 },
-  ringStatValue: { fontSize: 20, fontWeight: 'bold', color: '#FFF' },
+  ringStatValue: { fontSize: 20, fontWeight: 'bold', color: palette.white },
   ringStatLabel: { fontSize: 12, color: TEXT_MUTED },
   ratingBadge: {
     paddingHorizontal: 12,
@@ -453,8 +447,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
   },
-  strategyTitle: { fontSize: 16, fontWeight: '700', color: '#FFF' },
-  strategyText: { fontSize: 14, color: '#A1A1AA', lineHeight: 22 },
+  strategyTitle: { fontSize: 16, fontWeight: '700', color: palette.white },
+  strategyText: { fontSize: 14, color: palette.zinc[400], lineHeight: 22 },
 
   // Leverages
   leverageHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
@@ -463,17 +457,17 @@ const styles = StyleSheet.create({
   implicationList: { marginTop: 16, gap: 8, borderTopWidth: 1, borderTopColor: CARD_BORDER, paddingTop: 16 },
   implicationItem: { flexDirection: 'row', gap: 8 },
   implicationBullet: { color: palette.brand[400], fontSize: 14, fontWeight: '700', lineHeight: 20 },
-  implicationText: { flex: 1, fontSize: 13, color: '#A1A1AA', lineHeight: 20 },
+  implicationText: { flex: 1, fontSize: 13, color: palette.zinc[400], lineHeight: 20 },
 
   // Water retention
   retentionScale: { flexDirection: 'row', gap: 6, marginBottom: 14 },
   retentionPip: { flex: 1, height: 8, borderRadius: 4 },
-  retentionNote: { fontSize: 13, color: '#A1A1AA', lineHeight: 20 },
+  retentionNote: { fontSize: 13, color: palette.zinc[400], lineHeight: 20 },
 
   // Nutrition targets
   sectionTitle: { fontSize: 14, fontWeight: '600', color: TEXT_MUTED, marginBottom: 12 },
   calorieRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 16 },
-  calorieValue: { fontSize: 36, fontWeight: 'bold', color: '#FFF' },
+  calorieValue: { fontSize: 36, fontWeight: 'bold', color: palette.white },
   calorieUnit: { fontSize: 14, color: TEXT_MUTED },
   macrosRow: { flexDirection: 'row', justifyContent: 'space-between' },
 
@@ -486,19 +480,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 8,
   },
-  ctaBtnText: { fontSize: 17, fontWeight: 'bold', color: '#000' },
+  ctaBtnText: { fontSize: 17, fontWeight: 'bold', color: palette.black },
 });
 
 const metricStyles = StyleSheet.create({
-  card: {
-    width: (width - 50) / 2,
-    backgroundColor: CARD_BG,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: CARD_BORDER,
-    padding: 16,
-    gap: 4,
-  },
+  cardBox: { width: (width - 50) / 2 },
   icon: { fontSize: 22, marginBottom: 4 },
   valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3 },
   value: { fontSize: 22, fontWeight: 'bold' },
@@ -509,7 +495,7 @@ const metricStyles = StyleSheet.create({
 const macroStyles = StyleSheet.create({
   chip: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: palette.mono[11],
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -522,7 +508,7 @@ const macroStyles = StyleSheet.create({
 
 const leverageStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  rowLabel: { fontSize: 14, color: '#FFF', fontWeight: '500', width: 70 },
+  rowLabel: { fontSize: 14, color: palette.white, fontWeight: '500', width: 70 },
   scale: { flex: 1, flexDirection: 'row', gap: 6 },
   pill: {
     flex: 1,
@@ -530,7 +516,7 @@ const leverageStyles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: CARD_BORDER,
-    backgroundColor: '#111',
+    backgroundColor: palette.mono[11],
     alignItems: 'center',
   },
   pillText: { fontSize: 11, color: TEXT_MUTED },

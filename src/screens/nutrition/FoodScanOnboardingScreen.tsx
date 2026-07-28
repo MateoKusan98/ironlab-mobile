@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -89,7 +89,7 @@ export const FoodScanOnboardingScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
   content: {
     padding: 24,
@@ -113,20 +113,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     textAlign: 'center',
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
-    color: '#71717A',
+    color: palette.zinc[500],
     textAlign: 'center',
     marginBottom: 60,
   },
   checklist: {
     width: '100%',
     gap: 1,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 20,
     overflow: 'hidden',
     marginBottom: 80,
@@ -136,13 +136,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
     borderBottomWidth: 1,
-    borderBottomColor: '#18181B',
+    borderBottomColor: theme.colors.card,
   },
   checkLabel: {
     fontSize: 16,
-    color: '#FFF',
+    color: palette.white,
   },
   checkRight: {
     flexDirection: 'row',
@@ -152,21 +152,21 @@ const styles = StyleSheet.create({
   checkValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFF',
+    color: palette.white,
   },
   checkDot: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkDotComplete: {
-    backgroundColor: '#22C55E',
+    backgroundColor: palette.success[500],
   },
   checkIcon: {
-    color: '#000',
+    color: palette.black,
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   scanBtnText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
+    color: palette.black,
   },
   uploadIcon: { fontSize: 18 },
   barcodeBtn: {

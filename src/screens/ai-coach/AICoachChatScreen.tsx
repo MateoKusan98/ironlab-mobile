@@ -16,7 +16,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import { aiCoachService, ChatMessage, CoachPreferences } from '../../services/ai-coach.service';
 
 type Props = {
@@ -55,7 +55,7 @@ const chat = StyleSheet.create({
   typingBubble: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: theme.colors.backgroundTertiary,
     paddingHorizontal: 18,
     paddingVertical: 16,
     borderRadius: 20,
@@ -236,7 +236,7 @@ export const AICoachChatScreen: React.FC<Props> = ({ route }) => {
             disabled={!input.trim() || isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator size="small" color="#000" />
+              <ActivityIndicator size="small" color={palette.black} />
             ) : (
               <Text style={styles.sendIcon}>›</Text>
             )}
@@ -248,7 +248,7 @@ export const AICoachChatScreen: React.FC<Props> = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
 
   header: {
     flexDirection: 'row',
@@ -259,20 +259,20 @@ const styles = StyleSheet.create({
     borderBottomColor: palette.gray[800],
   },
   headerBack: { width: 36 },
-  headerBackIcon: { color: '#FFF', fontSize: 28 },
+  headerBackIcon: { color: palette.white, fontSize: 28 },
   headerCenter: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: palette.brand[900] ?? '#3D1A00',
+    backgroundColor: palette.brand[900],
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: palette.brand[500],
   },
   headerAvatarIcon: { fontSize: 18, color: palette.brand[500] },
-  headerTitle: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  headerTitle: { color: palette.white, fontSize: 15, fontWeight: '700' },
   headerSub: { color: palette.gray[500], fontSize: 11 },
   headerSettings: { width: 36, alignItems: 'flex-end' },
   headerSettingsIcon: { fontSize: 18 },
@@ -305,12 +305,12 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
   bubbleCoach: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: theme.colors.backgroundTertiary,
     borderBottomLeftRadius: 4,
   },
   bubbleText: { fontSize: 14, lineHeight: 20 },
-  bubbleTextUser: { color: '#000', fontWeight: '600' },
-  bubbleTextCoach: { color: '#FFF' },
+  bubbleTextUser: { color: palette.black, fontWeight: '600' },
+  bubbleTextCoach: { color: palette.white },
 
   quickPrompts: {
     paddingHorizontal: 16,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: palette.gray[800],
     gap: 8,
-    backgroundColor: '#09090B',
+    backgroundColor: theme.colors.background,
   },
   micBtn: { padding: 4 },
   micIcon: { fontSize: 18 },
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    color: '#FFF',
+    color: palette.white,
     fontSize: 14,
     maxHeight: 100,
     borderWidth: 1,
@@ -364,5 +364,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
-  sendIcon: { color: '#000', fontSize: 28, fontWeight: '900', marginTop: -2 },
+  sendIcon: { color: palette.black, fontSize: 28, fontWeight: '900', marginTop: -2 },
 });

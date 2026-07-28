@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import {
   aiCoachService, PathTree, PathNodeState, PathMilestone, PathBranch,
 } from '../../services/ai-coach.service';
@@ -153,9 +153,9 @@ export const PathTreeScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14 },
-  title: { fontSize: 22, fontWeight: '900', color: '#FFF' },
+  title: { fontSize: 22, fontWeight: '900', color: palette.white },
   close: { fontSize: 22, color: palette.gray[400] },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   errText: { color: palette.gray[500], fontSize: 14 },
@@ -166,7 +166,7 @@ const s = StyleSheet.create({
     borderRadius: 16, padding: 16, marginBottom: 8,
   },
   hereLabel: { color: palette.brand[400], fontSize: 12, fontWeight: '800', letterSpacing: 0.5, marginBottom: 4 },
-  hereValue: { color: '#FFF', fontSize: 18, fontWeight: '800' },
+  hereValue: { color: palette.white, fontSize: 18, fontWeight: '800' },
 
   sectionTitle: { color: palette.gray[300], fontSize: 14, fontWeight: '800', marginTop: 22, marginBottom: 10 },
 
@@ -177,7 +177,7 @@ const s = StyleSheet.create({
   },
   foundationCurrent: { borderColor: palette.brand[400], backgroundColor: 'rgba(234,88,12,0.10)' },
   foundationIcon: { fontSize: 26 },
-  foundationLabel: { color: '#FFF', fontSize: 15, fontWeight: '800' },
+  foundationLabel: { color: palette.white, fontSize: 15, fontWeight: '800' },
   foundationSub: { color: palette.gray[500], fontSize: 12, marginTop: 2 },
   foundationCheck: { color: palette.brand[400], fontSize: 18, fontWeight: '800' },
   branchStem: { color: palette.gray[700], fontSize: 16, textAlign: 'center', marginVertical: 2 },
@@ -190,9 +190,9 @@ const s = StyleSheet.create({
   branchHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   branchIcon: { fontSize: 20 },
   branchLabel: { color: palette.gray[300], fontSize: 16, fontWeight: '800', flex: 1 },
-  branchLabelCurrent: { color: '#FFF' },
+  branchLabelCurrent: { color: palette.white },
   youBadge: { backgroundColor: palette.brand[500], borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  youBadgeText: { color: '#000', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+  youBadgeText: { color: palette.black, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   pillRow: { flexDirection: 'row', gap: 8 },
   pill: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
@@ -211,7 +211,7 @@ const s = StyleSheet.create({
   msIconLocked: { opacity: 0.6 },
   msTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   msLabel: { color: palette.gray[300], fontSize: 14, fontWeight: '700', flex: 1 },
-  msLabelDone: { color: '#FFF' },
+  msLabelDone: { color: palette.white },
   msMeta: { color: palette.gray[500], fontSize: 12, fontWeight: '600', marginLeft: 8 },
   progressTrack: { height: 6, backgroundColor: palette.gray[800], borderRadius: 3, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: palette.brand[500], borderRadius: 3 },

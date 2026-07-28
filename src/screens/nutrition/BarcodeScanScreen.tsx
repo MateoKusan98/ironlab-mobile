@@ -170,8 +170,8 @@ export const BarcodeScanScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  noCamera: { color: '#fff', textAlign: 'center', marginTop: 100, fontSize: 16, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: palette.black },
+  noCamera: { color: palette.white, textAlign: 'center', marginTop: 100, fontSize: 16, paddingHorizontal: 24 },
   backBtn: { alignSelf: 'center', marginTop: 20 },
   backBtnText: { color: palette.brand[500], fontSize: 16 },
 
@@ -184,10 +184,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   closeBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  closeText: { color: '#fff', fontSize: 22 },
-  headerTitle: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  closeText: { color: palette.white, fontSize: 22 },
+  headerTitle: { color: palette.white, fontSize: 17, fontWeight: '700' },
 
-  corner: { position: 'absolute', width: 28, height: 28, borderColor: '#fff' },
+  corner: { position: 'absolute', width: 28, height: 28, borderColor: palette.white },
   topLeft:    { top: -2,    left: -2,    borderTopWidth: 3,    borderLeftWidth: 3,    borderTopLeftRadius: 10 },
   topRight:   { top: -2,    right: -2,   borderTopWidth: 3,    borderRightWidth: 3,   borderTopRightRadius: 10 },
   bottomLeft: { bottom: -2, left: -2,    borderBottomWidth: 3, borderLeftWidth: 3,    borderBottomLeftRadius: 10 },
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     borderRadius: 4,
   },
-  scanningText: { color: '#fff', fontSize: 14 },
+  scanningText: { color: palette.white, fontSize: 14 },
 
   hint: {
     color: 'rgba(255,255,255,0.85)',

@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.brand[600],
   },
   checkIcon: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontSize: 12,
     fontWeight: 'bold',
   },

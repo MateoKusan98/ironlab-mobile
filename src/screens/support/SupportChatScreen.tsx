@@ -201,7 +201,7 @@ export const SupportChatScreen: React.FC<Props> = () => {
             disabled={!input.trim() || isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator size="small" color="#000" />
+              <ActivityIndicator size="small" color={palette.black} />
             ) : (
               <Text style={styles.sendIcon}>›</Text>
             )}
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: palette.brand[900] ?? '#1A1A00',
+    backgroundColor: palette.brand[900],
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: palette.brand[900] ?? '#1A1A00',
+    backgroundColor: palette.brand[900],
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   bubbleText: { fontSize: 14, lineHeight: 20 },
-  bubbleTextUser: { color: '#000', fontWeight: '600' },
+  bubbleTextUser: { color: palette.black, fontWeight: '600' },
   bubbleTextAssistant: { color: theme.colors.text },
 
   typingBubble: {
@@ -344,5 +344,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
-  sendIcon: { color: '#000', fontSize: 22, fontWeight: '700', marginTop: -2 },
+  sendIcon: { color: palette.black, fontSize: 22, fontWeight: '700', marginTop: -2 },
 });

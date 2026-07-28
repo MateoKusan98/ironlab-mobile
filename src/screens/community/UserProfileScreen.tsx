@@ -101,10 +101,10 @@ export const UserProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               disabled={startingConv}
             >
               {startingConv ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={palette.white} />
               ) : (
                 <>
-                  <ChatCircleDots size={18} color="#fff" weight="fill" />
+                  <ChatCircleDots size={18} color={palette.white} weight="fill" />
                   <Text style={styles.messageBtnText}>Message</Text>
                 </>
               )}
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   profileSection: { alignItems: 'center', padding: 24, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
   avatar: { width: 80, height: 80, borderRadius: 40, marginBottom: 12 },
   avatarFallback: { backgroundColor: palette.brand[600], alignItems: 'center', justifyContent: 'center' },
-  avatarInitials: { color: '#fff', fontWeight: '700', fontSize: 28 },
+  avatarInitials: { color: palette.white, fontWeight: '700', fontSize: 28 },
   profileName: { fontSize: 20, fontWeight: '700', color: theme.colors.text, marginBottom: 4 },
   postCount: { fontSize: 14, color: theme.colors.textSecondary, marginBottom: 16 },
   messageBtn: {
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 22,
   },
-  messageBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  messageBtnText: { color: palette.white, fontWeight: '600', fontSize: 15 },
   postsGrid: { padding: 16 },
   sectionTitle: {
     fontSize: 13,

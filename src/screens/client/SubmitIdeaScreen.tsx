@@ -118,7 +118,7 @@ export const SubmitIdeaScreen: React.FC = () => {
               disabled={loading || content.trim().length < 10}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={palette.white} />
               ) : (
                 <Text style={styles.submitBtnText}>Submit Idea</Text>
               )}
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   submitBtnDisabled: { opacity: 0.45 },
-  submitBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  submitBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
 
   historySection: { marginTop: 4 },
   historyTitle: { fontSize: 13, fontWeight: '700', color: palette.gray[400], letterSpacing: 0.5, marginBottom: 10 },

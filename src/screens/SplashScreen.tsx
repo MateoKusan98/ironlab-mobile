@@ -33,7 +33,7 @@ export const SplashScreen: React.FC = () => {
 
       <View style={styles.footer}>
         {/* White loader against the brand background */}
-        <Loader size="large" color="#FFFFFF" />
+        <Loader size="large" color={palette.white} />
       </View>
     </View>
   );
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 48,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: palette.white,
     letterSpacing: -1,
   },
   footer: {

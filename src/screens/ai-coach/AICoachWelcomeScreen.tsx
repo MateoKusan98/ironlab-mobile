@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -100,8 +100,8 @@ export const AICoachWelcomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <FloatingBadge label={t('aiCoachWelcome.badgeGetUp')} color={palette.brand[500]} icon="⚡" delay={0} x={20} y={height * 0.12} />
-      <FloatingBadge label={t('aiCoachWelcome.badgeWrongForm')} color="#7C3AED" icon="🏃" delay={400} x={width - 140} y={height * 0.2} />
-      <FloatingBadge label={t('aiCoachWelcome.badgeDoReps')} color="#2563EB" icon="💪" delay={800} x={24} y={height * 0.32} />
+      <FloatingBadge label={t('aiCoachWelcome.badgeWrongForm')} color={palette.violet[600]} icon="🏃" delay={400} x={width - 140} y={height * 0.2} />
+      <FloatingBadge label={t('aiCoachWelcome.badgeDoReps')} color={palette.info[600]} icon="💪" delay={800} x={24} y={height * 0.32} />
 
       <View style={styles.heroSection}>
         <RobotHead />
@@ -127,7 +127,7 @@ export const AICoachWelcomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
   heroSection: {
     flex: 1,
@@ -140,18 +140,18 @@ const styles = StyleSheet.create({
   robotHead: {
     width: 180,
     height: 160,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.surface.raised,
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#333',
+    borderColor: palette.mono[33],
     position: 'relative',
   },
   robotFaceplate: {
     width: 140,
     height: 120,
-    backgroundColor: '#111',
+    backgroundColor: palette.mono[11],
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   robotEye: {
     width: 32,
     height: 32,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -196,36 +196,36 @@ const styles = StyleSheet.create({
     left: -16,
     width: 16,
     height: 40,
-    backgroundColor: '#222',
+    backgroundColor: palette.mono[22],
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: palette.mono[33],
   },
   robotEarRight: {
     position: 'absolute',
     right: -16,
     width: 16,
     height: 40,
-    backgroundColor: '#222',
+    backgroundColor: palette.mono[22],
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: palette.mono[33],
   },
   robotNeck: {
     width: 40,
     height: 20,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.surface.raised,
     borderLeftWidth: 2,
     borderRightWidth: 2,
-    borderColor: '#333',
+    borderColor: palette.mono[33],
   },
   robotShoulder: {
     width: 220,
     height: 40,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.surface.raised,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#333',
+    borderColor: palette.mono[33],
   },
   badge: {
     position: 'absolute',
@@ -235,23 +235,23 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     zIndex: 10,
   },
   badgeIcon: { fontSize: 13 },
-  badgeText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  badgeText: { color: palette.white, fontSize: 12, fontWeight: '700' },
   bottomSection: {
     padding: 28,
     paddingBottom: 40,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
   title: {
     fontSize: 38,
     fontWeight: '900',
-    color: '#FFF',
+    color: palette.white,
     letterSpacing: -1,
     marginBottom: 14,
   },
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaText: {
-    color: '#000',
+    color: palette.black,
     fontSize: 16,
     fontWeight: '800',
   },

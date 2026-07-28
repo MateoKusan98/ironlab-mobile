@@ -121,7 +121,7 @@ export const MealScanScreen: React.FC = () => {
           >
             {analyzing ? (
               <View style={styles.analyzingRow}>
-                <ActivityIndicator color="#000" />
+                <ActivityIndicator color={palette.black} />
                 <Text style={styles.captureBtnText}>Analysing...</Text>
               </View>
             ) : (
@@ -138,9 +138,9 @@ export const MealScanScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: palette.black },
   overlay: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 24 },
-  noCamera: { color: '#fff', textAlign: 'center', marginTop: 100, fontSize: 16 },
+  noCamera: { color: palette.white, textAlign: 'center', marginTop: 100, fontSize: 16 },
   backBtn: { alignSelf: 'center', marginTop: 20 },
   backBtnText: { color: palette.brand[500], fontSize: 16 },
 
@@ -151,8 +151,8 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   closeBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  closeText: { color: '#fff', fontSize: 22 },
-  headerTitle: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  closeText: { color: palette.white, fontSize: 22 },
+  headerTitle: { color: palette.white, fontSize: 17, fontWeight: '700' },
 
   frameWrapper: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   frame: {
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.04)',
     position: 'relative',
   },
-  corner: { position: 'absolute', width: 36, height: 36, borderColor: '#fff' },
+  corner: { position: 'absolute', width: 36, height: 36, borderColor: palette.white },
   topLeft:    { top: -2,    left: -2,    borderTopWidth: 3,    borderLeftWidth: 3,    borderTopLeftRadius: 14 },
   topRight:   { top: -2,    right: -2,   borderTopWidth: 3,    borderRightWidth: 3,   borderTopRightRadius: 14 },
   bottomLeft: { bottom: -2, left: -2,    borderBottomWidth: 3, borderLeftWidth: 3,    borderBottomLeftRadius: 14 },
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   captureBtnDisabled: { opacity: 0.6 },
-  captureBtnText: { fontSize: 17, fontWeight: '800', color: '#000' },
+  captureBtnText: { fontSize: 17, fontWeight: '800', color: palette.black },
   analyzingRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 
   manualLink: { alignItems: 'center' },

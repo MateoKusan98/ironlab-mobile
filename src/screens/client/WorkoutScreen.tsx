@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -20,10 +20,10 @@ import { UserRole } from '@shared';
 import { RecoveryWeekCard } from '../../components/ui/RecoveryWeekControl';
 
 // const CATEGORIES = [
-//   { id: '1', label: 'HIIT', Icon: Fire, color: '#1A3322', iconColor: '#f97316' },
-//   { id: '2', label: 'Strength', Icon: Barbell, color: '#1E293B', iconColor: '#93c5fd' },
-//   { id: '3', label: 'Cardio', Icon: PersonSimpleRun, color: '#422006', iconColor: '#fb923c' },
-//   { id: '4', label: 'Mobility', Icon: PersonSimpleBike, color: '#3D1525', iconColor: '#f9a8d4' },
+//   { id: '1', label: 'HIIT', Icon: Fire, color: theme.categoryTint.green, iconColor: palette.brand[500] },
+//   { id: '2', label: 'Strength', Icon: Barbell, color: palette.slate[800], iconColor: palette.info[300] },
+//   { id: '3', label: 'Cardio', Icon: PersonSimpleRun, color: theme.categoryTint.orange, iconColor: palette.brand[400] },
+//   { id: '4', label: 'Mobility', Icon: PersonSimpleBike, color: theme.categoryTint.rose, iconColor: palette.pink[300] },
 // ];
 
 export const WorkoutScreen: React.FC = () => {
@@ -36,7 +36,7 @@ export const WorkoutScreen: React.FC = () => {
       <ScreenHeader
         left={<UserAvatar user={user} size={36} />}
         title={t('nav.workouts')}
-        right={<TouchableOpacity style={styles.bellBtn}><Bell size={20} weight="bold" color="#a1a1aa" /></TouchableOpacity>}
+        right={<TouchableOpacity style={styles.bellBtn}><Bell size={20} weight="bold" color={palette.zinc[400]} /></TouchableOpacity>}
       />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
@@ -75,8 +75,8 @@ export const WorkoutScreen: React.FC = () => {
 
         {/* Cardio Log Banner */}
         <TouchableOpacity style={styles.cardioBanner} onPress={() => navigation.navigate('CardioLog')}>
-          <View style={[styles.bannerIconWrap, { backgroundColor: '#fb923c22' }]}>
-            <PersonSimpleRun size={22} weight="bold" color="#fb923c" />
+          <View style={[styles.bannerIconWrap, { backgroundColor: alpha(palette.brand[400], 0.133) }]}>
+            <PersonSimpleRun size={22} weight="bold" color={palette.brand[400]} />
           </View>
           <View style={styles.bannerText}>
             <Text style={styles.bannerTitle}>Log Cardio</Text>
@@ -87,8 +87,8 @@ export const WorkoutScreen: React.FC = () => {
 
         {/* Form Check Banner */}
         <TouchableOpacity style={styles.formCheckBanner} onPress={() => navigation.navigate('FormCheck')}>
-          <View style={[styles.bannerIconWrap, { backgroundColor: '#7c3aed22' }]}>
-            <Camera size={22} weight="fill" color="#a78bfa" />
+          <View style={[styles.bannerIconWrap, { backgroundColor: alpha(palette.violet[600], 0.133) }]}>
+            <Camera size={22} weight="fill" color={palette.violet[400]} />
           </View>
           <View style={styles.bannerText}>
             <Text style={styles.bannerTitle}>Assess Form</Text>
@@ -128,8 +128,8 @@ export const WorkoutScreen: React.FC = () => {
               style={styles.aiLabBanner}
               onPress={() => navigation.navigate('AdminAILab', {})}
             >
-              <View style={[styles.bannerIconWrap, { backgroundColor: '#7c3aed22' }]}>
-                <Flask size={22} weight="fill" color="#a78bfa" />
+              <View style={[styles.bannerIconWrap, { backgroundColor: alpha(palette.violet[600], 0.133) }]}>
+                <Flask size={22} weight="fill" color={palette.violet[400]} />
               </View>
               <View style={styles.bannerText}>
                 <Text style={styles.bannerTitle}>AI Coach Lab</Text>
@@ -155,7 +155,7 @@ export const WorkoutScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#09090B',
+    backgroundColor: theme.colors.background,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   },
   aiBannerLeft: { flex: 1 },
   aiBannerLabel: { color: 'rgba(0,0,0,0.55)', fontSize: 11, fontWeight: '600', letterSpacing: 0.4, marginBottom: 6 },
-  aiBannerTitle: { color: '#000', fontSize: 18, fontWeight: '800', marginBottom: 14, lineHeight: 22 },
+  aiBannerTitle: { color: palette.black, fontSize: 18, fontWeight: '800', marginBottom: 14, lineHeight: 22 },
   aiBannerCta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   aiBannerCtaText: { color: 'rgba(0,0,0,0.7)', fontSize: 13, fontWeight: '700' },
   aiBannerIcon: { position: 'absolute', right: -8, bottom: -10 },
@@ -199,35 +199,35 @@ const styles = StyleSheet.create({
   // Action banners
   startSessionBanner: {
     flexDirection: 'row',
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 18,
     alignItems: 'center',
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     gap: 14,
   },
   cardioBanner: {
     flexDirection: 'row',
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 18,
     alignItems: 'center',
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     gap: 14,
   },
   formCheckBanner: {
     flexDirection: 'row',
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 18,
     alignItems: 'center',
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     gap: 14,
   },
   bannerIconWrap: {
@@ -238,19 +238,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bannerText: { flex: 1 },
-  bannerTitle: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 2 },
+  bannerTitle: { fontSize: 15, fontWeight: '700', color: palette.white, marginBottom: 2 },
   bannerSub: { fontSize: 12, color: palette.gray[400] },
 
   // Quick cards
   quickRow: { flexDirection: 'row', gap: 12 },
   quickCard: {
     flex: 1,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     gap: 6,
   },
   quickIconWrap: {
@@ -262,18 +262,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 4,
   },
-  quickLabel: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  quickLabel: { fontSize: 14, fontWeight: '700', color: palette.white },
   quickSub: { fontSize: 12, color: palette.gray[500] },
 
   aiLabBanner: {
     flexDirection: 'row',
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 18,
     alignItems: 'center',
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#3b1f6a',
+    borderColor: theme.surface.violetBorder,
     gap: 14,
   },
 });

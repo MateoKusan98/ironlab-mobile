@@ -138,97 +138,97 @@ export const AppNavigator: React.FC = () => {
   return (
     <NavigationContainer theme={navTheme}>
       <View style={{ flex: 1 }}>
-      {/* Sits in normal flow above the navigator so it pushes screens down. */}
-      <ImpersonationBanner />
-      <SafeAreaInsetsContext.Consumer>
-        {(insets) => (
-          <SafeAreaInsetsContext.Provider
-            value={{
-              // While the bar is shown it covers the status-bar area, so zero the
-              // content's top inset to avoid a double gap; pass through otherwise.
-              top: impersonator ? 0 : insets?.top ?? 0,
-              bottom: insets?.bottom ?? 0,
-              left: insets?.left ?? 0,
-              right: insets?.right ?? 0,
-            }}
-          >
-            <View style={{ flex: 1 }}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isAuthenticated ? (
-          <Stack.Screen name="Auth" component={AuthStack} />
-        ) : user?.role === UserRole.ROLE_COACH ? (
-          <Stack.Screen name="CoachApp" component={CoachTabs} />
-        ) : (
-          <>
-            <Stack.Group>
-              {user?.isSetupComplete ? (
-                <Stack.Screen name="ClientApp" component={ClientTabs} />
-              ) : (
-                <Stack.Screen name="Setup" component={SetupWizardScreen} />
-              )}
-            </Stack.Group>
-            
-            <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
-              <Stack.Screen name="BodyScan" component={BodyScanScreen} />
-              <Stack.Screen name="ScanResult" component={ScanResultScreen} />
-              <Stack.Screen name="FoodScanOnboarding" component={FoodScanOnboardingScreen} />
-              <Stack.Screen name="FoodDetails" component={FoodDetailsScreen} />
-              <Stack.Screen name="ManualFoodLog" component={ManualFoodLogScreen} />
-              <Stack.Screen name="MealScan" component={MealScanScreen} />
-              <Stack.Screen name="BarcodeScanner" component={BarcodeScanScreen} />
-              <Stack.Screen name="MyMeals" component={MyMealsScreen} />
-              <Stack.Screen name="BrowseMeals" component={BrowseMealsScreen} />
-            </Stack.Group>
+        {/* Sits in normal flow above the navigator so it pushes screens down. */}
+        <ImpersonationBanner />
+        <SafeAreaInsetsContext.Consumer>
+          {(insets) => (
+            <SafeAreaInsetsContext.Provider
+              value={{
+                // While the bar is shown it covers the status-bar area, so zero the
+                // content's top inset to avoid a double gap; pass through otherwise.
+                top: impersonator ? 0 : insets?.top ?? 0,
+                bottom: insets?.bottom ?? 0,
+                left: insets?.left ?? 0,
+                right: insets?.right ?? 0,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Stack.Navigator screenOptions={{ headerShown: false }}>
+                  {!isAuthenticated ? (
+                    <Stack.Screen name="Auth" component={AuthStack} />
+                  ) : user?.role === UserRole.ROLE_COACH ? (
+                    <Stack.Screen name="CoachApp" component={CoachTabs} />
+                  ) : (
+                    <>
+                      <Stack.Group>
+                        {user?.isSetupComplete ? (
+                          <Stack.Screen name="ClientApp" component={ClientTabs} />
+                        ) : (
+                          <Stack.Screen name="Setup" component={SetupWizardScreen} />
+                        )}
+                      </Stack.Group>
 
-            <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
-              <Stack.Screen name="AICoachWelcome" component={AICoachWelcomeScreen} />
-              <Stack.Screen name="AICoachSetup" component={AICoachSetupScreen} />
-              <Stack.Screen name="AICoachExtendedSetup" component={AICoachExtendedSetupScreen} />
-              <Stack.Screen name="AICoachChat" component={AICoachChatScreen} />
-              <Stack.Screen name="AICoachPlan" component={AICoachPlanScreen} />
-              <Stack.Screen name="PathTree" component={PathTreeScreen} />
-            </Stack.Group>
+                      <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
+                        <Stack.Screen name="BodyScan" component={BodyScanScreen} />
+                        <Stack.Screen name="ScanResult" component={ScanResultScreen} />
+                        <Stack.Screen name="FoodScanOnboarding" component={FoodScanOnboardingScreen} />
+                        <Stack.Screen name="FoodDetails" component={FoodDetailsScreen} />
+                        <Stack.Screen name="ManualFoodLog" component={ManualFoodLogScreen} />
+                        <Stack.Screen name="MealScan" component={MealScanScreen} />
+                        <Stack.Screen name="BarcodeScanner" component={BarcodeScanScreen} />
+                        <Stack.Screen name="MyMeals" component={MyMealsScreen} />
+                        <Stack.Screen name="BrowseMeals" component={BrowseMealsScreen} />
+                      </Stack.Group>
 
-            <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
-              <Stack.Screen name="StartSession" component={StartSessionScreen} />
-              <Stack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
-              <Stack.Screen name="SessionSummary" component={SessionSummaryScreen} />
-              <Stack.Screen name="CardioLog" component={CardioLogScreen} />
-            </Stack.Group>
+                      <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
+                        <Stack.Screen name="AICoachWelcome" component={AICoachWelcomeScreen} />
+                        <Stack.Screen name="AICoachSetup" component={AICoachSetupScreen} />
+                        <Stack.Screen name="AICoachExtendedSetup" component={AICoachExtendedSetupScreen} />
+                        <Stack.Screen name="AICoachChat" component={AICoachChatScreen} />
+                        <Stack.Screen name="AICoachPlan" component={AICoachPlanScreen} />
+                        <Stack.Screen name="PathTree" component={PathTreeScreen} />
+                      </Stack.Group>
 
-            <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
-            <Stack.Screen name="Progress" component={ProgressScreen} />
-            <Stack.Screen name="Stats" component={StatsScreen} />
-            <Stack.Screen name="SessionDetail" component={SessionDetailScreen} />
+                      <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
+                        <Stack.Screen name="StartSession" component={StartSessionScreen} />
+                        <Stack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
+                        <Stack.Screen name="SessionSummary" component={SessionSummaryScreen} />
+                        <Stack.Screen name="CardioLog" component={CardioLogScreen} />
+                      </Stack.Group>
 
-            <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
-              <Stack.Screen name="ProgramCreatorStart" component={ProgramCreatorStartScreen} />
-              <Stack.Screen name="ProgramCreatorStructure" component={ProgramCreatorStructureScreen} />
-              <Stack.Screen name="ProgramCreatorWeeks" component={ProgramCreatorWeeksScreen} />
-              <Stack.Screen name="ProgramCreatorDay" component={ProgramCreatorDayScreen} />
-            </Stack.Group>
+                      <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
+                      <Stack.Screen name="Progress" component={ProgressScreen} />
+                      <Stack.Screen name="Stats" component={StatsScreen} />
+                      <Stack.Screen name="SessionDetail" component={SessionDetailScreen} />
 
-            <Stack.Screen name="SupportChat" component={SupportChatScreen} />
-            <Stack.Screen name="FormCheck" component={FormCheckScreen} />
-            <Stack.Screen name="Quiz" component={QuizScreen} />
-            <Stack.Screen name="Badges" component={BadgesScreen} />
-            <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />
-            <Stack.Screen name="AdminAILab" component={AdminAILabScreen} />
-            <Stack.Screen name="AdminIdeas" component={AdminIdeasScreen} />
-            <Stack.Screen name="AdminLogs" component={AdminLogsScreen} />
-            <Stack.Screen name="SubmitIdea" component={SubmitIdeaScreen} />
-            <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'modal' }} />
-            <Stack.Screen name="PostDetail" component={PostDetailScreen} />
-            <Stack.Screen name="UserProfile" component={UserProfileScreen} />
-            <Stack.Screen name="Messages" component={MessagesScreen} />
-            <Stack.Screen name="Conversation" component={ConversationScreen} />
-          </>
-        )}
-      </Stack.Navigator>
-            </View>
-          </SafeAreaInsetsContext.Provider>
-        )}
-      </SafeAreaInsetsContext.Consumer>
+                      <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
+                        <Stack.Screen name="ProgramCreatorStart" component={ProgramCreatorStartScreen} />
+                        <Stack.Screen name="ProgramCreatorStructure" component={ProgramCreatorStructureScreen} />
+                        <Stack.Screen name="ProgramCreatorWeeks" component={ProgramCreatorWeeksScreen} />
+                        <Stack.Screen name="ProgramCreatorDay" component={ProgramCreatorDayScreen} />
+                      </Stack.Group>
+
+                      <Stack.Screen name="SupportChat" component={SupportChatScreen} />
+                      <Stack.Screen name="FormCheck" component={FormCheckScreen} />
+                      <Stack.Screen name="Quiz" component={QuizScreen} />
+                      <Stack.Screen name="Badges" component={BadgesScreen} />
+                      <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />
+                      <Stack.Screen name="AdminAILab" component={AdminAILabScreen} />
+                      <Stack.Screen name="AdminIdeas" component={AdminIdeasScreen} />
+                      <Stack.Screen name="AdminLogs" component={AdminLogsScreen} />
+                      <Stack.Screen name="SubmitIdea" component={SubmitIdeaScreen} />
+                      <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="PostDetail" component={PostDetailScreen} />
+                      <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+                      <Stack.Screen name="Messages" component={MessagesScreen} />
+                      <Stack.Screen name="Conversation" component={ConversationScreen} />
+                    </>
+                  )}
+                </Stack.Navigator>
+              </View>
+            </SafeAreaInsetsContext.Provider>
+          )}
+        </SafeAreaInsetsContext.Consumer>
       </View>
     </NavigationContainer>
   );

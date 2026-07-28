@@ -162,9 +162,9 @@ export const ConversationScreen: React.FC<Props> = ({ route }) => {
             disabled={!text.trim() || sending}
           >
             {sending ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={palette.white} />
             ) : (
-              <PaperPlaneTilt size={18} color="#fff" weight="fill" />
+              <PaperPlaneTilt size={18} color={palette.white} weight="fill" />
             )}
           </TouchableOpacity>
         </View>
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   bubbleText: { fontSize: 15, lineHeight: 21 },
-  bubbleTextMe: { color: '#fff' },
+  bubbleTextMe: { color: palette.white },
   bubbleTextOther: { color: theme.colors.text },
   emptyChat: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
   emptyChatText: { fontSize: 14, color: theme.colors.textTertiary },

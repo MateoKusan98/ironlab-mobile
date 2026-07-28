@@ -1,7 +1,9 @@
 name: CI
 
-# Typecheck and lint the app. There is no test job yet — the mobile suite does
-# not exist; the adaptive logic worth testing lives in ironlab-backend.
+# Typecheck, lint and unit-test the app. The suite covers the extracted state
+# machines in src/hooks (workout clock, rest countdown, exercise cues) — pure
+# hook tests with no device, no network and no native modules, so they gate
+# every PR in under a second.
 
 on:
   pull_request:
@@ -23,3 +25,5 @@ jobs:
         run: npm run typecheck
       - name: Lint
         run: npm run lint
+      - name: Test
+        run: npm test

@@ -100,9 +100,9 @@ export const CreatePostScreen: React.FC<Props> = ({ navigation }) => {
             disabled={!canSubmit()}
           >
             {submitting ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={palette.white} />
             ) : (
-              <PaperPlaneTilt size={18} color="#fff" weight="fill" />
+              <PaperPlaneTilt size={18} color={palette.white} weight="fill" />
             )}
           </TouchableOpacity>
         </View>

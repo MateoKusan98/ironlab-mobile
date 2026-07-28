@@ -49,7 +49,7 @@ export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
             onPress={signInWithGoogle}
             activeOpacity={0.75}
             disabled={!isGoogleReady || isLoading}>
-            <GoogleLogo size={20} color="#fff" weight="bold" />
+            <GoogleLogo size={20} color={palette.white} weight="bold" />
             <Text style={styles.socialBtnText}>{t('auth.signInWithGoogle')}</Text>
           </TouchableOpacity>
 
@@ -57,7 +57,7 @@ export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
             style={[styles.socialBtn, styles.emailBtn]}
             onPress={() => navigation.navigate('Login')}
             activeOpacity={0.75}>
-            <Envelope size={20} color="#fff" weight="bold" />
+            <Envelope size={20} color={palette.white} weight="bold" />
             <Text style={styles.socialBtnText}>{t('auth.signInWithEmail')}</Text>
           </TouchableOpacity>
 
@@ -76,7 +76,7 @@ export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#080808',
+    backgroundColor: theme.surface.black,
   },
   bg: {
     position: 'absolute',
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 320,
-    backgroundColor: '#080808',
+    backgroundColor: theme.surface.black,
     opacity: 0.7,
   },
   content: {

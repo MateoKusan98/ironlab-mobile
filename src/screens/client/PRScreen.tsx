@@ -140,22 +140,22 @@ const styles = StyleSheet.create({
   },
   exerciseChipActive: { backgroundColor: palette.brand[600], borderColor: palette.brand[600] },
   exerciseChipText: { fontSize: 13, fontWeight: '600', color: palette.gray[400] },
-  exerciseChipTextActive: { color: '#fff' },
+  exerciseChipTextActive: { color: palette.white },
 
   content: { paddingHorizontal: 16 },
 
   heroCard: {
-    backgroundColor: '#78350f' + '40',
+    backgroundColor: palette.warning[900] + '40',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#92400e',
+    borderColor: palette.warning[800],
   },
-  heroLabel: { fontSize: 11, fontWeight: '700', color: '#fcd34d', letterSpacing: 1.5, marginBottom: 8 },
-  heroValue: { fontSize: 56, fontWeight: '900', color: '#fcd34d', letterSpacing: -2 },
-  heroDate: { fontSize: 12, color: '#fbbf24', marginTop: 6 },
+  heroLabel: { fontSize: 11, fontWeight: '700', color: palette.warning[300], letterSpacing: 1.5, marginBottom: 8 },
+  heroValue: { fontSize: 56, fontWeight: '900', color: palette.warning[300], letterSpacing: -2 },
+  heroDate: { fontSize: 12, color: palette.warning[400], marginTop: 6 },
 
   section: { marginBottom: 24 },
   sectionTitle: { fontSize: 11, fontWeight: '700', color: palette.gray[500], letterSpacing: 1, marginBottom: 12 },

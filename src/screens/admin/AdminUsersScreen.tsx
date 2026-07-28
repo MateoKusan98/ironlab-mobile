@@ -21,6 +21,7 @@ import { usersService, AdminUserEntry, UsageStatEntry } from '../../services/use
 import { theme, palette } from '../../theme';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 
+import { Card } from '../../components/ui';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const ROLE_COLORS: Record<string, string> = {
@@ -147,7 +148,7 @@ export const AdminUsersScreen: React.FC = () => {
       item.role !== UserRole.ROLE_ADMIN &&
       item.role !== UserRole.ROLE_SUPER_ADMIN;
     return (
-      <View style={styles.card}>
+      <Card radius={12} padding={14} background={palette.gray[900]} borderColor={palette.gray[800]} style={styles.cardSpacing}>
         <View style={styles.cardHeader}>
           {item.avatar ? (
             <Image source={{ uri: item.avatar }} style={styles.avatar} />
@@ -213,7 +214,7 @@ export const AdminUsersScreen: React.FC = () => {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </Card>
     );
   };
 
@@ -339,11 +340,11 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 16, paddingBottom: 40 },
   empty: { textAlign: 'center', color: palette.gray[500], marginTop: 60 },
 
-  card: { backgroundColor: palette.gray[900], borderRadius: 12, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: palette.gray[800] },
+  cardSpacing: { marginBottom: 12 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
   initials: { backgroundColor: palette.brand[700], marginRight: 10, alignItems: 'center', justifyContent: 'center' },
-  initialsText: { color: '#fff', fontWeight: '700' },
+  initialsText: { color: palette.white, fontWeight: '700' },
   cardIdentity: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
   userName: { fontSize: 15, fontWeight: '600', color: theme.colors.text, flexShrink: 1 },

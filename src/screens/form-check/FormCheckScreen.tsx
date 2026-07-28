@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { palette, theme } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import {
   formCheckService,
   AIFormCheckAnalysis,
@@ -50,13 +50,13 @@ type Props = {
 type Tab = 'ai' | 'coach' | 'community';
 
 const RATING_CONFIG = {
-  Good:       { color: '#22c55e', Icon: CheckCircle },
-  'Needs Work': { color: '#f59e0b', Icon: WarningCircle },
-  Critical:   { color: '#ef4444', Icon: XCircle },
+  Good:       { color: palette.success[500], Icon: CheckCircle },
+  'Needs Work': { color: palette.warning[500], Icon: WarningCircle },
+  Critical:   { color: palette.error[500], Icon: XCircle },
 };
 
 const ScoreRing = ({ score }: { score: number }) => {
-  const color = score >= 8 ? '#22c55e' : score >= 6 ? '#f59e0b' : '#ef4444';
+  const color = score >= 8 ? palette.success[500] : score >= 6 ? palette.warning[500] : palette.error[500];
   return (
     <View style={[styles.scoreRing, { borderColor: color }]}>
       <Text style={[styles.scoreNumber, { color }]}>{score}</Text>
@@ -453,7 +453,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
                   <Text style={styles.videoLabel}>{t('formCheck.videoSelected')}</Text>
                 </View>
                 <TouchableOpacity style={styles.mediaRemove} onPress={removeAIVideo}>
-                  <X size={14} weight="bold" color="#fff" />
+                  <X size={14} weight="bold" color={palette.white} />
                 </TouchableOpacity>
               </View>
             ) : (
@@ -464,7 +464,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
                     <View key={i} style={styles.photoThumb}>
                       <Image source={{ uri }} style={styles.photoImg} />
                       <TouchableOpacity style={styles.photoRemove} onPress={() => removeAIImage(i)}>
-                        <X size={12} weight="bold" color="#fff" />
+                        <X size={12} weight="bold" color={palette.white} />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -519,7 +519,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
               disabled={analyzing || (!aiImages.length && !aiVideo) || !aiExercise.trim()}
             >
               {analyzing ? (
-                <ActivityIndicator size="small" color="#000" />
+                <ActivityIndicator size="small" color={palette.black} />
               ) : (
                 <Text style={styles.primaryBtnText}>{t('formCheck.analyzeBtn')}</Text>
               )}
@@ -554,7 +554,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
                   </View>
                 )}
                 <TouchableOpacity style={styles.mediaRemove} onPress={() => setCoachMedia(null)}>
-                  <X size={14} weight="bold" color="#fff" />
+                  <X size={14} weight="bold" color={palette.white} />
                 </TouchableOpacity>
               </View>
             ) : (
@@ -590,7 +590,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
               disabled={submitting || !coachMedia || !coachExercise.trim()}
             >
               {submitting ? (
-                <ActivityIndicator size="small" color="#000" />
+                <ActivityIndicator size="small" color={palette.black} />
               ) : (
                 <Text style={styles.primaryBtnText}>{t('formCheck.submitBtn')}</Text>
               )}
@@ -623,7 +623,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.mediaPreview}>
                 <PostVideo uri={commVideo} style={{ height: '100%', borderRadius: 16 }} />
                 <TouchableOpacity style={styles.mediaRemove} onPress={() => setCommVideo(null)}>
-                  <X size={14} weight="bold" color="#fff" />
+                  <X size={14} weight="bold" color={palette.white} />
                 </TouchableOpacity>
               </View>
             ) : (
@@ -637,7 +637,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
                         style={styles.photoRemove}
                         onPress={() => setCommImages((prev) => prev.filter((_, idx) => idx !== i))}
                       >
-                        <X size={12} weight="bold" color="#fff" />
+                        <X size={12} weight="bold" color={palette.white} />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -684,7 +684,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
               disabled={posting || (!commImages.length && !commVideo) || !commExercise.trim()}
             >
               {posting ? (
-                <ActivityIndicator size="small" color="#000" />
+                <ActivityIndicator size="small" color={palette.black} />
               ) : (
                 <Text style={styles.primaryBtnText}>{t('formCheck.postToCommunity')}</Text>
               )}
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   primaryBtnDisabled: { opacity: 0.45 },
-  primaryBtnText: { fontSize: 15, fontWeight: '700', color: '#000' },
+  primaryBtnText: { fontSize: 15, fontWeight: '700', color: palette.black },
 
   analyzingHint: { textAlign: 'center', color: theme.colors.textTertiary, fontSize: 12, marginBottom: 16 },
 
@@ -852,7 +852,7 @@ const styles = StyleSheet.create({
   breakdownFeedback: { fontSize: 12, color: theme.colors.textSecondary, lineHeight: 17 },
 
   cueRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 },
-  cueDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#ef4444', marginTop: 6 },
+  cueDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: palette.error[500], marginTop: 6 },
   cueText: { flex: 1, fontSize: 13, color: theme.colors.text, lineHeight: 18 },
 
   // Coach tab
@@ -886,8 +886,8 @@ const styles = StyleSheet.create({
   coachCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   coachCardExercise: { fontSize: 15, fontWeight: '700', color: theme.colors.text },
   statusBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  statusPending: { backgroundColor: '#92400e33' },
-  statusReviewed: { backgroundColor: '#14532d33' },
+  statusPending: { backgroundColor: alpha(palette.warning[800], 0.2) },
+  statusReviewed: { backgroundColor: alpha(palette.success[900], 0.2) },
   statusText: { fontSize: 11, fontWeight: '700', color: theme.colors.textSecondary },
   coachCardNotes: { fontSize: 12, color: theme.colors.textTertiary, fontStyle: 'italic', marginBottom: 4 },
   coachCardDate: { fontSize: 11, color: theme.colors.textTertiary },

@@ -567,8 +567,8 @@ export const SetupWizardScreen: React.FC = () => {
             <View style={styles.sliderWrapper}>
                <View style={styles.sliderBarBackground}>
                  {[0,1,2,3,4].map((i) => (
-                   <TouchableOpacity key={i} style={[styles.sliderSegment, { backgroundColor: fitnessLevel >= i ? (i === 0 ? '#EF4444' : i === 1 ? '#F97316' : i === 2 ? '#FBBF24' : '#84CC16') : palette.gray[800] }]} onPress={() => setFitnessLevel(i)}>
-                      {fitnessLevel === i && <View style={styles.sliderThumbLocal}><Text style={{ color: '#FFF', fontWeight: 'bold' }}>||</Text></View>}
+                   <TouchableOpacity key={i} style={[styles.sliderSegment, { backgroundColor: fitnessLevel >= i ? (i === 0 ? palette.error[500] : i === 1 ? palette.brand[500] : i === 2 ? palette.warning[400] : palette.lime[500]) : palette.gray[800] }]} onPress={() => setFitnessLevel(i)}>
+                      {fitnessLevel === i && <View style={styles.sliderThumbLocal}><Text style={{ color: palette.white, fontWeight: 'bold' }}>||</Text></View>}
                    </TouchableOpacity>
                  ))}
                </View>
@@ -615,19 +615,19 @@ const styles = StyleSheet.create({
   logoBase: { width: 48, height: 48, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
   logoBaseV: { position: 'absolute', width: 16, height: 48, backgroundColor: palette.brand[600], borderRadius: 8 },
   logoBaseH: { position: 'absolute', width: 48, height: 16, backgroundColor: palette.brand[600], borderRadius: 8 },
-  title: { color: '#FFF', fontSize: 28, fontWeight: '900', textAlign: 'center', marginBottom: 16, lineHeight: 34 },
+  title: { color: palette.white, fontSize: 28, fontWeight: '900', textAlign: 'center', marginBottom: 16, lineHeight: 34 },
   subtitle: { color: palette.gray[300], textAlign: 'center', fontSize: 16, lineHeight: 24 },
   introFooter: { paddingBottom: 40, alignItems: 'center', paddingHorizontal: 20 },
   stepTopNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 20 },
-  navText: { color: '#FFF', fontSize: 32 },
-  navTextSkip: { color: '#FFF', fontWeight: 'bold' },
+  navText: { color: palette.white, fontSize: 32 },
+  navTextSkip: { color: palette.white, fontWeight: 'bold' },
   progressBarWrapper: { flex: 1, paddingHorizontal: 20 },
   stepContent: { flexGrow: 1, paddingHorizontal: 20, justifyContent: 'center' },
   stepContentFlex: { flex: 1, paddingHorizontal: 20 },
   stepScroll: { flex: 1 },
   stepScrollContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 },
   stepFooter: { paddingTop: 12 },
-  titleBig: { color: '#FFF', fontSize: 32, fontWeight: '900', textAlign: 'center', marginBottom: 24 },
+  titleBig: { color: palette.white, fontSize: 32, fontWeight: '900', textAlign: 'center', marginBottom: 24 },
   
   // Picker & Ruler
   wheelHighlightBoxed: { 
@@ -656,12 +656,12 @@ const styles = StyleSheet.create({
   // Gender
   radioOption: { backgroundColor: palette.gray[900], padding: 20, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: palette.gray[800] },
   radioOptionSelected: { borderColor: palette.brand[600], backgroundColor: 'rgba(234, 88, 12, 0.05)' },
-  radioLabel: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  radioLabel: { color: palette.white, fontSize: 16, fontWeight: 'bold' },
   radioIcon: { fontSize: 20, marginRight: 12 },
   radioCircle: { width: 24, height: 24, borderRadius: 12, backgroundColor: palette.gray[950], borderWidth: 1, borderColor: palette.gray[700], alignItems: 'center', justifyContent: 'center' },
   radioCircleActive: { backgroundColor: palette.brand[600], borderColor: palette.brand[600] },
-  radioInnerCircle: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#FFF' },
-  genderInput: { color: '#FFF', fontSize: 14, backgroundColor: palette.gray[950], padding: 12, borderRadius: 8, textAlignVertical: 'top', height: 80 },
+  radioInnerCircle: { width: 10, height: 10, borderRadius: 5, backgroundColor: palette.white },
+  genderInput: { color: palette.white, fontSize: 14, backgroundColor: palette.gray[950], padding: 12, borderRadius: 8, textAlignVertical: 'top', height: 80 },
   charCount: { color: palette.gray[500], fontSize: 10, textAlign: 'right', marginTop: 4 },
 
   // Unit Toggle
@@ -669,9 +669,9 @@ const styles = StyleSheet.create({
   unitBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
   unitBtnActive: { backgroundColor: palette.gray[800] },
   unitText: { color: palette.gray[500], fontWeight: 'bold' },
-  unitTextActive: { color: '#FFF' },
+  unitTextActive: { color: palette.white },
   valueDisplay: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' },
-  valueLarge: { color: '#FFF', fontSize: 90, fontWeight: '900' },
+  valueLarge: { color: palette.white, fontSize: 90, fontWeight: '900' },
   valueUnit: { color: palette.gray[500], fontSize: 24, marginLeft: 8 },
 
   // Fitness Level
@@ -679,8 +679,8 @@ const styles = StyleSheet.create({
   sliderWrapper: { height: 48, width: '100%' },
   sliderBarBackground: { flexDirection: 'row', height: 40, borderRadius: 20, overflow: 'hidden', backgroundColor: palette.gray[900] },
   sliderSegment: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  sliderThumbLocal: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#65A30D', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5, alignItems: 'center', justifyContent: 'center' },
-  fitnessTitle: { color: '#FFF', fontSize: 32, fontWeight: 'bold', marginBottom: 12 },
+  sliderThumbLocal: { width: 48, height: 48, borderRadius: 24, backgroundColor: palette.lime[600], shadowColor: palette.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5, alignItems: 'center', justifyContent: 'center' },
+  fitnessTitle: { color: palette.white, fontSize: 32, fontWeight: 'bold', marginBottom: 12 },
   fitnessDesc: { color: palette.gray[400], fontSize: 16 },
   dragHint: { color: palette.gray[500], fontSize: 12, marginTop: 24 },
   

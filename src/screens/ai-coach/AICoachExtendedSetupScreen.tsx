@@ -9,7 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import { aiCoachService, AICoachProfileData, CoachPreferences } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 
@@ -698,7 +698,7 @@ const fs = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   dotActive: { borderColor: palette.brand[500], backgroundColor: palette.brand[500] },
-  dotInner: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#FFF' },
+  dotInner: { width: 7, height: 7, borderRadius: 4, backgroundColor: palette.white },
   labelRow: { flexDirection: 'row', marginTop: 4 },
   label: { fontSize: 12, fontWeight: '700', color: palette.gray[500] },
   labelLeft: { flex: 1, textAlign: 'left' },
@@ -715,7 +715,7 @@ const q = StyleSheet.create({
   optionTextSelected: { color: palette.brand[400] },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: palette.gray[600], alignItems: 'center', justifyContent: 'center' },
   radioSelected: { borderColor: palette.brand[500], backgroundColor: palette.brand[500] },
-  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFF' },
+  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: palette.white },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   chip: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20, backgroundColor: palette.gray[900], borderWidth: 1, borderColor: palette.gray[700], flexDirection: 'row', alignItems: 'center', gap: 6 },
   chipSelected: { borderColor: palette.brand[500], backgroundColor: 'rgba(234,88,12,0.12)' },
@@ -723,7 +723,7 @@ const q = StyleSheet.create({
   chipText: { color: palette.gray[400], fontSize: 13, fontWeight: '600' },
   chipTextSelected: { color: palette.brand[400] },
   numberRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  numberInput: { backgroundColor: palette.gray[900], borderRadius: 12, paddingHorizontal: 20, paddingVertical: 14, color: '#FFF', fontSize: 24, fontWeight: '700', borderWidth: 1, borderColor: palette.gray[700], minWidth: 100, textAlign: 'center' },
+  numberInput: { backgroundColor: palette.gray[900], borderRadius: 12, paddingHorizontal: 20, paddingVertical: 14, color: palette.white, fontSize: 24, fontWeight: '700', borderWidth: 1, borderColor: palette.gray[700], minWidth: 100, textAlign: 'center' },
   numberUnit: { color: palette.gray[400], fontSize: 16 },
   boolBtn: { flex: 1, paddingVertical: 14, borderRadius: 14, backgroundColor: palette.gray[900], borderWidth: 1, borderColor: palette.gray[700], alignItems: 'center' },
   boolBtnSelected: { borderColor: palette.brand[500], backgroundColor: 'rgba(234,88,12,0.12)' },
@@ -1176,10 +1176,10 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
   backBtn: { width: 32 },
-  backIcon: { color: '#FFF', fontSize: 28 },
+  backIcon: { color: palette.white, fontSize: 28 },
   progressTrack: { flex: 1, height: 3, backgroundColor: palette.gray[800], borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: palette.brand[500], borderRadius: 2 },
   skipBtn: {},
@@ -1193,18 +1193,18 @@ const s = StyleSheet.create({
   scrollContent: { paddingHorizontal: 20, paddingTop: 12 },
   sectionHeader: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
   sectionIcon: { fontSize: 32, marginBottom: 6 },
-  sectionTitle: { fontSize: 28, fontWeight: '900', color: '#FFF', letterSpacing: -0.5, marginBottom: 6 },
+  sectionTitle: { fontSize: 28, fontWeight: '900', color: palette.white, letterSpacing: -0.5, marginBottom: 6 },
   sectionSubtitle: { fontSize: 13, color: palette.gray[500], lineHeight: 18, fontStyle: 'italic' },
 
   questionBlock: { marginBottom: 28 },
   questionLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  questionLabel: { fontSize: 15, fontWeight: '700', color: '#FFF', flex: 1 },
+  questionLabel: { fontSize: 15, fontWeight: '700', color: palette.white, flex: 1 },
   questionSubtitle: { fontSize: 12, color: palette.gray[600], marginBottom: 10, fontStyle: 'italic' },
   optional: { color: palette.gray[600], fontSize: 11, fontStyle: 'italic' },
   requiredDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: palette.brand[500] },
   answeredCheck: { color: palette.brand[400], fontSize: 13, fontWeight: '700' },
 
-  textArea: { backgroundColor: palette.gray[900], borderRadius: 12, padding: 14, color: '#FFF', fontSize: 14, borderWidth: 1, borderColor: palette.gray[700], minHeight: 80, textAlignVertical: 'top' },
+  textArea: { backgroundColor: palette.gray[900], borderRadius: 12, padding: 14, color: palette.white, fontSize: 14, borderWidth: 1, borderColor: palette.gray[700], minHeight: 80, textAlignVertical: 'top' },
   textAreaLarge: { minHeight: 200, fontSize: 13 },
 
   dontKnowBtn: {
@@ -1230,20 +1230,20 @@ const s = StyleSheet.create({
   footerStep: { color: palette.brand[500], fontSize: 13, fontWeight: '800' },
   footerSectionName: { color: palette.gray[500], fontSize: 13 },
   nextBtn: { backgroundColor: palette.brand[500], paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  nextBtnText: { color: '#000', fontSize: 15, fontWeight: '800' },
+  nextBtnText: { color: palette.black, fontSize: 15, fontWeight: '800' },
 
   suggestionCard: {
-    backgroundColor: '#0f1a10', borderWidth: 1, borderColor: '#166534',
+    backgroundColor: theme.surfaceTint.successDeep, borderWidth: 1, borderColor: palette.success[800],
     borderRadius: 14, padding: 16, marginBottom: 20,
   },
   suggestionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  suggestionTitle: { fontSize: 13, fontWeight: '700', color: '#4ade80' },
+  suggestionTitle: { fontSize: 13, fontWeight: '700', color: palette.success[400] },
   suggestionDismiss: { fontSize: 16, color: palette.gray[600] },
   suggestionRows: { gap: 6, marginBottom: 14 },
   suggestionItem: { fontSize: 13, color: palette.gray[300] },
   suggestionApplyBtn: {
-    backgroundColor: '#166534', borderRadius: 10,
+    backgroundColor: palette.success[800], borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  suggestionApplyText: { fontSize: 13, fontWeight: '700', color: '#4ade80' },
+  suggestionApplyText: { fontSize: 13, fontWeight: '700', color: palette.success[400] },
 });

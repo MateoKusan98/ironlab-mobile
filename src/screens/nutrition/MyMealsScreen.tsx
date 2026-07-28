@@ -7,8 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
 import { nutritionService } from '../../services/nutrition.service';
-import { palette } from '../../theme';
-
+import { theme, palette } from '../../theme';
+import { Card } from '../../components/ui';
 const MEAL_TYPES = [
   { value: 'BREAKFAST', label: 'Breakfast', emoji: '🌅' },
   { value: 'LUNCH',     label: 'Lunch',     emoji: '☀️' },
@@ -81,7 +81,7 @@ export const MyMealsScreen: React.FC = () => {
   };
 
   const renderMeal = ({ item }: { item: Meal }) => (
-    <View style={s.card}>
+    <Card variant="row" padding={0} gap={0} background={theme.colors.backgroundSecondary} borderColor={theme.colors.cardElevated} style={s.cardClip}>
       {item.image ? (
         <Image source={{ uri: item.image }} style={s.cardImg} />
       ) : (
@@ -110,7 +110,7 @@ export const MyMealsScreen: React.FC = () => {
           <Text style={s.deleteBtnText}>✕</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Card>
   );
 
   return (
@@ -172,55 +172,47 @@ export const MyMealsScreen: React.FC = () => {
 };
 
 const s = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: '#000' },
+  container:  { flex: 1, backgroundColor: palette.black },
   header:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingVertical: 16 },
   backBtn:    { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  backIcon:   { color: '#FFF', fontSize: 32 },
-  title:      { fontSize: 20, fontWeight: '700', color: '#FFF' },
+  backIcon:   { color: palette.white, fontSize: 32 },
+  title:      { fontSize: 20, fontWeight: '700', color: palette.white },
 
-  card: {
-    backgroundColor: '#111113',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#27272A',
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
+  cardClip: { overflow: 'hidden' },
   cardImg: { width: 80, height: 80 },
-  cardImgPlaceholder: { backgroundColor: '#1c1c1e', alignItems: 'center', justifyContent: 'center' },
+  cardImgPlaceholder: { backgroundColor: theme.colors.backgroundTertiary, alignItems: 'center', justifyContent: 'center' },
   cardImgEmoji: { fontSize: 32 },
   cardBody: { flex: 1, paddingHorizontal: 12, paddingVertical: 10 },
-  cardName: { color: '#FFF', fontWeight: '700', fontSize: 14, marginBottom: 6 },
+  cardName: { color: palette.white, fontWeight: '700', fontSize: 14, marginBottom: 6 },
   macroRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   kcal:  { color: palette.brand[400], fontSize: 12, fontWeight: '700' },
-  macro: { color: '#888', fontSize: 11 },
+  macro: { color: palette.mono[88], fontSize: 11 },
   cardActions: { paddingRight: 12, alignItems: 'center', gap: 8 },
   logBtn:     { backgroundColor: palette.brand[500], borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
-  logBtnText: { color: '#000', fontWeight: '700', fontSize: 12 },
-  deleteBtn:     { width: 28, height: 28, borderRadius: 14, backgroundColor: '#27272A', alignItems: 'center', justifyContent: 'center' },
-  deleteBtnText: { color: '#888', fontSize: 12, fontWeight: '700' },
+  logBtnText: { color: palette.black, fontWeight: '700', fontSize: 12 },
+  deleteBtn:     { width: 28, height: 28, borderRadius: 14, backgroundColor: theme.colors.cardElevated, alignItems: 'center', justifyContent: 'center' },
+  deleteBtnText: { color: palette.mono[88], fontSize: 12, fontWeight: '700' },
 
   empty:      { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
   emptyEmoji: { fontSize: 56, marginBottom: 16 },
-  emptyTitle: { color: '#FFF', fontSize: 20, fontWeight: '700', marginBottom: 10 },
-  emptySub:   { color: '#666', fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { color: palette.white, fontSize: 20, fontWeight: '700', marginBottom: 10 },
+  emptySub:   { color: palette.mono[66], fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: '#111113',
+    backgroundColor: theme.colors.backgroundSecondary,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
     paddingBottom: 40,
     borderTopWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
-  sheetTitle:  { color: '#FFF', fontSize: 18, fontWeight: '700', marginBottom: 4 },
-  sheetSub:    { color: '#888', fontSize: 13, marginBottom: 20 },
-  sheetOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#1c1c1e', gap: 14 },
+  sheetTitle:  { color: palette.white, fontSize: 18, fontWeight: '700', marginBottom: 4 },
+  sheetSub:    { color: palette.mono[88], fontSize: 13, marginBottom: 20 },
+  sheetOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: theme.colors.backgroundTertiary, gap: 14 },
   sheetOptionEmoji: { fontSize: 24 },
-  sheetOptionLabel: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  sheetOptionLabel: { color: palette.white, fontSize: 16, fontWeight: '600' },
   sheetCancel: { marginTop: 16, alignItems: 'center', paddingVertical: 12 },
-  sheetCancelText: { color: '#888', fontSize: 15 },
+  sheetCancelText: { color: palette.mono[88], fontSize: 15 },
 });

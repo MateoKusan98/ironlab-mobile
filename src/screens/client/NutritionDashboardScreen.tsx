@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { UserAvatar } from '../../components/ui/UserAvatar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -91,7 +91,7 @@ export const NutritionDashboardScreen: React.FC = () => {
   if (summaryLoading) {
     return (
         <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-            <Text style={{ color: '#FFF' }}>{t('nutritionDashboard.loadingData')}</Text>
+            <Text style={{ color: palette.white }}>{t('nutritionDashboard.loadingData')}</Text>
         </SafeAreaView>
     );
   }
@@ -186,7 +186,7 @@ export const NutritionDashboardScreen: React.FC = () => {
             <Text style={styles.statLabel}>{t('nutrition.daysLogged')}</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={[styles.statValue, { color: (summary?.proteinHitRate ?? 0) >= 70 ? palette.brand[400] : '#F59E0B' }]}>
+            <Text style={[styles.statValue, { color: (summary?.proteinHitRate ?? 0) >= 70 ? palette.brand[400] : palette.warning[500] }]}>
               {summary?.proteinHitRate ?? '—'}%
             </Text>
             <Text style={styles.statLabel}>{t('nutrition.proteinGoal')}</Text>
@@ -199,8 +199,8 @@ export const NutritionDashboardScreen: React.FC = () => {
             <Text style={styles.macroSplitTitle}>{t('nutrition.macroSplit')}</Text>
             <View style={styles.macroSplitBar}>
               <View style={[styles.macroSplitSegment, { flex: summary.macroSplit.protein || 0.01, backgroundColor: palette.brand[500] }]} />
-              <View style={[styles.macroSplitSegment, { flex: summary.macroSplit.carbs || 0.01, backgroundColor: '#F59E0B' }]} />
-              <View style={[styles.macroSplitSegment, { flex: summary.macroSplit.fat || 0.01, backgroundColor: '#3B82F6' }]} />
+              <View style={[styles.macroSplitSegment, { flex: summary.macroSplit.carbs || 0.01, backgroundColor: palette.warning[500] }]} />
+              <View style={[styles.macroSplitSegment, { flex: summary.macroSplit.fat || 0.01, backgroundColor: palette.info[500] }]} />
             </View>
             <View style={styles.macroSplitLegend}>
               <View style={styles.macroSplitLegendItem}>
@@ -208,11 +208,11 @@ export const NutritionDashboardScreen: React.FC = () => {
                 <Text style={styles.macroSplitLegendText}>P {summary.macroSplit.protein}%</Text>
               </View>
               <View style={styles.macroSplitLegendItem}>
-                <View style={[styles.macroSplitDot, { backgroundColor: '#F59E0B' }]} />
+                <View style={[styles.macroSplitDot, { backgroundColor: palette.warning[500] }]} />
                 <Text style={styles.macroSplitLegendText}>C {summary.macroSplit.carbs}%</Text>
               </View>
               <View style={styles.macroSplitLegendItem}>
-                <View style={[styles.macroSplitDot, { backgroundColor: '#3B82F6' }]} />
+                <View style={[styles.macroSplitDot, { backgroundColor: palette.info[500] }]} />
                 <Text style={styles.macroSplitLegendText}>F {summary.macroSplit.fat}%</Text>
               </View>
             </View>
@@ -222,7 +222,7 @@ export const NutritionDashboardScreen: React.FC = () => {
         {/* Consistency & Records Row */}
         <View style={styles.consistencyRow}>
           <View style={styles.consistencyCard}>
-            <Fire size={22} weight="fill" color="#f97316" style={{ marginBottom: 6 }} />
+            <Fire size={22} weight="fill" color={palette.brand[500]} style={{ marginBottom: 6 }} />
             <Text style={styles.consistencyBig}>{summary?.streak ?? 0}</Text>
             <Text style={styles.consistencyLabel}>{t('nutrition.dayStreak')}</Text>
           </View>
@@ -232,7 +232,7 @@ export const NutritionDashboardScreen: React.FC = () => {
             <Text style={styles.consistencyLabel}>{t('nutrition.bestProtein')}</Text>
           </View>
           <View style={styles.consistencyCard}>
-            <Lightning size={22} weight="fill" color="#eab308" style={{ marginBottom: 6 }} />
+            <Lightning size={22} weight="fill" color={palette.yellow[500]} style={{ marginBottom: 6 }} />
             <Text style={styles.consistencyBig}>{summary?.bestCalories ?? 0}</Text>
             <Text style={styles.consistencyLabel}>{t('nutrition.bestKcal')}</Text>
           </View>
@@ -295,7 +295,7 @@ export const NutritionDashboardScreen: React.FC = () => {
                 </View>
                 <View style={styles.insightRing}>
                     <View style={[styles.ringFill, { 
-                        borderColor: '#27272A',
+                        borderColor: theme.colors.cardElevated,
                         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
                     }]} />
                     
@@ -320,7 +320,7 @@ export const NutritionDashboardScreen: React.FC = () => {
             
             {cardioCaloriesBurned > 0 && (
               <View style={styles.cardioBurnRow}>
-                <Flame size={14} weight="fill" color="#f97316" />
+                <Flame size={14} weight="fill" color={palette.brand[500]} />
                 <Text style={styles.cardioBurnText}>
                   -{cardioCaloriesBurned} kcal cardio burn · net {Math.round(netCalories)} consumed
                 </Text>
@@ -335,12 +335,12 @@ export const NutritionDashboardScreen: React.FC = () => {
                 </View>
                 <View style={styles.macroInsightItem}>
                     <Text style={styles.macroInsightLabel}>{t('nutrition.fat').replace(' (g)', '')}</Text>
-                    <View style={styles.macroBack}><View style={[styles.macroFill, { width: `${Math.min(100, (todayTotals.fat / targets.fat) * 100)}%`, backgroundColor: '#3B82F6' }]} /></View>
+                    <View style={styles.macroBack}><View style={[styles.macroFill, { width: `${Math.min(100, (todayTotals.fat / targets.fat) * 100)}%`, backgroundColor: palette.info[500] }]} /></View>
                     <Text style={styles.macroInsightValue}>{Math.round(todayTotals.fat)}/{Math.round(targets.fat)}g</Text>
                 </View>
                 <View style={styles.macroInsightItem}>
                     <Text style={styles.macroInsightLabel}>{t('nutrition.carbs').replace(' (g)', '')}</Text>
-                    <View style={styles.macroBack}><View style={[styles.macroFill, { width: `${Math.min(100, (todayTotals.carbs / targets.carbs) * 100)}%`, backgroundColor: '#F59E0B' }]} /></View>
+                    <View style={styles.macroBack}><View style={[styles.macroFill, { width: `${Math.min(100, (todayTotals.carbs / targets.carbs) * 100)}%`, backgroundColor: palette.warning[500] }]} /></View>
                     <Text style={styles.macroInsightValue}>{Math.round(todayTotals.carbs)}/{Math.round(targets.carbs)}g</Text>
                 </View>
             </View>
@@ -369,9 +369,9 @@ export const NutritionDashboardScreen: React.FC = () => {
                         <View style={styles.historyContent}>
                             <Text style={styles.historyMealName}>{log.mealName || 'Untitled Meal'}</Text>
                             <View style={styles.historyMacros}>
-                                <View style={[styles.historyMacroBubble, { backgroundColor: '#166534' }]}><Text style={styles.historyMacroText}>F {Math.round(log.fat || 0)}g</Text></View>
-                                <View style={[styles.historyMacroBubble, { backgroundColor: '#92400E' }]}><Text style={styles.historyMacroText}>C {Math.round(log.carbs || 0)}g</Text></View>
-                                <View style={[styles.historyMacroBubble, { backgroundColor: '#991B1B' }]}><Text style={styles.historyMacroText}>P {Math.round(log.protein || 0)}g</Text></View>
+                                <View style={[styles.historyMacroBubble, { backgroundColor: palette.success[800] }]}><Text style={styles.historyMacroText}>F {Math.round(log.fat || 0)}g</Text></View>
+                                <View style={[styles.historyMacroBubble, { backgroundColor: palette.warning[800] }]}><Text style={styles.historyMacroText}>C {Math.round(log.carbs || 0)}g</Text></View>
+                                <View style={[styles.historyMacroBubble, { backgroundColor: palette.error[800] }]}><Text style={styles.historyMacroText}>P {Math.round(log.protein || 0)}g</Text></View>
                             </View>
                         </View>
                         <View style={styles.historyRight}>
@@ -450,7 +450,7 @@ export const NutritionDashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
   scrollContent: {
     padding: 20,
@@ -466,18 +466,18 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
   },
   notificationBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -498,28 +498,28 @@ const styles = StyleSheet.create({
   scoreDivider: {
     width: 1,
     height: 60,
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
   },
   scoreValue: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     letterSpacing: -1,
   },
   scoreLabel: {
     fontSize: 14,
-    color: '#71717A',
+    color: palette.zinc[500],
     marginTop: 5,
   },
   scoreInsight: {
     fontSize: 14,
-    color: '#71717A',
+    color: palette.zinc[500],
     marginTop: 10,
     textAlign: 'center',
     marginBottom: 16,
   },
   adviceCard: {
-    backgroundColor: '#0a1628',
+    backgroundColor: theme.surfaceTint.info,
     borderWidth: 1,
     borderColor: palette.brand[700],
     borderRadius: 16,
@@ -541,12 +541,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   adviceText: {
-    color: '#e4e4e7',
+    color: palette.zinc[200],
     fontSize: 14,
     lineHeight: 21,
   },
   chartContainer: {
-    backgroundColor: '#09090B',
+    backgroundColor: theme.colors.background,
     padding: 20,
     borderRadius: 24,
     marginBottom: 20,
@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
     bottom: 25,
     width: 6,
     height: 120,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 3,
   },
   barValue: {
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
   barSegment: { flex: 1 },
   barLabel: {
     fontSize: 10,
-    color: '#71717A',
+    color: palette.zinc[500],
     marginTop: 5,
     position: 'absolute',
     bottom: 0,
@@ -595,11 +595,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendText: { fontSize: 10, color: '#71717A' },
+  legendText: { fontSize: 10, color: palette.zinc[500] },
   filterContainer: {
     marginTop: 20,
     marginBottom: 30,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     padding: 4,
   },
@@ -615,10 +615,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   filterTabActive: {
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
   },
-  filterTabText: { color: '#71717A', fontSize: 12 },
-  filterTabTextActive: { color: '#FFF', fontWeight: 'bold' },
+  filterTabText: { color: palette.zinc[500], fontSize: 12 },
+  filterTabTextActive: { color: palette.white, fontWeight: 'bold' },
   logBtn: {
     backgroundColor: palette.brand[500],
     height: 56,
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   logBtnText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
+    color: palette.black,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
   },
   seeAllText: {
     fontSize: 12,
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
   },
   mealCardTitle: {
     fontSize: 16,
-    color: '#FFF',
+    color: palette.white,
     lineHeight: 22,
     marginBottom: 10,
   },
@@ -671,11 +671,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   insightCard: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 32,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     marginBottom: 40,
   },
   insightRow: {
@@ -685,8 +685,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   insightStat: { alignItems: 'center', width: 60 },
-  insightStatValue: { fontSize: 18, color: '#FFF', fontWeight: 'bold' },
-  insightStatLabel: { fontSize: 10, color: '#71717A', marginTop: 4 },
+  insightStatValue: { fontSize: 18, color: palette.white, fontWeight: 'bold' },
+  insightStatLabel: { fontSize: 10, color: palette.zinc[500], marginTop: 4 },
   insightRing: {
     width: 140,
     height: 140,
@@ -699,21 +699,21 @@ const styles = StyleSheet.create({
     borderRadius: 70,
   },
   ringInner: { alignItems: 'center' },
-  ringValue: { fontSize: 28, fontWeight: 'bold', color: '#FFF' },
-  ringLabel: { fontSize: 12, color: '#71717A' },
+  ringValue: { fontSize: 28, fontWeight: 'bold', color: palette.white },
+  ringLabel: { fontSize: 12, color: palette.zinc[500] },
   macroInsights: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 24,
   },
   macroInsightItem: { flex: 1, alignItems: 'center' },
-  macroInsightLabel: { fontSize: 10, color: '#71717A', marginBottom: 8 },
-  macroBack: { height: 4, backgroundColor: '#27272A', width: '80%', borderRadius: 2, marginBottom: 8 },
+  macroInsightLabel: { fontSize: 10, color: palette.zinc[500], marginBottom: 8 },
+  macroBack: { height: 4, backgroundColor: theme.colors.cardElevated, width: '80%', borderRadius: 2, marginBottom: 8 },
   macroFill: { height: '100%', borderRadius: 2 },
-  macroInsightValue: { fontSize: 12, color: '#FFF', fontWeight: 'bold' },
+  macroInsightValue: { fontSize: 12, color: palette.white, fontWeight: 'bold' },
   insightConclusion: {
     fontSize: 14,
-    color: '#A1A1AA',
+    color: palette.zinc[400],
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
@@ -731,10 +731,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 16,
   },
-  cardioBurnText: { color: '#f97316', fontSize: 12, fontWeight: '600' },
+  cardioBurnText: { color: palette.brand[500], fontSize: 12, fontWeight: '600' },
   historyList: { gap: 12, marginBottom: 40 },
   historyItem: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 20,
     padding: 16,
     flexDirection: 'row',
@@ -744,13 +744,13 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   historyContent: { flex: 1 },
-  historyMealName: { fontSize: 15, fontWeight: 'bold', color: '#FFF' },
+  historyMealName: { fontSize: 15, fontWeight: 'bold', color: palette.white },
   historyMacros: { flexDirection: 'row', gap: 10, marginTop: 6 },
   historyMacroBubble: {
     paddingHorizontal: 8,
@@ -759,12 +759,12 @@ const styles = StyleSheet.create({
   },
   historyMacroText: {
     fontSize: 10,
-    color: '#FFF',
+    color: palette.white,
     fontWeight: 'bold',
   },
   historyRight: { alignItems: 'flex-end' },
-  historyCal: { fontSize: 16, fontWeight: 'bold', color: '#FFF' },
-  historyDate: { fontSize: 11, color: '#71717A', marginTop: 4 },
+  historyCal: { fontSize: 16, fontWeight: 'bold', color: palette.white },
+  historyDate: { fontSize: 11, color: palette.zinc[500], marginTop: 4 },
   mealCardImage: {
     position: 'absolute',
     top: 0,
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   calendarCard: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 24,
     padding: 20,
     marginBottom: 40,
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   calendarMonth: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -794,7 +794,7 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   calNavText: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 20,
   },
   calendarGrid: {
@@ -815,11 +815,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   calCellSelected: {
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
     borderRadius: 8,
   },
   calCellDate: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 12,
     textAlign: 'center',
   },
@@ -848,37 +848,37 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     minWidth: '44%',
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   statValue: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     letterSpacing: -0.5,
   },
   statLabel: {
     fontSize: 11,
-    color: '#71717A',
+    color: palette.zinc[500],
     marginTop: 4,
     textAlign: 'center',
   },
   macroSplitCard: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   macroSplitTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFF',
+    color: palette.white,
     marginBottom: 12,
   },
   macroSplitBar: {
@@ -907,7 +907,7 @@ const styles = StyleSheet.create({
   },
   macroSplitLegendText: {
     fontSize: 12,
-    color: '#A1A1AA',
+    color: palette.zinc[400],
     fontWeight: '600',
   },
   consistencyRow: {
@@ -917,37 +917,37 @@ const styles = StyleSheet.create({
   },
   consistencyCard: {
     flex: 1,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   consistencyBig: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     letterSpacing: -0.5,
   },
   consistencyLabel: {
     fontSize: 10,
-    color: '#71717A',
+    color: palette.zinc[500],
     marginTop: 3,
     textAlign: 'center',
   },
   mealBreakdownCard: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   mealBreakdownTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFF',
+    color: palette.white,
     marginBottom: 14,
   },
   mealBreakdownRow: {
@@ -959,13 +959,13 @@ const styles = StyleSheet.create({
   mealBreakdownType: {
     width: 72,
     fontSize: 12,
-    color: '#A1A1AA',
+    color: palette.zinc[400],
     fontWeight: '600',
   },
   mealBreakdownBarWrap: {
     flex: 1,
     height: 6,
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -977,7 +977,7 @@ const styles = StyleSheet.create({
   mealBreakdownKcal: {
     width: 64,
     fontSize: 11,
-    color: '#71717A',
+    color: palette.zinc[500],
     textAlign: 'right',
   },
 });

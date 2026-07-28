@@ -7,6 +7,29 @@ export default tseslint.config(
     ignores: ['dist/**', 'android/**', 'ios/**', '.expo/**', 'node_modules/**'],
   },
   {
+    // Colour must come from the design system. src/theme is the single place a
+    // raw hex may be written; everywhere else reaches for a token.
+    //
+    // This is an error, not a warning, because the failure mode is silent: a
+    // hardcoded '#27272A' looks correct forever and simply stops tracking the
+    // theme. That is how ~490 literals accumulated across 48 files — including
+    // 74 copies of a value that already had a token (theme.colors.cardElevated).
+    // If a colour genuinely has no token yet, add one to src/theme rather than
+    // disabling this rule.
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/theme/**'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "Literal[value=/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]",
+          message:
+            'Raw hex colour. Use a token from src/theme (palette.* / theme.colors.* / theme.chart.* …), and add one there if it does not exist yet.',
+        },
+      ],
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',

@@ -81,7 +81,7 @@ export const QuizScreen: React.FC = () => {
               <Text style={styles.tagText}>Training</Text>
             </View>
             <View style={styles.tag}>
-              <ForkKnife size={16} weight="fill" color="#34d399" />
+              <ForkKnife size={16} weight="fill" color={palette.emerald[400]} />
               <Text style={styles.tagText}>Nutrition</Text>
             </View>
           </View>

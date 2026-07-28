@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { palette } from '../../../theme';
+import { theme, palette } from '../../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
@@ -92,7 +92,7 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
             <View style={styles.progressBox}>
                 <Text style={styles.progressLabel}>Weeks Allocated</Text>
                 <Text style={styles.progressNumbers}>
-                    <Text style={{ color: weeksRemaining === 0 ? palette.brand[500] : '#FFF' }}>{totalAllocatedWeeks}</Text>
+                    <Text style={{ color: weeksRemaining === 0 ? palette.brand[500] : palette.white }}>{totalAllocatedWeeks}</Text>
                     <Text style={{ color: palette.gray[500] }}> / {draft.durationWeeks}</Text>
                 </Text>
                 <View style={styles.progressBar}>
@@ -157,7 +157,7 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -166,53 +166,53 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backIcon: { color: '#FFF', fontSize: 24 },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  backIcon: { color: palette.white, fontSize: 24 },
+  headerTitle: { color: palette.white, fontSize: 18, fontWeight: 'bold' },
   content: { paddingHorizontal: 20, paddingBottom: 100 },
   
   progressBox: {
-      backgroundColor: '#18181B',
+      backgroundColor: theme.colors.card,
       borderRadius: 16,
       padding: 20,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
       marginBottom: 24,
   },
   progressLabel: { color: palette.gray[400], fontSize: 14, marginBottom: 8 },
   progressNumbers: { fontSize: 32, fontWeight: 'bold', marginBottom: 12 },
-  progressBar: { height: 6, backgroundColor: '#27272A', borderRadius: 3, overflow: 'hidden' },
+  progressBar: { height: 6, backgroundColor: theme.colors.cardElevated, borderRadius: 3, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 3 },
-  warningText: { color: '#F87171', fontSize: 12, marginTop: 12 },
+  warningText: { color: palette.error[400], fontSize: 12, marginTop: 12 },
 
   instructions: { color: palette.gray[400], fontSize: 14, marginBottom: 20, lineHeight: 20 },
 
   blockCard: {
-      backgroundColor: '#18181B',
+      backgroundColor: theme.colors.card,
       borderRadius: 16,
       padding: 16,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
       marginBottom: 16,
   },
   blockCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  blockCardTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  blockCardTitle: { color: palette.white, fontSize: 16, fontWeight: 'bold' },
   deleteIcon: { color: palette.gray[500], fontSize: 18 },
   
   blockRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   blockNameWrap: { flex: 1 },
   label: { color: palette.gray[400], fontSize: 12, marginBottom: 8 },
-  blockNameVal: { color: '#FFF', fontSize: 18, fontWeight: '500' },
+  blockNameVal: { color: palette.white, fontSize: 18, fontWeight: '500' },
   
   counterWrap: { alignItems: 'center' },
-  counterControls: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#27272A', borderRadius: 12, padding: 4 },
-  counterBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: '#3F3F46', borderRadius: 8 },
-  counterBtnText: { color: '#FFF', fontSize: 20 },
-  counterVal: { color: '#FFF', fontSize: 16, fontWeight: 'bold', width: 40, textAlign: 'center' },
+  counterControls: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.cardElevated, borderRadius: 12, padding: 4 },
+  counterBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.zinc[700], borderRadius: 8 },
+  counterBtnText: { color: palette.white, fontSize: 20 },
+  counterVal: { color: palette.white, fontSize: 16, fontWeight: 'bold', width: 40, textAlign: 'center' },
 
   addBlockBtn: {
       paddingVertical: 16,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
       borderRadius: 16,
       borderStyle: 'dashed',
       alignItems: 'center',
@@ -225,10 +225,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#09090B',
+    backgroundColor: theme.colors.background,
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#27272A',
+    borderTopColor: theme.colors.cardElevated,
   },
   nextBtn: {
     backgroundColor: palette.brand[500],
@@ -236,5 +236,5 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
   },
-  nextBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
+  nextBtnText: { color: palette.black, fontSize: 16, fontWeight: 'bold' },
 });

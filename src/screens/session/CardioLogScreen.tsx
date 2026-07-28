@@ -8,7 +8,7 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import { sessionService } from '../../services/session.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { useQueryClient } from '@tanstack/react-query';
@@ -339,10 +339,10 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.footer}>
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
           {saving ? (
-            <ActivityIndicator color="#000" />
+            <ActivityIndicator color={palette.black} />
           ) : (
             <>
-              <CheckCircle size={20} weight="bold" color="#000" />
+              <CheckCircle size={20} weight="bold" color={palette.black} />
               <Text style={styles.saveBtnText}>{t('cardio.saveBtn')}</Text>
             </>
           )}
@@ -353,7 +353,7 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
-  title: { fontSize: 18, fontWeight: '800', color: '#FFF' },
+  title: { fontSize: 18, fontWeight: '800', color: palette.white },
   scroll: { paddingHorizontal: 20, paddingTop: 4 },
 
   labelRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 10, marginTop: 20 },
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 18,
     paddingVertical: 14,
-    color: '#FFF',
+    color: palette.white,
     fontSize: 22,
     fontWeight: '700',
     borderWidth: 1,
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.gray[900],
     borderRadius: 12,
     padding: 14,
-    color: '#FFF',
+    color: palette.white,
     fontSize: 14,
     borderWidth: 1,
     borderColor: palette.gray[700],
@@ -438,5 +438,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
   },
-  saveBtnText: { color: '#000', fontSize: 16, fontWeight: '800' },
+  saveBtnText: { color: palette.black, fontSize: 16, fontWeight: '800' },
 });

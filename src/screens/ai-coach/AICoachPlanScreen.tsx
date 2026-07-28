@@ -424,8 +424,8 @@ const CompBanner: React.FC<{
   const dateStr = new Date(compDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   const urgency = weeksToComp <= 2 ? 'critical' : weeksToComp <= 6 ? 'high' : 'normal';
-  const bg = urgency === 'critical' ? '#7f1d1d' : urgency === 'high' ? '#431407' : '#1c1917';
-  const border = urgency === 'critical' ? '#ef4444' : urgency === 'high' ? '#ea580c' : '#57534e';
+  const bg = urgency === 'critical' ? palette.error[900] : urgency === 'high' ? palette.brand[950] : palette.stone[900];
+  const border = urgency === 'critical' ? palette.error[500] : urgency === 'high' ? palette.brand[600] : palette.stone[600];
 
   return (
     <TouchableOpacity style={[banner.wrap, { backgroundColor: bg, borderColor: border }]} onPress={onPress}>
@@ -446,10 +446,10 @@ const CompBanner: React.FC<{
 // ─── Fatigue status (recovery) ────────────────────────────────────────────────
 
 const FATIGUE_META: Record<FatigueLevel, { color: string; bg: string; border: string; emoji: string; label: string }> = {
-  none:     { color: '#4ade80', bg: '#0a1a0f', border: '#166534', emoji: '🟢', label: 'Recovered' },
-  mild:     { color: '#a3e635', bg: '#12180a', border: '#3f6212', emoji: '🟢', label: 'Mostly fresh' },
-  elevated: { color: '#fbbf24', bg: '#1c1009', border: '#92400e', emoji: '🟡', label: 'Elevated fatigue' },
-  high:     { color: '#f87171', bg: '#1c0a0a', border: '#991b1b', emoji: '🔴', label: 'High fatigue' },
+  none:     { color: palette.success[400], bg: theme.surfaceTint.success, border: palette.success[800], emoji: '🟢', label: 'Recovered' },
+  mild:     { color: palette.lime[400], bg: theme.surfaceTint.lime, border: palette.lime[800], emoji: '🟢', label: 'Mostly fresh' },
+  elevated: { color: palette.warning[400], bg: theme.surfaceTint.warning, border: palette.warning[800], emoji: '🟡', label: 'Elevated fatigue' },
+  high:     { color: palette.error[400], bg: theme.surfaceTint.error, border: palette.error[800], emoji: '🔴', label: 'High fatigue' },
 };
 
 const FatigueBanner: React.FC<{ status: FatigueStatus; onPress: () => void }> = ({ status, onPress }) => {
@@ -523,7 +523,7 @@ const FatigueModal: React.FC<{
         <View style={fat.footer}>
           {status.canDismiss && (
             <TouchableOpacity style={fat.clearBtn} onPress={onDismiss} disabled={busy}>
-              {busy ? <ActivityIndicator color="#fff" /> : <Text style={fat.clearBtnText}>I feel fine — clear it</Text>}
+              {busy ? <ActivityIndicator color={palette.white} /> : <Text style={fat.clearBtnText}>I feel fine — clear it</Text>}
             </TouchableOpacity>
           )}
           {status.dismissed && (
@@ -583,7 +583,7 @@ const NotesModal: React.FC<{
               onSubmitEditing={submit}
             />
             <TouchableOpacity style={[fat.noteAddBtn, (busy || text.trim().length < 2) && fat.noteAddBtnDisabled]} onPress={submit} disabled={busy || text.trim().length < 2}>
-              {busy ? <ActivityIndicator color="#fff" /> : <Text style={fat.noteAddBtnText}>Save</Text>}
+              {busy ? <ActivityIndicator color={palette.white} /> : <Text style={fat.noteAddBtnText}>Save</Text>}
             </TouchableOpacity>
           </View>
 
@@ -1072,7 +1072,7 @@ const styles = StyleSheet.create({
     marginTop: 32, backgroundColor: palette.brand[600],
     borderRadius: 14, paddingHorizontal: 32, paddingVertical: 16,
   },
-  generateBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  generateBtnText: { fontSize: 16, fontWeight: '700', color: palette.white },
 
   header: {
     flexDirection: 'row', alignItems: 'center',
@@ -1113,7 +1113,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.brand[600], borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 9,
   },
-  noteGenerateBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  noteGenerateBtnText: { fontSize: 13, fontWeight: '700', color: palette.white },
 
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 16 },
@@ -1127,7 +1127,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.brand[600], borderRadius: 14,
     paddingVertical: 16, alignItems: 'center',
   },
-  startBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  startBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
   chatBtn: {
     borderRadius: 14, borderWidth: 1, borderColor: palette.gray[700],
     paddingVertical: 14, alignItems: 'center',
@@ -1145,13 +1145,13 @@ const styles = StyleSheet.create({
 });
 
 const dbg = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090b' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: palette.gray[800],
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  title: { fontSize: 16, fontWeight: '700', color: palette.white },
   closeBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   closeText: { fontSize: 18, color: palette.gray[400] },
   scroll: { flex: 1 },
@@ -1161,11 +1161,11 @@ const dbg = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: palette.gray[800],
   },
   layerHeaderOpen: { backgroundColor: palette.gray[900] },
-  layerLabel: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  layerLabel: { fontSize: 13, fontWeight: '700', color: palette.white },
   layerChevron: { fontSize: 11, color: palette.gray[400], fontWeight: '600' },
   layerChevronEmpty: { color: palette.gray[700] },
   layerBody: {
-    backgroundColor: palette.gray[950] ?? '#0a0a0a',
+    backgroundColor: palette.gray[950] ?? palette.gray[900],
     paddingHorizontal: 16, paddingVertical: 12,
     borderBottomWidth: 1, borderBottomColor: palette.gray[800],
   },
@@ -1180,19 +1180,19 @@ const banner = StyleSheet.create({
   },
   left: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   emoji: { fontSize: 20 },
-  label: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  label: { fontSize: 13, fontWeight: '700', color: palette.white },
   sub: { fontSize: 11, color: palette.gray[400], marginTop: 1 },
   edit: { fontSize: 13, color: palette.gray[500], fontWeight: '600' },
 });
 
 const comp = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090b' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: palette.gray[800],
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  title: { fontSize: 16, fontWeight: '700', color: palette.white },
   closeBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   closeText: { fontSize: 18, color: palette.gray[400] },
   scroll: { flex: 1 },
@@ -1211,7 +1211,7 @@ const comp = StyleSheet.create({
   },
   typeBtnActive: { backgroundColor: palette.brand[600], borderColor: palette.brand[600] },
   typeBtnText: { fontSize: 14, fontWeight: '600', color: palette.gray[400] },
-  typeBtnTextActive: { color: '#fff' },
+  typeBtnTextActive: { color: palette.white },
 
   quickRow: {
     flexDirection: 'row', flexWrap: 'wrap',
@@ -1225,7 +1225,7 @@ const comp = StyleSheet.create({
   quickBtnActive: { backgroundColor: palette.brand[600], borderColor: palette.brand[600] },
   quickBtnWks: { fontSize: 13, fontWeight: '700', color: palette.gray[300] },
   quickBtnMonth: { fontSize: 10, color: palette.gray[500], marginTop: 2 },
-  quickBtnTextActive: { color: '#fff' },
+  quickBtnTextActive: { color: palette.white },
 
   monthRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -1234,7 +1234,7 @@ const comp = StyleSheet.create({
   },
   monthRowActive: { backgroundColor: palette.gray[800] },
   monthLabel: { fontSize: 14, color: palette.gray[300] },
-  monthLabelActive: { color: '#fff', fontWeight: '700' },
+  monthLabelActive: { color: palette.white, fontWeight: '700' },
   monthCheck: { fontSize: 16, color: palette.brand[500] },
 
   footer: {
@@ -1247,7 +1247,7 @@ const comp = StyleSheet.create({
     paddingVertical: 16, alignItems: 'center',
   },
   saveBtnDisabled: { opacity: 0.4 },
-  saveBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  saveBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
   clearBtn: { alignItems: 'center', paddingVertical: 10 },
   clearBtnText: { fontSize: 13, color: palette.gray[500] },
 });
@@ -1257,23 +1257,23 @@ const inj = StyleSheet.create({
   banner: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 10,
-    backgroundColor: '#1c1009',
-    borderBottomWidth: 1, borderBottomColor: '#92400e',
+    backgroundColor: theme.surfaceTint.warning,
+    borderBottomWidth: 1, borderBottomColor: palette.warning[800],
   },
   bannerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   bannerEmoji: { fontSize: 18 },
-  bannerTitle: { fontSize: 13, fontWeight: '700', color: '#fbbf24' },
+  bannerTitle: { fontSize: 13, fontWeight: '700', color: palette.warning[400] },
   bannerSub: { fontSize: 11, color: palette.gray[500], marginTop: 1 },
   bannerEdit: { fontSize: 13, color: palette.gray[500], fontWeight: '600' },
 
   // Modal
-  container: { flex: 1, backgroundColor: '#09090b' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: palette.gray[800],
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  title: { fontSize: 16, fontWeight: '700', color: palette.white },
   closeBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   closeText: { fontSize: 18, color: palette.gray[400] },
   scroll: { flex: 1 },
@@ -1289,19 +1289,19 @@ const inj = StyleSheet.create({
     flexDirection: 'row', gap: 10, marginBottom: 10,
     backgroundColor: palette.gray[900], borderRadius: 10, padding: 12,
   },
-  injuryDot: { fontSize: 14, color: '#fbbf24', marginTop: 1 },
-  injuryExercise: { fontSize: 13, fontWeight: '700', color: '#fbbf24', marginBottom: 2 },
+  injuryDot: { fontSize: 14, color: palette.warning[400], marginTop: 1 },
+  injuryExercise: { fontSize: 13, fontWeight: '700', color: palette.warning[400], marginBottom: 2 },
   injuryDesc: { fontSize: 13, color: palette.gray[300], lineHeight: 18 },
 
   optionCard: {
     borderRadius: 12, borderWidth: 1, borderColor: palette.gray[700],
     padding: 16, marginBottom: 12,
   },
-  optionCardActive: { borderColor: palette.brand[500], backgroundColor: '#1a0e05' },
+  optionCardActive: { borderColor: palette.brand[500], backgroundColor: theme.surfaceTint.brand },
   optionTop: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   optionEmoji: { fontSize: 20 },
   optionTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: palette.gray[300] },
-  optionTitleActive: { color: '#fff' },
+  optionTitleActive: { color: palette.white },
   optionCheck: { fontSize: 16, color: palette.brand[500] },
   optionDesc: { fontSize: 13, color: palette.gray[500], lineHeight: 19 },
 
@@ -1313,7 +1313,7 @@ const inj = StyleSheet.create({
     paddingVertical: 16, alignItems: 'center',
   },
   saveBtnDisabled: { opacity: 0.4 },
-  saveBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  saveBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
 });
 
 const fat = StyleSheet.create({
@@ -1329,13 +1329,13 @@ const fat = StyleSheet.create({
   bannerEdit: { fontSize: 13, color: palette.gray[500], fontWeight: '600' },
 
   // Modal shell
-  container: { flex: 1, backgroundColor: '#09090b' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: palette.gray[800],
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  title: { fontSize: 16, fontWeight: '700', color: palette.white },
   closeBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   closeText: { fontSize: 18, color: palette.gray[400] },
   scroll: { flex: 1 },
@@ -1361,7 +1361,7 @@ const fat = StyleSheet.create({
 
   footer: { padding: 16, borderTopWidth: 1, borderTopColor: palette.gray[800] },
   clearBtn: { backgroundColor: palette.brand[600], borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-  clearBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  clearBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
   resumeBtn: {
     borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 10,
     borderWidth: 1, borderColor: palette.gray[700],
@@ -1374,14 +1374,14 @@ const fat = StyleSheet.create({
   noteInput: {
     flex: 1, minHeight: 48, maxHeight: 120, backgroundColor: palette.gray[900],
     borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12,
-    color: '#fff', fontSize: 14, borderWidth: 1, borderColor: palette.gray[800],
+    color: palette.white, fontSize: 14, borderWidth: 1, borderColor: palette.gray[800],
   },
   noteAddBtn: {
     backgroundColor: palette.brand[600], borderRadius: 12,
     paddingHorizontal: 18, height: 48, alignItems: 'center', justifyContent: 'center',
   },
   noteAddBtnDisabled: { opacity: 0.4 },
-  noteAddBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  noteAddBtnText: { fontSize: 14, fontWeight: '700', color: palette.white },
   noteCard: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10,
     backgroundColor: palette.gray[900], borderRadius: 10, padding: 12, marginBottom: 10,

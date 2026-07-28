@@ -16,11 +16,11 @@ import { sessionService, WorkoutSession, SessionSet } from '../../services/sessi
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy } from 'phosphor-react-native';
 
 const MOOD_ICON: Record<string, React.ReactElement> = {
-  tired:   <Moon size={20} weight="fill" color="#6b7280" />,
-  neutral: <Minus size={20} weight="bold" color="#9ca3af" />,
-  good:    <ThumbsUp size={20} weight="fill" color="#f97316" />,
-  great:   <Fire size={20} weight="fill" color="#ef4444" />,
-  elite:   <Lightning size={20} weight="fill" color="#eab308" />,
+  tired:   <Moon size={20} weight="fill" color={palette.coolGray[500]} />,
+  neutral: <Minus size={20} weight="bold" color={palette.coolGray[400]} />,
+  good:    <ThumbsUp size={20} weight="fill" color={palette.brand[500]} />,
+  great:   <Fire size={20} weight="fill" color={palette.error[500]} />,
+  elite:   <Lightning size={20} weight="fill" color={palette.yellow[500]} />,
 };
 
 function groupSetsByExercise(sets: SessionSet[]): { name: string; sets: SessionSet[] }[] {
@@ -106,7 +106,7 @@ export const SessionDetailScreen: React.FC = () => {
             <View style={styles.readinessRow}>
               {session.mood && (
                 <View style={styles.readinessStat}>
-                  <View style={styles.readinessEmoji}>{MOOD_ICON[session.mood] ?? <ThumbsUp size={20} weight="fill" color="#f97316" />}</View>
+                  <View style={styles.readinessEmoji}>{MOOD_ICON[session.mood] ?? <ThumbsUp size={20} weight="fill" color={palette.brand[500]} />}</View>
                   <Text style={styles.readinessValue}>{session.mood.charAt(0).toUpperCase() + session.mood.slice(1)}</Text>
                 </View>
               )}
@@ -217,10 +217,10 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 15, fontWeight: '700', color: theme.colors.text },
   headerSub: { fontSize: 12, color: palette.gray[500], marginTop: 1 },
   prBadge: {
-    backgroundColor: '#92400e', borderRadius: 8,
+    backgroundColor: palette.warning[800], borderRadius: 8,
     paddingHorizontal: 10, paddingVertical: 4,
   },
-  prBadgeText: { fontSize: 12, fontWeight: '700', color: '#fbbf24' },
+  prBadgeText: { fontSize: 12, fontWeight: '700', color: palette.warning[400] },
 
   readinessCard: {
     backgroundColor: palette.gray[800], borderRadius: 14,
@@ -251,11 +251,11 @@ const styles = StyleSheet.create({
     padding: 16, marginBottom: 10,
     borderLeftWidth: 3, borderLeftColor: palette.gray[700],
   },
-  exerciseCardPR: { borderLeftColor: '#f59e0b' },
+  exerciseCardPR: { borderLeftColor: palette.warning[500] },
   exerciseHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   exerciseName: { fontSize: 15, fontWeight: '700', color: theme.colors.text, flex: 1 },
   prTag: { flexDirection: 'row', alignItems: 'center' },
-  prTagText: { fontSize: 12, fontWeight: '700', color: '#f59e0b' },
+  prTagText: { fontSize: 12, fontWeight: '700', color: palette.warning[500] },
 
   setRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,

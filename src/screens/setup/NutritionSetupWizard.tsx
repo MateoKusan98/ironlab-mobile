@@ -215,12 +215,12 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
                 style={[
                   styles.chip,
                   isSelected && styles.chipActive,
-                  isSelected && opt.id !== 'None' && { borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)' }
+                  isSelected && opt.id !== 'None' && { borderColor: palette.info[500], backgroundColor: 'rgba(59, 130, 246, 0.1)' }
                 ]}
                 onPress={() => toggleAllergy(opt.id)}
               >
                 <Text style={styles.chipIcon}>{opt.icon}</Text>
-                <Text style={[styles.chipLabel, isSelected && { color: opt.id === 'None' ? palette.brand[500] : '#60A5FA' }]}>
+                <Text style={[styles.chipLabel, isSelected && { color: opt.id === 'None' ? palette.brand[500] : palette.info[400] }]}>
                   {t(opt.labelKey)}
                 </Text>
               </TouchableOpacity>
@@ -369,11 +369,11 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
         <Text style={styles.macroPreviewLabel}>P</Text>
       </View>
       <View style={styles.macroPreviewItem}>
-        <Text style={[styles.macroPreviewValue, { color: '#F59E0B' }]}>{macroPreview.carbs}g</Text>
+        <Text style={[styles.macroPreviewValue, { color: palette.warning[500] }]}>{macroPreview.carbs}g</Text>
         <Text style={styles.macroPreviewLabel}>C</Text>
       </View>
       <View style={styles.macroPreviewItem}>
-        <Text style={[styles.macroPreviewValue, { color: '#3B82F6' }]}>{macroPreview.fat}g</Text>
+        <Text style={[styles.macroPreviewValue, { color: palette.info[500] }]}>{macroPreview.fat}g</Text>
         <Text style={styles.macroPreviewLabel}>F</Text>
       </View>
     </View>
@@ -392,7 +392,7 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
               disabled={isFetchingTdee}
             >
               {isFetchingTdee ? (
-                <ActivityIndicator color="#000" />
+                <ActivityIndicator color={palette.black} />
               ) : (
                 <>
                   <Text style={styles.calculateBtnIcon}>⚡</Text>
@@ -477,7 +477,7 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
   progressContainer: {
     height: 4,
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
   introHeading: {
     fontSize: 30,
     fontWeight: '900',
-    color: '#FFF',
+    color: palette.white,
     letterSpacing: -0.5,
     lineHeight: 40,
     marginBottom: 32,
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   introYesBtnText: {
-    color: '#000',
+    color: palette.black,
     fontSize: 16,
     fontWeight: '800',
   },
@@ -574,11 +574,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: theme.spacing.lg,
-    backgroundColor: '#111',
+    backgroundColor: palette.mono[11],
     borderRadius: 12,
     marginBottom: theme.spacing.md,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: palette.mono[33],
   },
   optionItemActive: {
     borderColor: palette.brand[600],
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: '#444',
+    borderColor: palette.mono[44],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -626,10 +626,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm,
-    backgroundColor: '#111',
+    backgroundColor: palette.mono[11],
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: palette.mono[33],
     gap: theme.spacing.xs,
   },
   chipActive: {
@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#222',
+    backgroundColor: palette.mono[22],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
   caloriesValue: {
     fontSize: 64,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
   },
   caloriesSummary: {
     alignItems: 'center',
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   boldText: {
-    color: '#FFF',
+    color: palette.white,
     fontWeight: 'bold',
   },
   calculateBtn: {
@@ -743,12 +743,12 @@ const styles = StyleSheet.create({
   },
   calculateBtnIcon: {
     fontSize: 20,
-    color: '#000',
+    color: palette.black,
   },
   calculateBtnText: {
     fontSize: 16,
     fontWeight: theme.fontWeight.bold as any,
-    color: '#000',
+    color: palette.black,
   },
   orText: {
     fontSize: 13,
@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   tdeeCard: {
-    backgroundColor: '#111',
+    backgroundColor: palette.mono[11],
     borderRadius: 16,
     borderWidth: 1,
     borderColor: palette.brand[700],
@@ -806,10 +806,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: theme.spacing.md,
     padding: theme.spacing.lg,
-    backgroundColor: '#111',
+    backgroundColor: palette.mono[11],
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: palette.mono[33],
   },
   goalIcon: {
     fontSize: 26,

@@ -53,7 +53,7 @@ export const Stepper: React.FC<StepperProps> = ({
                 {isCompleted ? (
                   <Text style={styles.checkIcon}>✓</Text>
                 ) : (
-                  <Text style={[styles.stepNumber, { color: isActive ? '#FFF' : palette.gray[400] }]}>
+                  <Text style={[styles.stepNumber, { color: isActive ? palette.white : palette.gray[400] }]}>
                     {index + 1}
                   </Text>
                 )}
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   checkIcon: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 14,
     fontWeight: 'bold',
   },

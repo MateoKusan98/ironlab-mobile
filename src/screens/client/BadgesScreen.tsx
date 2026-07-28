@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   badgeCardUnlocked: { backgroundColor: palette.gray[900], borderColor: palette.gray[700] },
-  badgeCardLocked: { backgroundColor: palette.gray[950] ?? '#0d0d0f', borderColor: palette.gray[800] },
+  badgeCardLocked: { backgroundColor: palette.gray[950], borderColor: palette.gray[800] },
   tierLabel: { fontSize: 9, fontWeight: '800', letterSpacing: 1.5, marginTop: 10, marginBottom: 4 },
   badgeName: { fontSize: 12, fontWeight: '800', color: theme.colors.text, marginBottom: 3, textAlign: 'center' },
   badgeDesc: { fontSize: 11, color: palette.gray[400], lineHeight: 15, marginBottom: 6, textAlign: 'center' },

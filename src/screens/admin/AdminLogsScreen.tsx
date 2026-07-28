@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme, palette } from '../../theme';
 import { logService, ClientErrorLogEntry } from '../../services/log.service';
 
+import { Card } from '../../components/ui';
 const LEVELS = ['all', 'error', 'fatal', 'stalled', 'warning'] as const;
 type Level = (typeof LEVELS)[number];
 
@@ -83,7 +84,7 @@ export const AdminLogsScreen: React.FC = () => {
     const color = LEVEL_COLOR[item.level] ?? palette.gray[400];
     const isOpen = expanded.has(item.id);
     return (
-      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => toggle(item.id)}>
+      <Card radius={12} padding={14} background={palette.gray[900]} borderColor={palette.gray[800]} style={styles.cardSpacing} activeOpacity={0.8} onPress={() => toggle(item.id)}>
         <View style={styles.cardHeader}>
           <View style={[styles.levelBadge, { backgroundColor: color + '22', borderColor: color + '66' }]}>
             <Text style={[styles.levelText, { color }]}>{item.level.toUpperCase()}</Text>
@@ -122,7 +123,7 @@ export const AdminLogsScreen: React.FC = () => {
             {item.userId && <Text style={styles.detailMeta}>userId: {item.userId}</Text>}
           </View>
         )}
-      </TouchableOpacity>
+      </Card>
     );
   };
 
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text, fontSize: 14, borderWidth: 1, borderColor: palette.gray[700],
   },
   searchBtn: { backgroundColor: palette.brand[600], borderRadius: 10, paddingHorizontal: 16, justifyContent: 'center' },
-  searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  searchBtnText: { color: palette.white, fontWeight: '700', fontSize: 13 },
 
   filterRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 10, flexWrap: 'wrap' },
   filterChip: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, backgroundColor: palette.gray[900], borderWidth: 1, borderColor: palette.gray[700] },
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 16, paddingBottom: 40 },
   empty: { textAlign: 'center', color: palette.gray[500], marginTop: 60 },
 
-  card: { backgroundColor: palette.gray[900], borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: palette.gray[800] },
+  cardSpacing: { marginBottom: 10 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   levelBadge: { borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1 },
   levelText: { fontSize: 10, fontWeight: '700' },

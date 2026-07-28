@@ -38,7 +38,7 @@ const AvatarThumb = ({ name, avatar, size = 48 }: { name: string; avatar: string
   }
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: palette.brand[600], alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ color: '#fff', fontWeight: '700', fontSize: size * 0.36 }}>{initials}</Text>
+      <Text style={{ color: palette.white, fontWeight: '700', fontSize: size * 0.36 }}>{initials}</Text>
     </View>
   );
 };
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.background,
   },
-  unreadText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  unreadText: { color: palette.white, fontSize: 10, fontWeight: '700' },
   rowContent: { flex: 1 },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
   userName: { fontSize: 15, fontWeight: '500', color: theme.colors.text },

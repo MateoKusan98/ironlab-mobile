@@ -27,15 +27,16 @@ import { useBadgeCelebration } from '../../contexts/BadgeCelebrationContext';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, Check, Sparkle, Copy, ShareNetwork } from 'phosphor-react-native';
 import { LANGUAGES } from '../../i18n';
 
+import { Card } from '../../components/ui';
 type SummaryRouteProp = RouteProp<RootStackParamList, 'SessionSummary'>;
 
 const MOOD_VALUES = ['tired', 'neutral', 'good', 'great', 'elite'] as const;
 const MOOD_ICONS: Record<string, React.ReactElement> = {
-  tired:   <Moon size={24} weight="fill" color="#6b7280" />,
-  neutral: <Minus size={24} weight="bold" color="#9ca3af" />,
-  good:    <ThumbsUp size={24} weight="fill" color="#f97316" />,
-  great:   <Fire size={24} weight="fill" color="#ef4444" />,
-  elite:   <Lightning size={24} weight="fill" color="#eab308" />,
+  tired:   <Moon size={24} weight="fill" color={palette.coolGray[500]} />,
+  neutral: <Minus size={24} weight="bold" color={palette.coolGray[400]} />,
+  good:    <ThumbsUp size={24} weight="fill" color={palette.brand[500]} />,
+  great:   <Fire size={24} weight="fill" color={palette.error[500]} />,
+  elite:   <Lightning size={24} weight="fill" color={palette.yellow[500]} />,
 };
 
 export const SessionSummaryScreen: React.FC = () => {
@@ -313,7 +314,7 @@ export const SessionSummaryScreen: React.FC = () => {
 
         {/* Exercise breakdown */}
         {exerciseNames.length > 0 && (
-          <View style={styles.card}>
+          <Card background={palette.gray[800]} bordered={false} style={styles.cardSpacing}>
             <Text style={styles.cardLabel}>{t('sessionSummary.exercises').toUpperCase()}</Text>
             {exerciseNames.map((name) => {
               const exSets = session!.sets.filter((s) => s.exerciseName === name && s.isCompleted);
@@ -333,11 +334,11 @@ export const SessionSummaryScreen: React.FC = () => {
                 </View>
               );
             })}
-          </View>
+          </Card>
         )}
 
         {/* Post-session mood */}
-        <View style={styles.card}>
+        <Card background={palette.gray[800]} bordered={false} style={styles.cardSpacing}>
           <Text style={styles.cardLabel}>HOW WAS THE WORKOUT?</Text>
           <View style={styles.moodRow}>
             {MOODS.map((m) => (
@@ -351,10 +352,10 @@ export const SessionSummaryScreen: React.FC = () => {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </Card>
 
         {/* Notes */}
-        <View style={styles.card}>
+        <Card background={palette.gray[800]} bordered={false} style={styles.cardSpacing}>
           <Text style={styles.cardLabel}>{t('sessionSummary.sessionNotes').toUpperCase()}</Text>
           <TextInput
             style={styles.notesInput}
@@ -366,10 +367,10 @@ export const SessionSummaryScreen: React.FC = () => {
             numberOfLines={4}
             textAlignVertical="top"
           />
-        </View>
+        </Card>
 
         {/* Share to socials */}
-        <View style={styles.card}>
+        <Card background={palette.gray[800]} bordered={false} style={styles.cardSpacing}>
           <Text style={styles.cardLabel}>SHARE TO SOCIALS</Text>
 
           {!captions && !captionLoading && (
@@ -378,7 +379,7 @@ export const SessionSummaryScreen: React.FC = () => {
                 Turn this workout into a ready-to-post caption for TikTok, Instagram & more.
               </Text>
               <TouchableOpacity style={styles.shareGenBtn} onPress={() => generateCaptions(captionLang)}>
-                <Sparkle size={18} weight="fill" color="#fff" />
+                <Sparkle size={18} weight="fill" color={palette.white} />
                 <Text style={styles.shareGenText}>Generate caption</Text>
               </TouchableOpacity>
             </>
@@ -446,8 +447,8 @@ export const SessionSummaryScreen: React.FC = () => {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.shareActionBtn, styles.shareSheetBtn]} onPress={handleShareCaption}>
-                  <ShareNetwork size={16} weight="bold" color="#fff" />
-                  <Text style={[styles.shareActionText, { color: '#fff' }]}>Share</Text>
+                  <ShareNetwork size={16} weight="bold" color={palette.white} />
+                  <Text style={[styles.shareActionText, { color: palette.white }]}>Share</Text>
                 </TouchableOpacity>
               </View>
 
@@ -456,7 +457,7 @@ export const SessionSummaryScreen: React.FC = () => {
               </TouchableOpacity>
             </>
           )}
-        </View>
+        </Card>
 
         {/* Save */}
         <TouchableOpacity
@@ -466,7 +467,7 @@ export const SessionSummaryScreen: React.FC = () => {
         >
           {saving || generating ? (
             <View style={styles.saveBtnInner}>
-              <ActivityIndicator color="#fff" size="small" style={{ marginRight: 10 }} />
+              <ActivityIndicator color={palette.white} size="small" style={{ marginRight: 10 }} />
               <Text style={styles.saveBtnText}>
                 {generating ? t('sessionSummary.analyzingSession') : t('common.saving')}
               </Text>
@@ -491,7 +492,7 @@ export const SessionSummaryScreen: React.FC = () => {
           activeOpacity={1}
           onPress={() => setEditingDuration(false)}
         >
-          <TouchableOpacity activeOpacity={1} style={durStyles.card}>
+          <Card background={palette.gray[900]} borderColor={palette.gray[700]} padding={20} style={durStyles.cardBox}>
             <Text style={durStyles.title}>Edit duration</Text>
             <Text style={durStyles.subtitle}>
               Set how long the workout actually took.
@@ -536,7 +537,7 @@ export const SessionSummaryScreen: React.FC = () => {
                 <Text style={durStyles.confirmText}>{t('common.save')}</Text>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+          </Card>
         </TouchableOpacity>
       </Modal>
     </SafeAreaView>
@@ -583,12 +584,7 @@ const styles = StyleSheet.create({
   pointsLinePts: { fontSize: 13, color: palette.brand[400], fontWeight: '700' },
   pointsLineMuted: { color: palette.gray[600] },
 
-  card: {
-    backgroundColor: palette.gray[800],
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 12,
-  },
+  cardSpacing: { marginBottom: 12 },
   cardLabel: { fontSize: 11, fontWeight: '700', color: palette.gray[400], letterSpacing: 1, marginBottom: 14 },
 
   exRow: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: palette.gray[700] },
@@ -622,7 +618,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 13,
   },
-  shareGenText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  shareGenText: { fontSize: 15, fontWeight: '700', color: palette.white },
   shareLoading: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
   styleTabs: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   styleTab: {
@@ -652,7 +648,7 @@ const styles = StyleSheet.create({
   },
   langBtnActive: { backgroundColor: palette.brand[600] },
   langBtnText: { fontSize: 12, fontWeight: '700', color: palette.gray[300] },
-  langBtnTextActive: { color: '#fff' },
+  langBtnTextActive: { color: palette.white },
   shareActions: { flexDirection: 'row', gap: 10 },
   shareActionBtn: {
     flex: 1,
@@ -669,28 +665,28 @@ const styles = StyleSheet.create({
   regenLink: { fontSize: 13, fontWeight: '600', color: palette.gray[400], textAlign: 'center', marginTop: 14 },
 
   prCard: {
-    backgroundColor: '#78350f' + '50',
+    backgroundColor: palette.warning[900] + '50',
     borderRadius: 16,
     padding: 18,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#92400e',
+    borderColor: palette.warning[800],
   },
-  prCardTitle: { fontSize: 15, fontWeight: '800', color: '#fcd34d', marginBottom: 14 },
+  prCardTitle: { fontSize: 15, fontWeight: '800', color: palette.warning[300], marginBottom: 14 },
   prRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#92400e' + '60',
+    borderBottomColor: palette.warning[800] + '60',
   },
   prRowLeft: { flex: 1 },
-  prExercise: { fontSize: 14, fontWeight: '700', color: '#fef3c7' },
-  prLabel: { fontSize: 11, color: '#fcd34d', marginTop: 2 },
+  prExercise: { fontSize: 14, fontWeight: '700', color: palette.warning[100] },
+  prLabel: { fontSize: 11, color: palette.warning[300], marginTop: 2 },
   prRowRight: { alignItems: 'flex-end' },
-  prValue: { fontSize: 18, fontWeight: '800', color: '#fcd34d' },
-  prDelta: { fontSize: 10, color: '#fbbf24', marginTop: 2 },
+  prValue: { fontSize: 18, fontWeight: '800', color: palette.warning[300] },
+  prDelta: { fontSize: 10, color: palette.warning[400], marginTop: 2 },
 
   miniPrCard: {
     backgroundColor: palette.gray[800],
@@ -715,7 +711,7 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnInner: { flexDirection: 'row', alignItems: 'center' },
-  saveBtnText: { fontSize: 17, fontWeight: '700', color: '#fff' },
+  saveBtnText: { fontSize: 17, fontWeight: '700', color: palette.white },
 });
 
 const durStyles = StyleSheet.create({
@@ -726,16 +722,8 @@ const durStyles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
-  card: {
-    backgroundColor: palette.gray[900],
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: palette.gray[700],
-    padding: 20,
-    width: '100%',
-    maxWidth: 360,
-  },
-  title: { fontSize: 18, fontWeight: '800', color: '#fff', marginBottom: 4 },
+  cardBox: { width: '100%', maxWidth: 360 },
+  title: { fontSize: 18, fontWeight: '800', color: palette.white, marginBottom: 4 },
   subtitle: { fontSize: 13, color: palette.gray[400], marginBottom: 18 },
   inputsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   inputGroup: { flex: 1, alignItems: 'center' },
@@ -756,5 +744,5 @@ const durStyles = StyleSheet.create({
   cancelBtn: { backgroundColor: palette.gray[800] },
   cancelText: { fontSize: 15, fontWeight: '700', color: palette.gray[300] },
   confirmBtn: { backgroundColor: palette.brand[600] },
-  confirmText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  confirmText: { fontSize: 15, fontWeight: '700', color: palette.white },
 });

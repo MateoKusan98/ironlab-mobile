@@ -17,6 +17,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useCreateFoodLog } from '../../hooks/useNutrition';
 
+import { theme, palette } from '../../theme';
 const { width } = Dimensions.get('window');
 
 export const FoodDetailsScreen: React.FC = () => {
@@ -301,15 +302,15 @@ export const FoodDetailsScreen: React.FC = () => {
 
                 <Text style={styles.sectionTitle}>{t('foodDetails.macroBreakdown')}</Text>
                 <View style={styles.macroCardsRow}>
-                    <View style={[styles.macroCard, { borderLeftColor: '#F97316' }]}>
+                    <View style={[styles.macroCard, { borderLeftColor: palette.brand[500] }]}>
                         <Text style={styles.macroVal}>{displayData.carbs}g</Text>
                         <Text style={styles.macroLab}>Carbs</Text>
                     </View>
-                    <View style={[styles.macroCard, { borderLeftColor: '#3B82F6' }]}>
+                    <View style={[styles.macroCard, { borderLeftColor: palette.info[500] }]}>
                         <Text style={styles.macroVal}>{displayData.protein}g</Text>
                         <Text style={styles.macroLab}>Protein</Text>
                     </View>
-                    <View style={[styles.macroCard, { borderLeftColor: '#10B981' }]}>
+                    <View style={[styles.macroCard, { borderLeftColor: palette.emerald[500] }]}>
                         <Text style={styles.macroVal}>{displayData.fat}g</Text>
                         <Text style={styles.macroLab}>Fat</Text>
                     </View>
@@ -327,7 +328,7 @@ export const FoodDetailsScreen: React.FC = () => {
             disabled={createFoodLog.isPending}
           >
               {createFoodLog.isPending ? (
-                  <ActivityIndicator color="#FFF" />
+                  <ActivityIndicator color={palette.white} />
               ) : (
                   <Text style={styles.addMealBtnText}>{t('foodDetails.addMeal')}</Text>
               )}
@@ -343,7 +344,7 @@ export const FoodDetailsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
   scrollContent: {
     paddingBottom: 220,
@@ -376,9 +377,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backIcon: { color: '#FFF', fontSize: 32, marginBottom: 4 },
+  backIcon: { color: palette.white, fontSize: 32, marginBottom: 4 },
   titleWrapper: { flex: 1, alignItems: 'center' },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  headerTitle: { color: palette.white, fontSize: 18, fontWeight: 'bold' },
   saveBtn: {
     width: 44,
     height: 44,
@@ -401,7 +402,7 @@ const styles = StyleSheet.create({
     padding: 24,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 20,
@@ -414,17 +415,17 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 16,
   },
-  badgeText: { color: '#F97316', fontSize: 12, fontWeight: 'bold' },
+  badgeText: { color: palette.brand[500], fontSize: 12, fontWeight: 'bold' },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     textAlign: 'center',
     marginBottom: 12,
   },
   subTitle: {
     fontSize: 14,
-    color: '#A1A1AA',
+    color: palette.zinc[400],
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,
@@ -438,16 +439,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  statMain: { fontSize: 20, fontWeight: 'bold', color: '#FFF', marginBottom: 4 },
-  statLabel: { fontSize: 12, color: '#71717A' },
-  statDivider: { width: 1, height: 30, backgroundColor: '#27272A' },
+  statMain: { fontSize: 20, fontWeight: 'bold', color: palette.white, marginBottom: 4 },
+  statLabel: { fontSize: 12, color: palette.zinc[500] },
+  statDivider: { width: 1, height: 30, backgroundColor: theme.colors.cardElevated },
   tabContentWrapper: {
     marginTop: 100,
     paddingHorizontal: 24,
   },
   tabsBackground: {
     flexDirection: 'row',
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 24,
     padding: 6,
     marginBottom: 32,
@@ -459,20 +460,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   activeTab: {
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
   },
-  tabText: { color: '#71717A', fontWeight: 'bold', fontSize: 14 },
-  activeTabText: { color: '#FFF' },
+  tabText: { color: palette.zinc[500], fontWeight: 'bold', fontSize: 14 },
+  activeTabText: { color: palette.white },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     marginBottom: 16,
     marginTop: 32,
   },
   descriptionText: {
     fontSize: 15,
-    color: '#A1A1AA',
+    color: palette.zinc[400],
     lineHeight: 24,
   },
   benefitsList: { gap: 16 },
@@ -481,28 +482,28 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#84CC16',
+    backgroundColor: palette.lime[500],
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkText: { color: '#000', fontSize: 14, fontWeight: 'bold' },
-  benefitText: { color: '#FFF', fontSize: 15 },
+  checkText: { color: palette.black, fontSize: 14, fontWeight: 'bold' },
+  benefitText: { color: palette.white, fontSize: 15 },
   tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   tag: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
-  tagText: { color: '#A1A1AA', fontSize: 13 },
+  tagText: { color: palette.zinc[400], fontSize: 13 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  seeAllText: { color: '#F97316', fontSize: 14, fontWeight: 'bold' },
+  seeAllText: { color: palette.brand[500], fontSize: 14, fontWeight: 'bold' },
   galleryScroll: { marginTop: 12 },
   galleryImg: { width: 140, height: 140, borderRadius: 24, marginRight: 16 },
   gaugeCard: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 32,
     padding: 32,
     alignItems: 'center',
@@ -518,7 +519,7 @@ const styles = StyleSheet.create({
     height: width * 0.7,
     borderRadius: width * 0.35,
     borderWidth: 18,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
   },
   gaugeFillSemi: {
     position: 'absolute',
@@ -526,7 +527,7 @@ const styles = StyleSheet.create({
     height: width * 0.7,
     borderRadius: width * 0.35,
     borderWidth: 18,
-    borderColor: '#F97316',
+    borderColor: palette.brand[500],
     borderBottomColor: 'transparent',
     borderRightColor: 'transparent',
     transform: [{ rotate: '-45deg' }],
@@ -536,9 +537,9 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: '#F97316',
+    backgroundColor: palette.brand[500],
     borderWidth: 3,
-    borderColor: '#FFF',
+    borderColor: palette.white,
     top: width * 0.28,
     left: width * 0.5,
   },
@@ -546,18 +547,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: -40,
   },
-  gaugeMainValue: { fontSize: 48, fontWeight: 'bold', color: '#FFF', letterSpacing: -1 },
-  gaugeMainLabel: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
-  gaugeSublabel: { fontSize: 13, color: '#71717A', marginTop: 6 },
+  gaugeMainValue: { fontSize: 48, fontWeight: 'bold', color: palette.white, letterSpacing: -1 },
+  gaugeMainLabel: { fontSize: 16, color: palette.white, fontWeight: 'bold' },
+  gaugeSublabel: { fontSize: 13, color: palette.zinc[500], marginTop: 6 },
   gaugeMarkers: {
       flexDirection: 'row',
       width: width * 0.7,
       justifyContent: 'space-between',
       marginTop: 20,
   },
-  gaugeMarkerText: { color: '#71717A', fontSize: 14 },
+  gaugeMarkerText: { color: palette.zinc[500], fontSize: 14 },
   nutritionLevelCard: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 32,
     padding: 24,
     flexDirection: 'row',
@@ -566,9 +567,9 @@ const styles = StyleSheet.create({
   levelLeft: { flex: 1 },
   levelHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
   levelIcon: { fontSize: 28 },
-  levelValue: { fontSize: 32, fontWeight: 'bold', color: '#FFF' },
-  levelStatus: { fontSize: 18, fontWeight: 'bold', color: '#FFF', marginBottom: 8 },
-  levelInfo: { fontSize: 14, color: '#71717A', lineHeight: 20 },
+  levelValue: { fontSize: 32, fontWeight: 'bold', color: palette.white },
+  levelStatus: { fontSize: 18, fontWeight: 'bold', color: palette.white, marginBottom: 8 },
+  levelInfo: { fontSize: 14, color: palette.zinc[500], lineHeight: 20 },
   levelAppleImage: { width: 120, height: 120, borderRadius: 20 },
   instructionsTimeline: { marginTop: 8 },
   timelineItem: { flexDirection: 'row', gap: 24, marginBottom: 32 },
@@ -578,19 +579,19 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 3,
-    borderColor: '#F97316',
+    borderColor: palette.brand[500],
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
-  markerDotCore: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#F97316' },
-  markerLine: { width: 3, flex: 1, backgroundColor: '#27272A', marginTop: 12 },
-  timelineContent: { flex: 1, backgroundColor: '#18181B', padding: 20, borderRadius: 24 },
-  timelineItemTitle: { fontSize: 17, fontWeight: 'bold', color: '#FFF', marginBottom: 10 },
-  timelineItemText: { fontSize: 14, color: '#A1A1AA', lineHeight: 22 },
+  markerDotCore: { width: 10, height: 10, borderRadius: 5, backgroundColor: palette.brand[500] },
+  markerLine: { width: 3, flex: 1, backgroundColor: theme.colors.cardElevated, marginTop: 12 },
+  timelineContent: { flex: 1, backgroundColor: theme.colors.card, padding: 20, borderRadius: 24 },
+  timelineItemTitle: { fontSize: 17, fontWeight: 'bold', color: palette.white, marginBottom: 10 },
+  timelineItemText: { fontSize: 14, color: palette.zinc[400], lineHeight: 22 },
   recScroll: { marginTop: 12 },
   recCard: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderRadius: 24,
     padding: 16,
     width: width * 0.65,
@@ -598,17 +599,17 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   recBadge: {
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     alignSelf: 'flex-start',
     marginBottom: 8,
   },
-  recBadgeText: { color: '#A1A1AA', fontSize: 11 },
-  recTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFF', marginBottom: 8 },
+  recBadgeText: { color: palette.zinc[400], fontSize: 11 },
+  recTitle: { fontSize: 16, fontWeight: 'bold', color: palette.white, marginBottom: 8 },
   recStats: { flexDirection: 'row', gap: 12 },
-  recStat: { fontSize: 12, color: '#71717A' },
+  recStat: { fontSize: 12, color: palette.zinc[500] },
   recImage: { width: '100%', height: 120, borderRadius: 16, marginTop: 12 },
   recipeView: { marginTop: 16 },
   ingredientsList: { gap: 12 },
@@ -617,21 +618,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 18,
     borderBottomWidth: 1,
-    borderBottomColor: '#18181B',
+    borderBottomColor: theme.colors.card,
   },
-  ingPrimary: { color: '#FFF', fontWeight: 'bold', fontSize: 15 },
-  ingSecondary: { color: '#71717A', fontSize: 15 },
+  ingPrimary: { color: palette.white, fontWeight: 'bold', fontSize: 15 },
+  ingSecondary: { color: palette.zinc[500], fontSize: 15 },
   macroCardsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
   macroCard: {
     flex: 1,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     padding: 16,
     borderRadius: 20,
     marginHorizontal: 4,
     borderLeftWidth: 4,
   },
-  macroVal: { fontSize: 18, fontWeight: 'bold', color: '#FFF', marginBottom: 4 },
-  macroLab: { fontSize: 12, color: '#71717A' },
+  macroVal: { fontSize: 18, fontWeight: 'bold', color: palette.white, marginBottom: 4 },
+  macroLab: { fontSize: 12, color: palette.zinc[500] },
   footerButtons: {
     position: 'absolute',
     bottom: 0,
@@ -641,7 +642,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     backgroundColor: 'rgba(0,0,0,0.95)',
     borderTopWidth: 1,
-    borderTopColor: '#27272A',
+    borderTopColor: theme.colors.cardElevated,
     gap: 16,
   },
   gaugePointerContainer: {
@@ -653,20 +654,20 @@ const styles = StyleSheet.create({
     paddingTop: 8, // Adjust to put dot on the track
   },
   addMealBtn: {
-    backgroundColor: '#F97316',
+    backgroundColor: palette.brand[500],
     height: 60,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addMealBtnText: { color: '#FFF', fontWeight: 'bold', fontSize: 18 },
+  addMealBtnText: { color: palette.white, fontWeight: 'bold', fontSize: 18 },
   aiCoachBtn: {
     height: 60,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: '#18181B',
+    borderColor: theme.colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  aiCoachBtnText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  aiCoachBtnText: { color: palette.white, fontWeight: 'bold', fontSize: 16 },
 });

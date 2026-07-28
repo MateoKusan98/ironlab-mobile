@@ -54,7 +54,7 @@ export const Button: React.FC<ButtonProps> = ({
         return {
           bg: color === 'gray' ? palette.gray[800] : p[600],
           border: 'transparent',
-          text: color === 'gray' ? palette.gray[50] : '#ffffff',
+          text: color === 'gray' ? palette.gray[50] : palette.white,
         };
       case 'outline':
         return {
@@ -77,7 +77,7 @@ export const Button: React.FC<ButtonProps> = ({
           text: color === 'gray' ? palette.gray[300] : p[400],
         };
       default:
-        return { bg: p[600], border: 'transparent', text: '#fff' };
+        return { bg: p[600], border: 'transparent', text: palette.white };
     }
   };
 

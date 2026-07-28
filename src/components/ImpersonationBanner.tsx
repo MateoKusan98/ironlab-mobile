@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
-    color: '#fff',
+    color: palette.white,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   exitText: {
-    color: '#fff',
+    color: palette.white,
     fontSize: 12,
     fontWeight: '700',
   },

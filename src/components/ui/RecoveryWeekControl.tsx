@@ -13,9 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Lifebuoy, ArrowRight } from 'phosphor-react-native';
-import { palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { aiCoachService, RecoveryWeekStatus } from '../../services/ai-coach.service';
 
+import { Card } from '../../components/ui';
 // ─── Recovery / Vacation Modal ────────────────────────────────────────────────
 
 export const RecoveryModal: React.FC<{
@@ -80,7 +81,7 @@ export const RecoveryModal: React.FC<{
             disabled={!choice || busy}
           >
             {busy
-              ? <ActivityIndicator color="#fff" />
+              ? <ActivityIndicator color={palette.white} />
               : <Text style={m.saveBtnText}>{t('aiCoach.recovery.confirm')}</Text>}
           </TouchableOpacity>
         </View>
@@ -198,16 +199,16 @@ export const RecoveryWeekCard: React.FC = () => {
       {status ? (
         <RecoveryBanner status={status} onEnd={handleEnd} rounded />
       ) : (
-        <TouchableOpacity style={c.card} onPress={() => setModalVisible(true)}>
+        <Card variant="row" gap={14} borderColor={theme.colors.cardElevated} style={c.cardSpacing} onPress={() => setModalVisible(true)}>
           <View style={c.iconWrap}>
-            <Lifebuoy size={22} weight="fill" color="#5eead4" />
+            <Lifebuoy size={22} weight="fill" color={palette.teal[300]} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={c.title}>{t('aiCoach.recovery.cardTitle')}</Text>
             <Text style={c.sub}>{t('aiCoach.recovery.cardSub')}</Text>
           </View>
           <ArrowRight size={18} weight="bold" color={palette.gray[500]} />
-        </TouchableOpacity>
+        </Card>
       )}
     </>
   );
@@ -216,13 +217,13 @@ export const RecoveryWeekCard: React.FC = () => {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const m = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090b' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: palette.gray[800],
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  title: { fontSize: 16, fontWeight: '700', color: palette.white },
   closeBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   closeText: { fontSize: 18, color: palette.gray[400] },
   intro: { fontSize: 14, color: palette.gray[400], lineHeight: 21, marginBottom: 20 },
@@ -230,11 +231,11 @@ const m = StyleSheet.create({
     borderRadius: 12, borderWidth: 1, borderColor: palette.gray[700],
     padding: 16, marginBottom: 12,
   },
-  optionCardActive: { borderColor: palette.brand[500], backgroundColor: '#1a0e05' },
+  optionCardActive: { borderColor: palette.brand[500], backgroundColor: theme.surfaceTint.brand },
   optionTop: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   optionEmoji: { fontSize: 20 },
   optionTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: palette.gray[300] },
-  optionTitleActive: { color: '#fff' },
+  optionTitleActive: { color: palette.white },
   optionCheck: { fontSize: 16, color: palette.brand[500] },
   optionDesc: { fontSize: 13, color: palette.gray[500], lineHeight: 19 },
   footer: { padding: 16, borderTopWidth: 1, borderTopColor: palette.gray[800] },
@@ -243,44 +244,34 @@ const m = StyleSheet.create({
     paddingVertical: 16, alignItems: 'center',
   },
   saveBtnDisabled: { opacity: 0.4 },
-  saveBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  saveBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
 });
 
 const b = StyleSheet.create({
   banner: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 10,
-    backgroundColor: '#042f2e',
-    borderBottomWidth: 1, borderBottomColor: '#0f766e',
+    backgroundColor: palette.teal[950],
+    borderBottomWidth: 1, borderBottomColor: palette.teal[700],
   },
   bannerRounded: {
-    borderRadius: 16, borderWidth: 1, borderColor: '#0f766e',
+    borderRadius: 16, borderWidth: 1, borderColor: palette.teal[700],
     paddingVertical: 14, marginBottom: 10,
   },
   left: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   emoji: { fontSize: 18 },
-  title: { fontSize: 13, fontWeight: '700', color: '#5eead4' },
+  title: { fontSize: 13, fontWeight: '700', color: palette.teal[300] },
   sub: { fontSize: 11, color: palette.gray[400], marginTop: 1 },
   end: { fontSize: 13, color: palette.gray[500], fontWeight: '600', marginLeft: 8 },
 });
 
 const c = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    backgroundColor: '#18181B',
-    borderRadius: 16,
-    padding: 18,
-    alignItems: 'center',
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#27272A',
-    gap: 14,
-  },
+  cardSpacing: { marginBottom: 10 },
   iconWrap: {
     width: 44, height: 44, borderRadius: 12,
-    backgroundColor: '#0f766e33',
+    backgroundColor: alpha(palette.teal[700], 0.2),
     alignItems: 'center', justifyContent: 'center',
   },
-  title: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 2 },
+  title: { fontSize: 15, fontWeight: '700', color: palette.white, marginBottom: 2 },
   sub: { fontSize: 12, color: palette.gray[400] },
 });

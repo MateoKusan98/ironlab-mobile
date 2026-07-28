@@ -16,7 +16,7 @@ import Svg, { Path, Line } from 'react-native-svg';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import { CoachPreferences } from '../../services/ai-coach.service';
 
 const { width } = Dimensions.get('window');
@@ -165,15 +165,15 @@ const ArcSlider = ({ value, onChange }: { value: number; onChange: (v: number) =
       {...panResponder.panHandlers}
     >
       <Svg width={ARC_SIZE} height={SVG_H} pointerEvents="none">
-        <Path d={describeArc(START_ANGLE, END_ANGLE)} stroke="#2A2A2A" strokeWidth={10} fill="none" strokeLinecap="round" />
-        <Path d={describeArc(START_ANGLE, activeAngle)} stroke="#EA580C" strokeWidth={10} fill="none" strokeLinecap="round" />
+        <Path d={describeArc(START_ANGLE, END_ANGLE)} stroke={theme.surface.track} strokeWidth={10} fill="none" strokeLinecap="round" />
+        <Path d={describeArc(START_ANGLE, activeAngle)} stroke={palette.brand[600]} strokeWidth={10} fill="none" strokeLinecap="round" />
         {[1, 2, 3, 4, 5].map((lvl) => {
           const ang = angleForLevel(lvl);
           const inner = { x: CX + (RADIUS - 14) * Math.cos(degToRad(ang)), y: CY + (RADIUS - 14) * Math.sin(degToRad(ang)) };
           const outer = { x: CX + (RADIUS + 6) * Math.cos(degToRad(ang)), y: CY + (RADIUS + 6) * Math.sin(degToRad(ang)) };
           return (
             <Line key={lvl} x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y}
-              stroke={lvl <= value ? '#EA580C' : '#444'} strokeWidth={lvl === value ? 3 : 2} strokeLinecap="round" />
+              stroke={lvl <= value ? palette.brand[600] : palette.mono[44]} strokeWidth={lvl === value ? 3 : 2} strokeLinecap="round" />
           );
         })}
       </Svg>
@@ -205,10 +205,10 @@ const arcStyles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#EA580C',
+    backgroundColor: palette.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#EA580C',
+    shadowColor: palette.brand[600],
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 12,
@@ -217,11 +217,11 @@ const arcStyles = StyleSheet.create({
   dragIcon: { alignItems: 'center', gap: 2 },
   dragRow: { alignItems: 'center' },
   dragMiddleRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  dragCenter: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#FFF' },
-  arrowUp: { width: 0, height: 0, borderLeftWidth: A, borderRightWidth: A, borderBottomWidth: A * 1.4, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: '#FFF' },
-  arrowDown: { width: 0, height: 0, borderLeftWidth: A, borderRightWidth: A, borderTopWidth: A * 1.4, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderTopColor: '#FFF' },
-  arrowLeft: { width: 0, height: 0, borderTopWidth: A, borderBottomWidth: A, borderRightWidth: A * 1.4, borderTopColor: 'transparent', borderBottomColor: 'transparent', borderRightColor: '#FFF' },
-  arrowRight: { width: 0, height: 0, borderTopWidth: A, borderBottomWidth: A, borderLeftWidth: A * 1.4, borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: '#FFF' },
+  dragCenter: { width: 4, height: 4, borderRadius: 2, backgroundColor: palette.white },
+  arrowUp: { width: 0, height: 0, borderLeftWidth: A, borderRightWidth: A, borderBottomWidth: A * 1.4, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: palette.white },
+  arrowDown: { width: 0, height: 0, borderLeftWidth: A, borderRightWidth: A, borderTopWidth: A * 1.4, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderTopColor: palette.white },
+  arrowLeft: { width: 0, height: 0, borderTopWidth: A, borderBottomWidth: A, borderRightWidth: A * 1.4, borderTopColor: 'transparent', borderBottomColor: 'transparent', borderRightColor: palette.white },
+  arrowRight: { width: 0, height: 0, borderTopWidth: A, borderBottomWidth: A, borderLeftWidth: A * 1.4, borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: palette.white },
 });
 
 const wheel = StyleSheet.create({
@@ -432,7 +432,7 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     gap: 12,
   },
-  backBtn: { fontSize: 28, color: '#FFF', width: 32 },
+  backBtn: { fontSize: 28, color: palette.white, width: 32 },
   progressTrack: {
     flex: 1,
     height: 4,
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
   logo: { paddingHorizontal: 24, paddingTop: 32, paddingBottom: 8 },
   logoIcon: { fontSize: 32, color: palette.brand[500] },
   stepContainer: { flex: 1, paddingHorizontal: 24, paddingTop: 16, overflow: 'hidden' },
-  question: { fontSize: 28, fontWeight: '800', color: '#FFF', lineHeight: 36, marginBottom: 40 },
+  question: { fontSize: 28, fontWeight: '800', color: palette.white, lineHeight: 36, marginBottom: 40 },
   questionCompact: { marginBottom: 16 },
   optionList: { gap: 12 },
   optionCard: {
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(234, 88, 12, 0.08)',
   },
   optionIcon: { fontSize: 24 },
-  optionLabel: { color: '#FFF', fontSize: 15, fontWeight: '700', marginBottom: 4 },
+  optionLabel: { color: palette.white, fontSize: 15, fontWeight: '700', marginBottom: 4 },
   optionLabelSelected: { color: palette.brand[400] },
   optionSub: { color: palette.gray[500], fontSize: 12 },
   modeCard: {
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   modeTopRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  modeTitle: { color: '#FFF', fontSize: 17, fontWeight: '800', flex: 1 },
+  modeTitle: { color: palette.white, fontSize: 17, fontWeight: '800', flex: 1 },
   modeBadge: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(234, 88, 12, 0.14)',
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioSelected: { borderColor: palette.brand[500], backgroundColor: palette.brand[500] },
-  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFF' },
+  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: palette.white },
   durationCaption: {
     color: palette.gray[400],
     fontSize: 14,
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
   intensityInfoText: { color: palette.gray[300], fontSize: 13, lineHeight: 20 },
   dragHint: { color: palette.gray[600], fontSize: 13, marginBottom: 4 },
   intensityReadout: { position: 'absolute', bottom: 60, right: 0, alignItems: 'flex-end' },
-  intensityBigNum: { fontSize: 96, fontWeight: '900', color: '#FFF', lineHeight: 100 },
+  intensityBigNum: { fontSize: 96, fontWeight: '900', color: palette.white, lineHeight: 100 },
   intensityBigLabel: { color: palette.gray[400], fontSize: 16, fontWeight: '600', textAlign: 'right' },
   footer: { padding: 24, paddingBottom: 36 },
   continueBtn: {
@@ -530,5 +530,5 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
   },
-  continueBtnText: { color: '#000', fontSize: 15, fontWeight: '800' },
+  continueBtnText: { color: palette.black, fontSize: 15, fontWeight: '800' },
 });

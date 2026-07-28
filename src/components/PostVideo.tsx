@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 
+import { palette } from '../theme';
 type Props = {
   uri: string;
   style?: ViewStyle;
@@ -32,6 +33,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 260,
     borderRadius: 10,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
 });

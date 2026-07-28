@@ -45,7 +45,7 @@ const AvatarThumb = ({ name, avatar, size = 36 }: { name: string; avatar: string
   }
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: palette.brand[600], alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ color: '#fff', fontWeight: '700', fontSize: size * 0.38 }}>{initials}</Text>
+      <Text style={{ color: palette.white, fontWeight: '700', fontSize: size * 0.38 }}>{initials}</Text>
     </View>
   );
 };
@@ -267,9 +267,9 @@ export const PostDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             disabled={!commentText.trim() || sending}
           >
             {sending ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={palette.white} />
             ) : (
-              <PaperPlaneTilt size={18} color="#fff" weight="fill" />
+              <PaperPlaneTilt size={18} color={palette.white} weight="fill" />
             )}
           </TouchableOpacity>
         </View>

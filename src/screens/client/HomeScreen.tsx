@@ -22,7 +22,7 @@ import { Pedometer } from 'expo-sensors';
 import { useAuthStore } from '../../stores/auth.store';
 import { useFoodLogs } from '../../hooks/useNutrition';
 import { useExerciseName } from '../../hooks/useExerciseName';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { aiCoachService, NextSession } from '../../services/ai-coach.service';
 import { sessionService, TodaySummary } from '../../services/session.service';
 import { proposalsService, AIProposal } from '../../services/proposals.service';
@@ -49,6 +49,7 @@ import {
   CheckCircle,
 } from 'phosphor-react-native';
 
+import { Card } from '../../components/ui';
 const CREATINE_ENABLED_KEY = '@ironlab_creatine_enabled';
 const CREATINE_DATE_KEY = '@ironlab_creatine_date';
 const STEPS_DATE_KEY = '@ironlab_steps_date';
@@ -474,7 +475,7 @@ export const HomeScreen: React.FC = () => {
                 disabled={proposalLoading}
               >
                 {proposalLoading
-                  ? <ActivityIndicator color="#fff" size="small" />
+                  ? <ActivityIndicator color={palette.white} size="small" />
                   : <Text style={styles.proposalBtnAcceptText}>{t('home.soundsGood')}</Text>
                 }
               </TouchableOpacity>
@@ -520,10 +521,10 @@ export const HomeScreen: React.FC = () => {
         )}
 
         {/* Today's Workout Card — takes over entirely when a session is in progress */}
-        <View style={[styles.card, activeSessionId ? styles.cardActive : isTrainingDay && styles.cardHighlight]}>
+        <Card style={[styles.cardSpacing, activeSessionId ? styles.cardActive : isTrainingDay && styles.cardHighlight]}>
           <View style={styles.cardHeader}>
             {activeSessionId
-              ? <Timer size={22} weight="fill" color="#ef4444" />
+              ? <Timer size={22} weight="fill" color={palette.error[500]} />
               : <Barbell size={22} weight="bold" color={palette.brand[400]} />
             }
             <Text style={styles.cardTitle}>{activeSessionId ? t('session.workoutInProgress') : t('home.todaysWorkout')}</Text>
@@ -615,10 +616,10 @@ export const HomeScreen: React.FC = () => {
               <Text style={styles.setupPromptSub}>{t('home.generateFirst')}</Text>
             </TouchableOpacity>
           )}
-        </View>
+        </Card>
 
         {/* Nutrition Card */}
-        <View style={styles.card}>
+        <Card style={styles.cardSpacing}>
           <View style={styles.cardHeader}>
             <ForkKnife size={22} weight="bold" color={palette.brand[400]} />
             <Text style={styles.cardTitle}>{t('home.nutritionToday')}</Text>
@@ -634,11 +635,11 @@ export const HomeScreen: React.FC = () => {
               <Text style={styles.nutritionLabel}>{t('home.meals')}</Text>
             </View>
           </View>
-        </View>
+        </Card>
 
         {/* Steps Card */}
         {stepsAvailable && (
-          <View style={styles.card}>
+          <Card style={styles.cardSpacing}>
             <View style={styles.cardHeader}>
               <Sneaker size={22} weight="bold" color={palette.brand[400]} />
               <Text style={styles.cardTitle}>{t('home.todaysSteps')}</Text>
@@ -653,18 +654,18 @@ export const HomeScreen: React.FC = () => {
             <Text style={styles.stepPercent}>
               {steps >= STEP_GOAL ? t('home.goalReached') : t('home.percentOfGoal', { percent: Math.round((steps / STEP_GOAL) * 100) })}
             </Text>
-          </View>
+          </Card>
         )}
 
         {/* Today's Recap Card */}
         {(todaySummary?.strength || (todaySummary?.cardio?.length ?? 0) > 0) && (
-          <View style={styles.card}>
+          <Card style={styles.cardSpacing}>
             <View style={styles.cardHeader}>
               <ChartLineUp size={22} weight="bold" color={palette.brand[400]} />
               <Text style={styles.cardTitle}>Today's Recap</Text>
               {(todaySummary?.strength?.prsCount ?? 0) > 0 && (
                 <View style={styles.prBadge}>
-                  <Lightning size={10} weight="fill" color="#fbbf24" />
+                  <Lightning size={10} weight="fill" color={palette.warning[400]} />
                   <Text style={styles.prBadgeText}>
                     {todaySummary!.strength!.prsCount} PR{todaySummary!.strength!.prsCount > 1 ? 's' : ''}
                   </Text>
@@ -696,7 +697,7 @@ export const HomeScreen: React.FC = () => {
                     ) : (
                       <Text style={styles.deltaNew}>new</Text>
                     )}
-                    {ex.isPR && <Lightning size={11} weight="fill" color="#fbbf24" style={{ marginLeft: 3 }} />}
+                    {ex.isPR && <Lightning size={11} weight="fill" color={palette.warning[400]} style={{ marginLeft: 3 }} />}
                   </View>
                 ))}
               </>
@@ -715,7 +716,7 @@ export const HomeScreen: React.FC = () => {
                 </Text>
               </View>
             ))}
-          </View>
+          </Card>
         )}
 
         {/* Quick nav */}
@@ -819,13 +820,13 @@ const styles = StyleSheet.create({
   scroll: { flex: 1, paddingHorizontal: 16 },
 
   devTimeBanner: {
-    backgroundColor: '#7c3aed',
+    backgroundColor: palette.violet[600],
     paddingVertical: 6,
     paddingHorizontal: 16,
     alignItems: 'center',
   },
   devTimeBannerText: {
-    color: '#fff',
+    color: palette.white,
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.5,
@@ -841,42 +842,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  card: {
-    backgroundColor: theme.colors.card,
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
+  // Spacing only — the surface itself comes from <Card>.
+  cardSpacing: { marginBottom: 12 },
   cardHighlight: {
     borderColor: palette.brand[600],
     backgroundColor: palette.brand[900] + '20',
   },
   cardActive: {
-    borderColor: '#ef4444',
-    backgroundColor: '#ef444410',
+    borderColor: palette.error[500],
+    backgroundColor: alpha(palette.error[500], 0.063),
   },
 
   resumeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ef444415',
+    backgroundColor: alpha(palette.error[500], 0.082),
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     gap: 12,
     borderWidth: 1,
-    borderColor: '#ef444440',
+    borderColor: alpha(palette.error[500], 0.251),
   },
   resumePulse: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#ef4444',
+    backgroundColor: palette.error[500],
   },
-  resumeBtnText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#ef4444' },
-  resumeChevron: { fontSize: 20, color: '#ef4444', fontWeight: '700' },
+  resumeBtnText: { flex: 1, fontSize: 15, fontWeight: '700', color: palette.error[500] },
+  resumeChevron: { fontSize: 20, color: palette.error[500], fontWeight: '700' },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -890,7 +885,7 @@ cardTitle: { fontSize: 16, fontWeight: '700', color: theme.colors.text, flex: 1 
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  trainingDayBadgeText: { fontSize: 10, fontWeight: '800', color: '#fff', letterSpacing: 0.5 },
+  trainingDayBadgeText: { fontSize: 10, fontWeight: '800', color: palette.white, letterSpacing: 0.5 },
 
   setupPrompt: { alignItems: 'center', paddingVertical: 12 },
   setupPromptText: { fontSize: 14, color: palette.gray[300], textAlign: 'center', fontWeight: '600', marginBottom: 4 },
@@ -945,7 +940,7 @@ restDayText: { fontSize: 18, fontWeight: '700', color: palette.gray[300], margin
     alignItems: 'center',
     marginTop: 14,
   },
-  startBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  startBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
 
   nutritionRow: { flexDirection: 'row', alignItems: 'center' },
   nutritionStat: { flex: 1, alignItems: 'center' },
@@ -961,7 +956,7 @@ restDayText: { fontSize: 18, fontWeight: '700', color: palette.gray[300], margin
   stepPercent: { fontSize: 12, color: theme.colors.textSecondary },
 
   proposalCard: {
-    backgroundColor: '#1e1b4b',
+    backgroundColor: palette.indigo[950],
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -971,18 +966,18 @@ restDayText: { fontSize: 18, fontWeight: '700', color: palette.gray[300], margin
   proposalHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
 proposalHeaderText: { flex: 1 },
   proposalLabel: { fontSize: 10, fontWeight: '800', color: palette.brand[400], letterSpacing: 1, marginBottom: 3 },
-  proposalTitle: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  proposalTitle: { fontSize: 15, fontWeight: '700', color: palette.white },
   proposalReasoning: { fontSize: 13, color: palette.gray[300], lineHeight: 19, marginBottom: 14 },
   proposalActions: { flexDirection: 'row', gap: 10 },
   proposalBtn: { flex: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   proposalBtnDecline: { backgroundColor: palette.gray[700] },
   proposalBtnAccept: { backgroundColor: palette.brand[600] },
   proposalBtnDeclineText: { fontSize: 13, fontWeight: '700', color: palette.gray[300] },
-  proposalBtnAcceptText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  proposalBtnAcceptText: { fontSize: 13, fontWeight: '700', color: palette.white },
 
   // Missed-session catch-up card
   catchUpCard: {
-    backgroundColor: '#2a1e08',
+    backgroundColor: theme.surfaceTint.warningDeep,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -990,12 +985,12 @@ proposalHeaderText: { flex: 1 },
     borderColor: palette.warning[700],
   },
   catchUpLabel: { fontSize: 10, fontWeight: '800', color: palette.warning[400], letterSpacing: 1, marginBottom: 4 },
-  catchUpTitle: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 4 },
+  catchUpTitle: { fontSize: 15, fontWeight: '700', color: palette.white, marginBottom: 4 },
   catchUpSub: { fontSize: 13, color: palette.gray[300], lineHeight: 19, marginBottom: 14 },
   catchUpActions: { flexDirection: 'row', gap: 10 },
   catchUpBtn: { flex: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   catchUpBtnPrimary: { backgroundColor: palette.brand[600] },
-  catchUpBtnPrimaryText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  catchUpBtnPrimaryText: { fontSize: 13, fontWeight: '700', color: palette.white },
   catchUpBtnGhost: { backgroundColor: palette.gray[700] },
   catchUpBtnGhostText: { fontSize: 13, fontWeight: '700', color: palette.gray[300] },
 
@@ -1004,14 +999,14 @@ proposalHeaderText: { flex: 1 },
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#78350f40',
+    backgroundColor: alpha(palette.warning[900], 0.251),
     borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderWidth: 1,
-    borderColor: '#b45309',
+    borderColor: palette.warning[700],
   },
-  prBadgeText: { fontSize: 10, fontWeight: '800', color: '#fbbf24', letterSpacing: 0.3 },
+  prBadgeText: { fontSize: 10, fontWeight: '800', color: palette.warning[400], letterSpacing: 0.3 },
 
   recapSectionRow: {
     flexDirection: 'row',
@@ -1032,8 +1027,8 @@ proposalHeaderText: { flex: 1 },
   exerciseName: { flex: 1, fontSize: 13, fontWeight: '600', color: theme.colors.text },
   exerciseSet: { fontSize: 13, color: palette.gray[300], minWidth: 80, textAlign: 'right' },
   exerciseDelta: { fontSize: 12, fontWeight: '700', minWidth: 58, textAlign: 'right' },
-  deltaUp: { color: '#4ade80' },
-  deltaDown: { color: '#f87171' },
+  deltaUp: { color: palette.success[400] },
+  deltaDown: { color: palette.error[400] },
   deltaFlat: { color: palette.gray[500] },
   deltaNew: { fontSize: 11, fontWeight: '700', color: palette.brand[400], minWidth: 58, textAlign: 'right' },
 
@@ -1120,7 +1115,7 @@ quickLabel: { fontSize: 11, fontWeight: '700', color: palette.gray[300], letterS
   creatineYesBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#fff',
+    color: palette.white,
   },
   creatineNoBtn: {
     paddingVertical: 12,

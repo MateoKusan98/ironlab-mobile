@@ -51,20 +51,20 @@ export interface FitnessQuizProps {
 }
 
 const LEVEL_COLORS: Record<QuizDifficulty, string> = {
-  1: '#34d399',
+  1: palette.emerald[400],
   2: palette.brand[400],
-  3: '#fb7185',
+  3: palette.rose[400],
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
   Training: palette.brand[400],
-  Nutrition: '#34d399',
-  Anatomy: '#60a5fa',
-  Recovery: '#a78bfa',
-  Cardio: '#f472b6',
-  Supplements: '#fbbf24',
-  Powerlifting: '#fb7185',
-  Myths: '#22d3ee',
+  Nutrition: palette.emerald[400],
+  Anatomy: palette.info[400],
+  Recovery: palette.violet[400],
+  Cardio: palette.pink[400],
+  Supplements: palette.warning[400],
+  Powerlifting: palette.rose[400],
+  Myths: palette.cyan[400],
 };
 
 export const FitnessQuiz: React.FC<FitnessQuizProps> = ({

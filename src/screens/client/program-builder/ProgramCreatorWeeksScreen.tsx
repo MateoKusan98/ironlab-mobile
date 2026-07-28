@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { palette } from '../../../theme';
+import { theme, palette } from '../../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
@@ -178,7 +178,7 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -187,8 +187,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backIcon: { color: '#FFF', fontSize: 24 },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  backIcon: { color: palette.white, fontSize: 24 },
+  headerTitle: { color: palette.white, fontSize: 18, fontWeight: 'bold' },
   content: { paddingHorizontal: 20, paddingBottom: 100 },
   
   blockSection: { marginBottom: 32 },
@@ -197,16 +197,16 @@ const styles = StyleSheet.create({
   blockMeta: { color: palette.gray[500], fontSize: 12 },
 
   weekCard: {
-      backgroundColor: '#18181B',
+      backgroundColor: theme.colors.card,
       borderRadius: 16,
       padding: 16,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
       marginBottom: 16,
   },
   weekHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  weekTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
-  copyBtn: { backgroundColor: '#27272A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  weekTitle: { color: palette.white, fontSize: 16, fontWeight: 'bold' },
+  copyBtn: { backgroundColor: theme.colors.cardElevated, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
   copyBtnText: { color: palette.gray[300], fontSize: 10, fontWeight: 'bold' },
 
   daysScroll: { gap: 12 },
@@ -215,13 +215,13 @@ const styles = StyleSheet.create({
       height: 64,
       borderRadius: 32,
       borderWidth: 1,
-      borderColor: '#3F3F46',
+      borderColor: palette.zinc[700],
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#09090B',
+      backgroundColor: theme.colors.background,
   },
   dayCircleConfigured: { borderColor: palette.brand[500], backgroundColor: palette.brand[500] + '11' },
-  dayCircleRest: { borderColor: '#4B5563', backgroundColor: '#1F2937' },
+  dayCircleRest: { borderColor: palette.coolGray[600], backgroundColor: palette.coolGray[800] },
   dayNumber: { color: palette.gray[400], fontSize: 12, fontWeight: 'bold', marginBottom: 2 },
   dayTextActive: { color: palette.brand[400] },
   dayStatus: { color: palette.gray[500], fontSize: 9 },
@@ -231,33 +231,33 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#09090B',
+    backgroundColor: theme.colors.background,
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#27272A',
+    borderTopColor: theme.colors.cardElevated,
   },
   publishBtn: {
-    backgroundColor: '#FFF',
+    backgroundColor: palette.white,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  publishBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
+  publishBtnText: { color: palette.black, fontSize: 16, fontWeight: 'bold' },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#18181B', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
-  modalTitle: { color: '#FFF', fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
+  modalContent: { backgroundColor: theme.colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
+  modalTitle: { color: palette.white, fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
   modalText: { color: palette.gray[400], fontSize: 14, marginBottom: 24, lineHeight: 20 },
   modalLabel: { color: palette.gray[300], fontSize: 14, fontWeight: 'bold', marginBottom: 12 },
   
-  sourceOption: { padding: 16, backgroundColor: '#09090B', borderRadius: 12, borderWidth: 1, borderColor: '#27272A', marginBottom: 8 },
+  sourceOption: { padding: 16, backgroundColor: theme.colors.background, borderRadius: 12, borderWidth: 1, borderColor: theme.colors.cardElevated, marginBottom: 8 },
   sourceOptionSelected: { borderColor: palette.brand[500], backgroundColor: palette.brand[500] + '22' },
-  sourceOptionText: { color: '#FFF', fontSize: 14 },
+  sourceOptionText: { color: palette.white, fontSize: 14 },
   sourceOptionTextSelected: { color: palette.brand[500], fontWeight: 'bold' },
 
   modalActions: { flexDirection: 'row', gap: 12, marginTop: 12 },
-  modalBtnCancel: { flex: 1, paddingVertical: 16, backgroundColor: '#27272A', borderRadius: 12, alignItems: 'center' },
-  modalBtnTextCancel: { color: '#FFF', fontWeight: 'bold' },
+  modalBtnCancel: { flex: 1, paddingVertical: 16, backgroundColor: theme.colors.cardElevated, borderRadius: 12, alignItems: 'center' },
+  modalBtnTextCancel: { color: palette.white, fontWeight: 'bold' },
   modalBtnSubmit: { flex: 1, paddingVertical: 16, backgroundColor: palette.brand[500], borderRadius: 12, alignItems: 'center' },
-  modalBtnTextSubmit: { color: '#000', fontWeight: 'bold' },
+  modalBtnTextSubmit: { color: palette.black, fontWeight: 'bold' },
 });

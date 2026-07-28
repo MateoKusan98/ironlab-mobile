@@ -490,7 +490,7 @@ export const ManualFoodLogScreen: React.FC = () => {
 
       {/* Paste ingredients modal */}
       <Modal visible={pasteModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPasteModalVisible(false)}>
-        <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: '#000' }}>
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: palette.black }}>
           <View style={pm.header}>
             <Text style={pm.title}>{t('manualFood.pasteRecipeTitle')}</Text>
             <TouchableOpacity onPress={() => setPasteModalVisible(false)} style={pm.closeBtn}>
@@ -507,7 +507,7 @@ export const ManualFoodLogScreen: React.FC = () => {
             style={pm.input}
             multiline
             placeholder={t('manualFood.pastePlaceholder')}
-            placeholderTextColor="#555"
+            placeholderTextColor={palette.mono[55]}
             value={pasteText}
             onChangeText={setPasteText}
             textAlignVertical="top"
@@ -521,7 +521,7 @@ export const ManualFoodLogScreen: React.FC = () => {
               disabled={!pasteText.trim() || parsing}
             >
               {parsing ? (
-                <ActivityIndicator color="#000" />
+                <ActivityIndicator color={palette.black} />
               ) : (
                 <Text style={pm.analyzeBtnText}>{t('manualFood.analyzeBtn')}</Text>
               )}
@@ -536,7 +536,7 @@ export const ManualFoodLogScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
   },
   header: {
     flexDirection: 'row',
@@ -552,13 +552,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backIcon: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 32,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
   },
   scrollContent: {
     padding: 24,
@@ -583,9 +583,9 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -607,11 +607,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#000',
+    borderColor: palette.black,
   },
   uploadBtnIcon: {
     fontSize: 14,
-    color: '#000',
+    color: palette.black,
   },
   section: {
     marginBottom: 32,
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
   },
   row: {
     flexDirection: 'row',
@@ -638,12 +638,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 40,
-    backgroundColor: '#111113',
+    backgroundColor: theme.colors.backgroundSecondary,
     padding: 20,
     borderRadius: 20,
   },
   toggleTitle: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
@@ -663,20 +663,20 @@ const styles = StyleSheet.create({
       marginBottom: 16,
   },
   searchResultsContainer: {
-      backgroundColor: '#18181B',
+      backgroundColor: theme.colors.card,
       borderRadius: 12,
       padding: 10,
       marginTop: 8,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
   },
   searchResultItem: {
       paddingVertical: 12,
       borderBottomWidth: 1,
-      borderBottomColor: '#27272A',
+      borderBottomColor: theme.colors.cardElevated,
   },
   resultName: {
-      color: '#FFF',
+      color: palette.white,
       fontWeight: 'bold',
       fontSize: 14,
   },
@@ -691,14 +691,14 @@ const styles = StyleSheet.create({
       paddingVertical: 10,
   },
   addIngredientPrompt: {
-      backgroundColor: '#18181B',
+      backgroundColor: theme.colors.card,
       borderRadius: 16,
       padding: 20,
       borderWidth: 1,
       borderColor: palette.brand[500],
   },
   promptLabel: {
-      color: '#FFF',
+      color: palette.white,
       fontSize: 16,
       fontWeight: 'bold',
       marginBottom: 15,
@@ -708,16 +708,16 @@ const styles = StyleSheet.create({
       gap: 10,
   },
   selectedIngredientItem: {
-      backgroundColor: '#111113',
+      backgroundColor: theme.colors.backgroundSecondary,
       borderWidth: 1,
-      borderColor: '#27272A',
+      borderColor: theme.colors.cardElevated,
       borderRadius: 12,
       padding: 12,
       flexDirection: 'row',
       alignItems: 'center',
   },
   ingName: {
-      color: '#FFF',
+      color: palette.white,
       fontWeight: 'bold',
       fontSize: 14,
   },
@@ -731,18 +731,18 @@ const styles = StyleSheet.create({
       width: 30,
       height: 30,
       borderRadius: 15,
-      backgroundColor: '#27272A',
+      backgroundColor: theme.colors.cardElevated,
       alignItems: 'center',
       justifyContent: 'center',
   },
   removeIngIcon: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 12,
     fontWeight: 'bold',
   },
   pasteBtn: {
     marginLeft: 'auto' as any,
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
     borderColor: palette.brand[500],
     borderRadius: 8,
@@ -764,23 +764,23 @@ const pm = StyleSheet.create({
     padding: 24,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#1c1c1e',
+    borderBottomColor: theme.colors.backgroundTertiary,
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFF',
+    color: palette.white,
   },
   closeBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeText: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -792,7 +792,7 @@ const pm = StyleSheet.create({
     lineHeight: 20,
   },
   example: {
-    color: '#555',
+    color: palette.mono[55],
     fontSize: 13,
     paddingHorizontal: 24,
     paddingTop: 12,
@@ -803,12 +803,12 @@ const pm = StyleSheet.create({
   input: {
     flex: 1,
     marginHorizontal: 24,
-    backgroundColor: '#111113',
+    backgroundColor: theme.colors.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     borderRadius: 16,
     padding: 16,
-    color: '#FFF',
+    color: palette.white,
     fontSize: 15,
     lineHeight: 22,
   },
@@ -826,7 +826,7 @@ const pm = StyleSheet.create({
     opacity: 0.4,
   },
   analyzeBtnText: {
-    color: '#000',
+    color: palette.black,
     fontSize: 16,
     fontWeight: '700',
   },

@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     top: 4, // Center vertically in 32px area
     transform: [{ translateX: -12 }], // Center thumb on its point
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,

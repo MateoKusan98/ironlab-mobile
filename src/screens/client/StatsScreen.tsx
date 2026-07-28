@@ -12,7 +12,7 @@ import {
 } from '../../services/session.service';
 import { useTranslation } from 'react-i18next';
 import { useExerciseName } from '../../hooks/useExerciseName';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
 import { UserAvatar } from '../../components/ui/UserAvatar';
@@ -21,6 +21,7 @@ import {
   Trophy, Medal, Timer, Heart, Pulse, Scales, Gauge, ChartLineUp,
 } from 'phosphor-react-native';
 
+import { Card } from '../../components/ui';
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const fmtVol = (kg: number): string => {
@@ -38,30 +39,21 @@ const fmtDay = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 const MOOD_ICON: Record<string, React.ReactElement> = {
-  tired:   <Moon size={18} weight="fill" color="#6b7280" />,
-  neutral: <Minus size={18} weight="bold" color="#9ca3af" />,
-  good:    <ThumbsUp size={18} weight="fill" color="#f97316" />,
-  great:   <Fire size={18} weight="fill" color="#ef4444" />,
-  elite:   <Lightning size={18} weight="fill" color="#eab308" />,
+  tired:   <Moon size={18} weight="fill" color={theme.mood.tired} />,
+  neutral: <Minus size={18} weight="bold" color={theme.mood.neutral} />,
+  good:    <ThumbsUp size={18} weight="fill" color={theme.mood.good} />,
+  great:   <Fire size={18} weight="fill" color={theme.mood.great} />,
+  elite:   <Lightning size={18} weight="fill" color={theme.mood.elite} />,
 };
 
-const MUSCLE_COLORS: Record<string, string> = {
-  'Chest': '#ef4444',
-  'Back': '#3b82f6',
-  'Shoulders': '#f59e0b',
-  'Triceps': '#8b5cf6',
-  'Biceps': '#06b6d4',
-  'Quads': '#22c55e',
-  'Hamstrings/Glutes': '#f97316',
-  'Calves': '#84cc16',
-  'Core': '#ec4899',
-  'Other': palette.gray[500],
-};
+// Muscle-group and tier colours are shared design data — a second stats view
+// must not invent its own scale. See theme.chart / theme.rank.
+const MUSCLE_COLORS = theme.chart.muscleGroup;
 
 const LIFT_ICON: Record<string, React.ReactElement> = {
   squat:      <Barbell size={18} weight="bold" color={palette.brand[400]} />,
-  benchPress: <Barbell size={18} weight="fill" color="#93c5fd" />,
-  deadlift:   <Lightning size={18} weight="fill" color="#eab308" />,
+  benchPress: <Barbell size={18} weight="fill" color={palette.info[300]} />,
+  deadlift:   <Lightning size={18} weight="fill" color={palette.yellow[500]} />,
 };
 
 const LIFT_META: Record<string, { label: string }> = {
@@ -71,20 +63,13 @@ const LIFT_META: Record<string, { label: string }> = {
 };
 
 const LANDMARK_STATUS: Record<MuscleLandmark['status'], { color: string; label: string }> = {
-  under:        { color: '#f59e0b', label: 'Below MEV' },
-  optimal:      { color: '#22c55e', label: 'Optimal' },
-  high:         { color: '#3b82f6', label: 'High' },
-  overreaching: { color: '#ef4444', label: 'Overreaching' },
+  under:        { color: theme.volumeStatus.under, label: 'Below MEV' },
+  optimal:      { color: theme.volumeStatus.optimal, label: 'Optimal' },
+  high:         { color: theme.volumeStatus.high, label: 'High' },
+  overreaching: { color: theme.volumeStatus.overreaching, label: 'Overreaching' },
 };
 
-const LEVEL_COLOR: Record<string, string> = {
-  Untrained: palette.gray[500],
-  Beginner: '#84cc16',
-  Novice: '#22c55e',
-  Intermediate: '#06b6d4',
-  Advanced: '#a78bfa',
-  Elite: '#eab308',
-};
+const LEVEL_COLOR = theme.rank;
 
 const DOW_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
@@ -93,11 +78,11 @@ const DOW_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const SectionCard: React.FC<{ title: string; children: React.ReactNode; accentColor?: string; subtitle?: string }> = ({
   title, children, accentColor, subtitle,
 }) => (
-  <View style={[styles.card, accentColor && { borderLeftColor: accentColor, borderLeftWidth: 3 }]}>
+  <Card background={palette.gray[800]} bordered={false} radius={20} style={[styles.cardSpacing, accentColor && { borderLeftColor: accentColor, borderLeftWidth: 3 }]}>
     <Text style={styles.sectionTitle}>{title}</Text>
     {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
     {children}
-  </View>
+  </Card>
 );
 
 const HeroStat: React.FC<{ label: string; value: string | number; sub?: string; accent?: boolean }> = ({
@@ -235,14 +220,14 @@ const ProgressionRow: React.FC<{ progression: ExerciseProgression }> = ({ progre
             return (
               <View key={i} style={[styles.sparkBar, {
                 height: h,
-                backgroundColor: isUp ? '#22c55e' : '#ef4444',
+                backgroundColor: isUp ? palette.success[500] : palette.error[500],
                 opacity: 0.5 + (i / progression.points.length) * 0.5,
               }]} />
             );
           })}
         </View>
       </View>
-      <Text style={[styles.progChange, { color: isUp ? '#22c55e' : '#ef4444' }]}>
+      <Text style={[styles.progChange, { color: isUp ? palette.success[500] : palette.error[500] }]}>
         {isUp ? '+' : ''}{pct.toFixed(1)}%
       </Text>
     </View>
@@ -289,9 +274,9 @@ const PRRow: React.FC<{ pr: PRTimelineEntry }> = ({ pr }) => {
   const isTrue = pr.tier === 'pr';
   return (
     <View style={styles.prRow}>
-      <View style={[styles.prIcon, { backgroundColor: isTrue ? '#eab30822' : palette.gray[700] }]}>
+      <View style={[styles.prIcon, { backgroundColor: isTrue ? alpha(palette.yellow[500], 0.133) : palette.gray[700] }]}>
         {isTrue
-          ? <Trophy size={16} weight="fill" color="#eab308" />
+          ? <Trophy size={16} weight="fill" color={palette.yellow[500]} />
           : <Medal size={16} weight="regular" color={palette.gray[300]} />}
       </View>
       <View style={{ flex: 1 }}>
@@ -299,7 +284,7 @@ const PRRow: React.FC<{ pr: PRTimelineEntry }> = ({ pr }) => {
         <Text style={styles.prMeta}>{pr.weight}kg × {pr.reps} · {fmtDay(pr.date)}</Text>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
-        <Text style={[styles.prValue, { color: isTrue ? '#eab308' : palette.gray[200] }]}>{pr.weight}kg</Text>
+        <Text style={[styles.prValue, { color: isTrue ? palette.yellow[500] : palette.gray[200] }]}>{pr.weight}kg</Text>
         <Text style={styles.prTier}>{isTrue ? 'PR' : 'Mini PR'}</Text>
       </View>
     </View>
@@ -563,7 +548,7 @@ export const StatsScreen: React.FC = () => {
             {strengthStandards.available && (
               <SectionCard
                 title={t('stats.strengthLevel')}
-                accentColor="#eab308"
+                accentColor={palette.yellow[500]}
                 subtitle={t('stats.strengthLevelSub', { bw: strengthStandards.bodyweightKg })}
               >
                 {(['squat', 'benchPress', 'deadlift'] as const).map(key => {
@@ -614,7 +599,7 @@ export const StatsScreen: React.FC = () => {
                     <Text style={styles.intLabel}>{t('stats.avgRpe')}</Text>
                   </View>
                   <View style={styles.intStat}>
-                    <ChartLineUp size={18} weight="bold" color="#22c55e" />
+                    <ChartLineUp size={18} weight="bold" color={palette.success[500]} />
                     <Text style={styles.intVal}>
                       {(() => {
                         const last = [...intensity.trend].reverse().find(x => x.avgIntensityPct != null);
@@ -647,12 +632,12 @@ export const StatsScreen: React.FC = () => {
                   <Text style={styles.densityLabel}>{t('stats.avgRest')}</Text>
                 </View>
                 <View style={styles.densityItem}>
-                  <Gauge size={20} weight="regular" color="#22c55e" />
+                  <Gauge size={20} weight="regular" color={palette.success[500]} />
                   <Text style={styles.densityVal}>{density.avgDensityKgPerMin != null ? `${density.avgDensityKgPerMin}` : '—'}</Text>
                   <Text style={styles.densityLabel}>{t('stats.kgPerMin')}</Text>
                 </View>
                 <View style={styles.densityItem}>
-                  <Barbell size={20} weight="regular" color="#a78bfa" />
+                  <Barbell size={20} weight="regular" color={palette.violet[400]} />
                   <Text style={styles.densityVal}>{density.avgSetsPerSession}</Text>
                   <Text style={styles.densityLabel}>{t('stats.setsPerSession')}</Text>
                 </View>
@@ -686,7 +671,7 @@ export const StatsScreen: React.FC = () => {
             </View>
 
             {truePRs.length > 0 && (
-              <SectionCard title={t('stats.recentPRs')} accentColor="#eab308">
+              <SectionCard title={t('stats.recentPRs')} accentColor={palette.yellow[500]}>
                 {truePRs.map((pr, i) => <PRRow key={`pr-${i}`} pr={pr} />)}
               </SectionCard>
             )}
@@ -706,9 +691,9 @@ export const StatsScreen: React.FC = () => {
             <SectionCard title={t('stats.milestones')}>
               {([
                 { key: 'volume', icon: <Barbell size={18} weight="fill" color={palette.brand[400]} />, label: t('stats.weightMoved'), value: fmtVol(milestones.volume.value), next: milestones.volume.next ? fmtVol(milestones.volume.next) : null },
-                { key: 'sessions', icon: <Fire size={18} weight="fill" color="#ef4444" />, label: t('stats.sessions'), value: fmtNum(milestones.sessions.value), next: milestones.sessions.next ? fmtNum(milestones.sessions.next) : null },
-                { key: 'reps', icon: <Lightning size={18} weight="fill" color="#eab308" />, label: t('stats.totalReps'), value: fmtNum(milestones.reps.value), next: milestones.reps.next ? fmtNum(milestones.reps.next) : null },
-                { key: 'prs', icon: <Trophy size={18} weight="fill" color="#eab308" />, label: t('stats.totalPRs'), value: fmtNum(milestones.prs.value), next: milestones.prs.next ? fmtNum(milestones.prs.next) : null },
+                { key: 'sessions', icon: <Fire size={18} weight="fill" color={palette.error[500]} />, label: t('stats.sessions'), value: fmtNum(milestones.sessions.value), next: milestones.sessions.next ? fmtNum(milestones.sessions.next) : null },
+                { key: 'reps', icon: <Lightning size={18} weight="fill" color={palette.yellow[500]} />, label: t('stats.totalReps'), value: fmtNum(milestones.reps.value), next: milestones.reps.next ? fmtNum(milestones.reps.next) : null },
+                { key: 'prs', icon: <Trophy size={18} weight="fill" color={palette.yellow[500]} />, label: t('stats.totalPRs'), value: fmtNum(milestones.prs.value), next: milestones.prs.next ? fmtNum(milestones.prs.next) : null },
               ]).map(m => (
                 <View key={m.key} style={styles.mileRow}>
                   <View style={styles.mileIcon}>{m.icon}</View>
@@ -727,12 +712,12 @@ export const StatsScreen: React.FC = () => {
         {activeTab === 'body' && (
           <>
             {muscleLandmarks.length > 0 && (
-              <SectionCard title={t('stats.weeklySetsLandmarks')} accentColor="#22c55e" subtitle={t('stats.landmarksSub')}>
+              <SectionCard title={t('stats.weeklySetsLandmarks')} accentColor={palette.success[500]} subtitle={t('stats.landmarksSub')}>
                 {muscleLandmarks.map(lm => <LandmarkRow key={lm.name} lm={lm} />)}
               </SectionCard>
             )}
 
-            <SectionCard title={t('stats.muscleDistribution')} accentColor="#3b82f6">
+            <SectionCard title={t('stats.muscleDistribution')} accentColor={palette.info[500]}>
               {muscleGroups.map(group => <MuscleGroupBar key={group.name} {...group} />)}
             </SectionCard>
 
@@ -758,29 +743,29 @@ export const StatsScreen: React.FC = () => {
             </SectionCard>
 
             {bodyComposition.series.length >= 2 && (
-              <SectionCard title={t('stats.bodyComposition')} accentColor="#06b6d4">
+              <SectionCard title={t('stats.bodyComposition')} accentColor={palette.cyan[500]}>
                 {bodyComposition.latest?.bodyFatPercentage != null && (
                   <View style={styles.bcBlock}>
                     <View style={styles.bcHeader}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Scales size={16} weight="regular" color="#06b6d4" />
+                        <Scales size={16} weight="regular" color={palette.cyan[500]} />
                         <Text style={styles.bcLabel}>{t('stats.bodyFat')}</Text>
                       </View>
                       <Text style={styles.bcVal}>{bodyComposition.latest.bodyFatPercentage}%</Text>
                     </View>
-                    <BodyCompMiniChart series={bodyComposition.series} pick={p => p.bodyFatPercentage} color="#06b6d4" />
+                    <BodyCompMiniChart series={bodyComposition.series} pick={p => p.bodyFatPercentage} color={palette.cyan[500]} />
                   </View>
                 )}
                 {bodyComposition.latest?.muscleMassKg != null && (
                   <View style={styles.bcBlock}>
                     <View style={styles.bcHeader}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Barbell size={16} weight="regular" color="#22c55e" />
+                        <Barbell size={16} weight="regular" color={palette.success[500]} />
                         <Text style={styles.bcLabel}>{t('stats.muscleMass')}</Text>
                       </View>
                       <Text style={styles.bcVal}>{bodyComposition.latest.muscleMassKg}kg</Text>
                     </View>
-                    <BodyCompMiniChart series={bodyComposition.series} pick={p => p.muscleMassKg} color="#22c55e" />
+                    <BodyCompMiniChart series={bodyComposition.series} pick={p => p.muscleMassKg} color={palette.success[500]} />
                   </View>
                 )}
               </SectionCard>
@@ -794,7 +779,7 @@ export const StatsScreen: React.FC = () => {
                     <Text style={styles.bwLabel}>{t('stats.firstLogged')}</Text>
                     <Text style={styles.bwDate}>{fmtDate(bodyweight[0].date)}</Text>
                   </View>
-                  <Text style={[styles.bwArrow, { color: bodyweight[bodyweight.length - 1].weight <= bodyweight[0].weight ? '#22c55e' : '#f59e0b' }]}>→</Text>
+                  <Text style={[styles.bwArrow, { color: bodyweight[bodyweight.length - 1].weight <= bodyweight[0].weight ? palette.success[500] : palette.warning[500] }]}>→</Text>
                   <View style={styles.bwStat}>
                     <Text style={styles.bwVal}>{bodyweight[bodyweight.length - 1].weight}kg</Text>
                     <Text style={styles.bwLabel}>{t('stats.latest')}</Text>
@@ -818,7 +803,7 @@ export const StatsScreen: React.FC = () => {
         {/* ══════════════════════ WELLBEING TAB ════════════════════════════ */}
         {activeTab === 'wellbeing' && (
           <>
-            <SectionCard title={t('stats.consistency')} accentColor="#22c55e" subtitle={t('stats.lastYear')}>
+            <SectionCard title={t('stats.consistency')} accentColor={palette.success[500]} subtitle={t('stats.lastYear')}>
               <Heatmap data={consistency.heatmap} />
               <View style={styles.consSummary}>
                 <View style={styles.consItem}>
@@ -840,7 +825,7 @@ export const StatsScreen: React.FC = () => {
               <DayOfWeekBars counts={consistency.dayOfWeekCounts} />
             </SectionCard>
 
-            <SectionCard title={t('stats.readinessRecovery')} accentColor="#22c55e">
+            <SectionCard title={t('stats.readinessRecovery')} accentColor={palette.success[500]}>
               <View style={styles.wellRow}>
                 <View style={styles.wellItem}>
                   <Text style={styles.wellVal}>
@@ -858,7 +843,7 @@ export const StatsScreen: React.FC = () => {
                   </Text>
                   <Text style={styles.wellLabel}>{t('stats.avgSleep')}</Text>
                   {wellbeing.avgSleepHours != null && (
-                    <Text style={{ fontSize: 11, color: wellbeing.avgSleepHours >= 7 ? '#22c55e' : '#f59e0b', marginTop: 4 }}>
+                    <Text style={{ fontSize: 11, color: wellbeing.avgSleepHours >= 7 ? palette.success[500] : palette.warning[500], marginTop: 4 }}>
                       {wellbeing.avgSleepHours >= 8 ? t('stats.optimal') : wellbeing.avgSleepHours >= 7 ? t('stats.good') : wellbeing.avgSleepHours >= 6 ? t('stats.fair') : t('stats.low')}
                     </Text>
                   )}
@@ -867,10 +852,10 @@ export const StatsScreen: React.FC = () => {
             </SectionCard>
 
             {cardio.totalSessions > 0 && (
-              <SectionCard title={t('stats.cardio')} accentColor="#ef4444">
+              <SectionCard title={t('stats.cardio')} accentColor={palette.error[500]}>
                 <View style={styles.cardioGrid}>
                   <View style={styles.cardioItem}>
-                    <Heart size={18} weight="fill" color="#ef4444" />
+                    <Heart size={18} weight="fill" color={palette.error[500]} />
                     <Text style={styles.cardioVal}>{cardio.totalSessions}</Text>
                     <Text style={styles.cardioLabel}>{t('stats.sessions')}</Text>
                   </View>
@@ -880,12 +865,12 @@ export const StatsScreen: React.FC = () => {
                     <Text style={styles.cardioLabel}>{t('stats.duration')}</Text>
                   </View>
                   <View style={styles.cardioItem}>
-                    <Pulse size={18} weight="regular" color="#f59e0b" />
+                    <Pulse size={18} weight="regular" color={palette.warning[500]} />
                     <Text style={styles.cardioVal}>{cardio.totalDistanceKm}km</Text>
                     <Text style={styles.cardioLabel}>{t('stats.distance')}</Text>
                   </View>
                   <View style={styles.cardioItem}>
-                    <Fire size={18} weight="fill" color="#f97316" />
+                    <Fire size={18} weight="fill" color={palette.brand[500]} />
                     <Text style={styles.cardioVal}>{fmtNum(cardio.totalCalories)}</Text>
                     <Text style={styles.cardioLabel}>{t('stats.calories')}</Text>
                   </View>
@@ -969,9 +954,9 @@ const styles = StyleSheet.create({
   tab: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: palette.brand[600] },
   tabText: { fontSize: 11, fontWeight: '600', color: palette.gray[400] },
-  tabTextActive: { color: '#fff' },
+  tabTextActive: { color: palette.white },
 
-  card: { backgroundColor: palette.gray[800], borderRadius: 20, padding: 18, marginBottom: 14 },
+  cardSpacing: { marginBottom: 14 },
   sectionTitle: { fontSize: 11, fontWeight: '700', color: palette.gray[400], letterSpacing: 1, marginBottom: 16 },
   sectionSubtitle: { fontSize: 11, color: palette.gray[500], marginTop: -10, marginBottom: 14 },
 
@@ -1022,7 +1007,7 @@ const styles = StyleSheet.create({
   ssBarFill: { height: 8, borderRadius: 4 },
   ssTotals: { flexDirection: 'row', marginTop: 6, paddingTop: 14, borderTopWidth: 1, borderTopColor: palette.gray[700] },
   ssTotalItem: { flex: 1, alignItems: 'center' },
-  ssTotalVal: { fontSize: 18, fontWeight: '800', color: '#eab308' },
+  ssTotalVal: { fontSize: 18, fontWeight: '800', color: palette.yellow[500] },
   ssTotalLabel: { fontSize: 10, color: palette.gray[400], marginTop: 2, textAlign: 'center' },
 
   intHeader: { flexDirection: 'row', marginBottom: 14 },
@@ -1093,7 +1078,7 @@ const styles = StyleSheet.create({
   lmRow: { marginBottom: 18 },
   lmStatus: { fontSize: 11, fontWeight: '700' },
   lmTrack: { height: 10, backgroundColor: palette.gray[700], borderRadius: 5, marginTop: 4, justifyContent: 'center' },
-  lmZone: { position: 'absolute', height: 10, backgroundColor: '#22c55e44', borderRadius: 5 },
+  lmZone: { position: 'absolute', height: 10, backgroundColor: alpha(palette.success[500], 0.267), borderRadius: 5 },
   lmMarker: { position: 'absolute', width: 4, height: 16, borderRadius: 2, marginLeft: -2 },
   lmScale: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
   lmScaleText: { fontSize: 9, color: palette.gray[600] },

@@ -19,13 +19,14 @@ import { LANGUAGE_LOCALES, safeLocaleDateString } from '../../i18n';
 import { useExerciseName } from '../../hooks/useExerciseName';
 import { useSettingsStore } from '../../stores/settings.store';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { sessionService } from '../../services/session.service';
 import { aiCoachService } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Moon, Minus, ThumbsUp, Fire, Lightning } from 'phosphor-react-native';
 
+import { Card } from '../../components/ui';
 // Tracks which generated workout a readiness check was already submitted for.
 // Keyed per-user; value pins the plan's `generatedAt` so the readiness step is
 // skipped until a NEW workout is generated (e.g. after completing a session).
@@ -71,11 +72,11 @@ function parsePlanExercises(plan: string): PlannedExercise[] {
 
 const MOOD_VALUES = ['tired', 'neutral', 'good', 'great', 'elite'] as const;
 const MOOD_ICONS: Record<string, React.ReactElement> = {
-  tired:   <Moon size={24} weight="fill" color="#6b7280" />,
-  neutral: <Minus size={24} weight="bold" color="#9ca3af" />,
-  good:    <ThumbsUp size={24} weight="fill" color="#f97316" />,
-  great:   <Fire size={24} weight="fill" color="#ef4444" />,
-  elite:   <Lightning size={24} weight="fill" color="#eab308" />,
+  tired:   <Moon size={24} weight="fill" color={palette.coolGray[500]} />,
+  neutral: <Minus size={24} weight="bold" color={palette.coolGray[400]} />,
+  good:    <ThumbsUp size={24} weight="fill" color={palette.brand[500]} />,
+  great:   <Fire size={24} weight="fill" color={palette.error[500]} />,
+  elite:   <Lightning size={24} weight="fill" color={palette.yellow[500]} />,
 };
 
 export const StartSessionScreen: React.FC = () => {
@@ -369,7 +370,7 @@ export const StartSessionScreen: React.FC = () => {
         {step === 1 ? (
           <>
             {/* Mood */}
-            <View style={styles.card}>
+            <Card background={palette.gray[800]} bordered={false} padding={20} style={styles.cardSpacing}>
               <Text style={styles.cardLabel}>{t('session.howAreYouFeeling')}</Text>
               <View style={styles.moodRow}>
                 {MOODS.map((m) => (
@@ -383,10 +384,10 @@ export const StartSessionScreen: React.FC = () => {
                   </TouchableOpacity>
                 ))}
               </View>
-            </View>
+            </Card>
 
             {/* Energy Level */}
-            <View style={styles.card}>
+            <Card background={palette.gray[800]} bordered={false} padding={20} style={styles.cardSpacing}>
               <Text style={styles.cardLabel}>{t('session.energyLevel')}</Text>
               <Text style={styles.energyValue}>{ENERGY_LABELS[energyLevel]}</Text>
               <View style={styles.energyDots}>
@@ -396,7 +397,7 @@ export const StartSessionScreen: React.FC = () => {
                   </TouchableOpacity>
                 ))}
               </View>
-            </View>
+            </Card>
 
             {/* Stats Row */}
             <View style={styles.statsRow}>
@@ -439,7 +440,7 @@ export const StartSessionScreen: React.FC = () => {
               disabled={planLoading}
             >
               {planLoading
-                ? <ActivityIndicator color="#fff" />
+                ? <ActivityIndicator color={palette.white} />
                 : <Text style={styles.startBtnText}>{t('session.seeWorkout')}</Text>
               }
             </TouchableOpacity>
@@ -467,15 +468,15 @@ export const StartSessionScreen: React.FC = () => {
                 ) : null}
               </View>
             ) : route.params?.freeSession ? (
-              <View style={styles.card}>
+              <Card background={palette.gray[800]} bordered={false} padding={20} style={styles.cardSpacing}>
                 <Text style={styles.cardLabel}>{t('session.freeSession')}</Text>
                 <Text style={styles.noplanText}>{t('session.noPlansLoaded')}</Text>
-              </View>
+              </Card>
             ) : (
-              <View style={styles.card}>
+              <Card background={palette.gray[800]} bordered={false} padding={20} style={styles.cardSpacing}>
                 <Text style={styles.cardLabel}>{t('session.planNotLoaded')}</Text>
                 <Text style={styles.noplanText}>{t('session.planNotLoadedSub')}</Text>
-              </View>
+              </Card>
             )}
 
             {/* Start Button */}
@@ -485,7 +486,7 @@ export const StartSessionScreen: React.FC = () => {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={palette.white} />
               ) : (
                 <Text style={styles.startBtnText}>{t('session.startSession')}</Text>
               )}
@@ -570,12 +571,7 @@ const styles = StyleSheet.create({
   },
   cycleBadgeText: { fontSize: 12, fontWeight: '700', color: palette.brand[400] },
 
-  card: {
-    backgroundColor: palette.gray[800],
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-  },
+  cardSpacing: { marginBottom: 16 },
   cardLabel: { fontSize: 11, fontWeight: '700', color: palette.gray[400], letterSpacing: 1, marginBottom: 16 },
 
   moodRow: { flexDirection: 'row', justifyContent: 'space-between' },
@@ -621,9 +617,9 @@ const styles = StyleSheet.create({
     flex: 1, padding: 0,
   },
   statUnit: { fontSize: 14, color: palette.gray[400], fontWeight: '600' },
-  statCardError: { borderWidth: 1, borderColor: '#ef4444' },
-  required: { color: '#ef4444', fontSize: 11 },
-  errorText: { fontSize: 10, color: '#ef4444', marginTop: 6 },
+  statCardError: { borderWidth: 1, borderColor: palette.error[500] },
+  required: { color: palette.error[500], fontSize: 11 },
+  errorText: { fontSize: 10, color: palette.error[500], marginTop: 6 },
 
   startBtn: {
     backgroundColor: palette.brand[600],
@@ -633,10 +629,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   startBtnDisabled: { opacity: 0.6 },
-  startBtnText: { fontSize: 17, fontWeight: '700', color: '#fff' },
+  startBtnText: { fontSize: 17, fontWeight: '700', color: palette.white },
 
   // ── Readiness / fatigue gate modal ──
-  gateOverlay: { flex: 1, backgroundColor: '#000000B3', justifyContent: 'center', padding: 24 },
+  gateOverlay: { flex: 1, backgroundColor: alpha(palette.black, 0.702), justifyContent: 'center', padding: 24 },
   gateCard: { backgroundColor: palette.gray[800], borderRadius: 20, padding: 24 },
   gateIcon: {
     alignSelf: 'center', width: 56, height: 56, borderRadius: 28,
@@ -650,7 +646,7 @@ const styles = StyleSheet.create({
   gateReasonText: { flex: 1, fontSize: 14, color: theme.colors.text, lineHeight: 20 },
   gateQuestion: { fontSize: 14, fontWeight: '700', color: theme.colors.text, textAlign: 'center', marginBottom: 16 },
   gateAcceptBtn: { backgroundColor: palette.brand[600], borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginBottom: 10 },
-  gateAcceptText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  gateAcceptText: { fontSize: 15, fontWeight: '700', color: palette.white },
   gateDismissBtn: { backgroundColor: 'transparent', borderRadius: 14, paddingVertical: 13, alignItems: 'center', borderWidth: 1, borderColor: palette.gray[600] },
   gateDismissText: { fontSize: 15, fontWeight: '600', color: palette.gray[300] },
 

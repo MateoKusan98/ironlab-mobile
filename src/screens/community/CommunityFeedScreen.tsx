@@ -31,6 +31,7 @@ import {
   MagnifyingGlass,
 } from 'phosphor-react-native';
 
+import { Card } from '../../components/ui';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const formatRelativeTime = (dateStr: string) => {
@@ -52,7 +53,7 @@ const AvatarThumb = ({ name, avatar, size = 40 }: { name: string; avatar: string
   }
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: palette.brand[600], alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ color: '#fff', fontWeight: '700', fontSize: size * 0.38 }}>{initials}</Text>
+      <Text style={{ color: palette.white, fontWeight: '700', fontSize: size * 0.38 }}>{initials}</Text>
     </View>
   );
 };
@@ -156,7 +157,7 @@ const PostCard = ({
   };
 
   return (
-    <View style={styles.card}>
+    <Card radius={14} padding={14} style={styles.cardSpacing}>
       <View style={styles.cardHeader}>
         <TouchableOpacity onPress={() => onUserPress(post.user.id, post.user.name)}>
           <AvatarThumb name={post.user.name} avatar={post.user.avatar} size={38} />
@@ -217,7 +218,7 @@ const PostCard = ({
           )}
         </TouchableOpacity>
       </View>
-    </View>
+    </Card>
   );
 };
 
@@ -365,7 +366,7 @@ export const CommunityFeedScreen: React.FC = () => {
               style={styles.emptyBtn}
               onPress={() => navigation.navigate('CreatePost')}
             >
-              <PencilSimple size={18} color="#fff" weight="bold" />
+              <PencilSimple size={18} color={palette.white} weight="bold" />
               <Text style={styles.emptyBtnText}>{t('community.createPost')}</Text>
             </TouchableOpacity>
           </View>
@@ -400,15 +401,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  card: {
-    backgroundColor: theme.colors.card,
-    marginHorizontal: 12,
-    marginTop: 10,
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
+  cardSpacing: { marginHorizontal: 12, marginTop: 10 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   headerMeta: { flex: 1, marginLeft: 10 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -461,7 +454,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: `${palette.brand[900] ?? '#1A1A00'}66`,
+    backgroundColor: `${palette.brand[900]}66`,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -490,5 +483,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
   },
-  emptyBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  emptyBtnText: { color: palette.white, fontWeight: '600', fontSize: 15 },
 });

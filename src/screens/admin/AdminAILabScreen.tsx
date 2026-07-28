@@ -89,7 +89,7 @@ function Btn({
       disabled={loading}
     >
       {loading
-        ? <ActivityIndicator size="small" color="#fff" />
+        ? <ActivityIndicator size="small" color={palette.white} />
         : <Text style={[styles.btnText, outline && { color: bg }]}>{label}</Text>}
     </TouchableOpacity>
   );
@@ -387,7 +387,7 @@ function ProfileEditModal({
                         value={!!form[f.key]}
                         onValueChange={(v) => set(f.key, v)}
                         trackColor={{ false: palette.gray[700], true: palette.brand[600] }}
-                        thumbColor="#fff"
+                        thumbColor={palette.white}
                       />
                     )}
                     {f.type === 'enum' && (
@@ -1066,7 +1066,7 @@ const styles = StyleSheet.create({
   btnRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
   btn:    { flex: 1, paddingVertical: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center', minHeight: 42 },
   btnSmall: { paddingVertical: 7, minHeight: 34 },
-  btnText:  { fontSize: 13, fontWeight: '700', color: '#fff' },
+  btnText:  { fontSize: 13, fontWeight: '700', color: palette.white },
 
   ermGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   ermField: { width: '47%' },

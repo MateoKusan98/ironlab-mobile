@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ideasService, IdeaSubmission } from '../../services/ideas.service';
 import { theme, palette } from '../../theme';
 
+import { Card } from '../../components/ui';
 type FilterStatus = 'PENDING' | 'THANKED' | 'REJECTED' | 'ALL';
 
 function fmtDate(iso: string) {
@@ -116,7 +117,7 @@ export const AdminIdeasScreen: React.FC = () => {
     const statusColor = STATUS_COLORS[item.status] ?? palette.gray[400];
 
     return (
-      <View style={styles.card}>
+      <Card radius={12} padding={14} background={palette.gray[900]} borderColor={palette.gray[800]} style={styles.cardSpacing}>
         <View style={styles.cardHeader}>
           <View style={styles.cardUser}>
             <Text style={styles.userName}>{item.user?.name ?? 'Unknown'}</Text>
@@ -150,14 +151,14 @@ export const AdminIdeasScreen: React.FC = () => {
               disabled={isProcessing}
             >
               {isProcessing ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={palette.white} />
               ) : (
                 <Text style={styles.thanksBtnText}>Thanks 👍</Text>
               )}
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </Card>
     );
   };
 
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 16, paddingBottom: 40 },
   empty: { textAlign: 'center', color: palette.gray[500], marginTop: 60 },
 
-  card: { backgroundColor: palette.gray[900], borderRadius: 12, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: palette.gray[800] },
+  cardSpacing: { marginBottom: 12 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
   cardUser: { flex: 1, marginRight: 10 },
   userName: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
@@ -249,6 +250,6 @@ const styles = StyleSheet.create({
     backgroundColor: palette.brand[600],
     alignItems: 'center',
   },
-  thanksBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  thanksBtnText: { fontSize: 13, fontWeight: '700', color: palette.white },
   btnDisabled: { opacity: 0.45 },
 });

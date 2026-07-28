@@ -15,7 +15,7 @@ import { CoachStackParamList } from '../../navigation/CoachTabs';
 import { useClients } from '../../hooks/useUsers';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserResponse } from '@shared';
-import { theme } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { Users, Camera } from 'phosphor-react-native';
 
 type Nav = NativeStackNavigationProp<CoachStackParamList, 'Dashboard'>;
@@ -63,7 +63,7 @@ export const DashboardScreen: React.FC = () => {
           style={styles.formCheckBtn}
           onPress={() => navigation.navigate('FormCheckQueue')}
         >
-          <Camera size={18} weight="fill" color="#a78bfa" />
+          <Camera size={18} weight="fill" color={palette.violet[400]} />
           <Text style={styles.formCheckBtnText}>{t('coach.formCheckQueue')}</Text>
         </TouchableOpacity>
       </View>
@@ -107,15 +107,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 14,
-    backgroundColor: '#7c3aed22',
+    backgroundColor: alpha(palette.violet[600], 0.133),
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 14,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#7c3aed44',
+    borderColor: alpha(palette.violet[600], 0.267),
   },
-  formCheckBtnText: { fontSize: 13, fontWeight: '700', color: '#a78bfa' },
+  formCheckBtnText: { fontSize: 13, fontWeight: '700', color: palette.violet[400] },
   list: { paddingHorizontal: theme.spacing.md, paddingBottom: theme.spacing.xl },
   clientCard: {
     flexDirection: 'row',

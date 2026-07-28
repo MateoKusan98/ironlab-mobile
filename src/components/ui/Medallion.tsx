@@ -14,6 +14,7 @@ import Svg, {
 } from 'react-native-svg';
 import { Lock } from 'phosphor-react-native';
 
+import { theme, palette } from '../../theme';
 // ── Tier system ──────────────────────────────────────────────────────────────
 export type MedalTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'legendary';
 
@@ -31,36 +32,15 @@ interface TierPalette {
 }
 
 export const TIERS: Record<MedalTier, TierPalette> = {
-  bronze: {
-    light: '#F4C58B', mid: '#C77B3F', dark: '#7A4520', deep: '#3E2412',
-    rim: '#FBE3C6', glow: '#C77B3F', emblem: '#FFEFDD', label: 'BRONZE',
-  },
-  silver: {
-    light: '#FCFDFF', mid: '#C4CDD8', dark: '#79858F', deep: '#2B3138',
-    rim: '#FFFFFF', glow: '#C4CDD8', emblem: '#FFFFFF', label: 'SILVER',
-  },
-  gold: {
-    light: '#FFECB0', mid: '#E9B53F', dark: '#9C6E13', deep: '#5A3E08',
-    rim: '#FFF6D8', glow: '#F5C451', emblem: '#FFF7D6', label: 'GOLD',
-  },
-  platinum: {
-    light: '#F4FAFF', mid: '#C2D5E8', dark: '#7E93A8', deep: '#2C3742',
-    rim: '#FFFFFF', glow: '#9BC4FF', emblem: '#FFFFFF', label: 'PLATINUM',
-  },
-  diamond: {
-    light: '#F0FBFF', mid: '#BFE9F5', dark: '#6FA9C4', deep: '#234B5E',
-    rim: '#FFFFFF', glow: '#8EE6FF', emblem: '#FFFFFF', label: 'DIAMOND',
-  },
-  legendary: {
-    light: '#FFE0B0', mid: '#F2751C', dark: '#B23A0A', deep: '#4A1405',
-    rim: '#FFE8C4', glow: '#FF7A1E', emblem: '#FFEAC9', label: 'LEGENDARY',
-  },
+  bronze:    { ...theme.medal.bronze,    label: 'BRONZE' },
+  silver:    { ...theme.medal.silver,    label: 'SILVER' },
+  gold:      { ...theme.medal.gold,      label: 'GOLD' },
+  platinum:  { ...theme.medal.platinum,  label: 'PLATINUM' },
+  diamond:   { ...theme.medal.diamond,   label: 'DIAMOND' },
+  legendary: { ...theme.medal.legendary, label: 'LEGENDARY' },
 };
 
-const LOCKED: TierPalette = {
-  light: '#34343A', mid: '#222227', dark: '#161619', deep: '#0B0B0D',
-  rim: '#3C3C42', glow: 'transparent', emblem: '#4C4C55', label: 'LOCKED',
-};
+const LOCKED: TierPalette = { ...theme.medal.locked, label: 'LOCKED' };
 
 // 5-point star path, outer R / inner r, centred at (cx, cy)
 function starPath(cx: number, cy: number, R: number, r: number): string {
@@ -123,8 +103,8 @@ export const Medallion: React.FC<Props> = ({ tier, size = 76, locked = false }) 
           </RadialGradient>
           {/* Specular sheen */}
           <LinearGradient id={gSheen} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={locked ? 0.06 : 0.5} />
-            <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
+            <Stop offset="0" stopColor={palette.white} stopOpacity={locked ? 0.06 : 0.5} />
+            <Stop offset="1" stopColor={palette.white} stopOpacity="0" />
           </LinearGradient>
           {/* Raised star relief — light top, dark bottom */}
           <LinearGradient id={gStar} x1="0" y1="0" x2="0" y2="1">
@@ -153,13 +133,13 @@ export const Medallion: React.FC<Props> = ({ tier, size = 76, locked = false }) 
           {/* diamond facets */}
           {tier === 'diamond' && !locked && (
             <>
-              <Polygon points="50,20 68,50 50,80 32,50" fill="#FFFFFF" opacity={0.10} />
-              <Polygon points="50,20 50,80 32,50" fill="#FFFFFF" opacity={0.06} />
+              <Polygon points="50,20 68,50 50,80 32,50" fill={palette.white} opacity={0.10} />
+              <Polygon points="50,20 50,80 32,50" fill={palette.white} opacity={0.06} />
             </>
           )}
           {/* legendary iridescent wash */}
           {tier === 'legendary' && !locked && (
-            <Ellipse cx="42" cy="40" rx="30" ry="24" fill="#FF3DA6" opacity={0.10} />
+            <Ellipse cx="42" cy="40" rx="30" ry="24" fill={theme.medal.sheen} opacity={0.10} />
           )}
           <Ellipse cx="50" cy="32" rx="24" ry="13" fill={`url(#${gSheen})`} />
           <Ellipse cx="50" cy="66" rx="26" ry="14" fill={p.deep} opacity={0.32} />
@@ -175,7 +155,7 @@ export const Medallion: React.FC<Props> = ({ tier, size = 76, locked = false }) 
       {/* Lock chip for locked medals */}
       {locked && (
         <View style={[styles.lockChip, { width: size * 0.32, height: size * 0.32, borderRadius: size * 0.16, right: size * 0.02, bottom: size * 0.02 }]}>
-          <Lock size={size * 0.17} weight="bold" color="#8A8A93" />
+          <Lock size={size * 0.17} weight="bold" color={theme.medal.surface.lockIcon} />
         </View>
       )}
     </View>
@@ -185,9 +165,9 @@ export const Medallion: React.FC<Props> = ({ tier, size = 76, locked = false }) 
 const styles = StyleSheet.create({
   lockChip: {
     position: 'absolute',
-    backgroundColor: '#0C0C0E',
+    backgroundColor: theme.medal.surface.card,
     borderWidth: 1,
-    borderColor: '#2A2A30',
+    borderColor: theme.medal.surface.border,
     alignItems: 'center',
     justifyContent: 'center',
   },

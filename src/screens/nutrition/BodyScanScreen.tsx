@@ -141,7 +141,7 @@ export const BodyScanScreen: React.FC = () => {
   if (hasPermission === false) {
     return (
       <View style={styles.container}>
-        <Text style={{ color: '#FFF', textAlign: 'center' }}>{t('bodyScan.noCamera')}</Text>
+        <Text style={{ color: palette.white, textAlign: 'center' }}>{t('bodyScan.noCamera')}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={{ color: palette.brand[500] }}>{t('bodyScan.goBack')}</Text>
         </TouchableOpacity>
@@ -215,7 +215,7 @@ export const BodyScanScreen: React.FC = () => {
               disabled={isAnalyzing || countdown !== null}
             >
               {isAnalyzing ? (
-                <ActivityIndicator color="#000" />
+                <ActivityIndicator color={palette.black} />
               ) : (
                 <>
                    <Text style={styles.captureBtnText}>
@@ -244,7 +244,7 @@ export const BodyScanScreen: React.FC = () => {
                 <Text style={styles.vitalUnit}>mmHg</Text>
              </View>
              <View style={[styles.vitalCard, { right: 20 }]}>
-                <Text style={[styles.vitalIcon, { color: '#3B82F6' }]}>💙</Text>
+                <Text style={[styles.vitalIcon, { color: palette.info[500] }]}>💙</Text>
                 <Text style={styles.vitalValue}>72</Text>
                 <Text style={styles.vitalUnit}>bpm</Text>
              </View>
@@ -258,7 +258,7 @@ export const BodyScanScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
     justifyContent: 'center',
   },
   overlay: {
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   closeText: {
     fontSize: 24,
-    color: '#FFF',
+    color: palette.white,
   },
   aiLogo: {
     width: 44,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   plusIcon: {
     fontSize: 28,
-    color: '#000',
+    color: palette.black,
     fontWeight: 'bold',
   },
   titleContainer: {
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     textAlign: 'center',
     lineHeight: 30,
   },
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 40,
     height: 40,
-    borderColor: '#FFF',
+    borderColor: palette.white,
   },
   topLeft: {
     top: -2,
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
   frameHint: {
     marginTop: 20,
-    color: '#AAA',
+    color: palette.mono.aa,
     fontSize: 14,
     backgroundColor: 'rgba(0,0,0,0.5)',
     paddingHorizontal: 15,
@@ -415,10 +415,10 @@ const styles = StyleSheet.create({
   timerBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFF',
+    color: palette.white,
   },
   timerBtnTextActive: {
-    color: '#000',
+    color: palette.black,
   },
   countdownOverlay: {
     position: 'absolute',
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
   countdownText: {
     fontSize: 120,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: palette.white,
     textShadowColor: palette.brand[500],
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   galleryBtnText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFF',
+    color: palette.white,
   },
   captureBtn: {
     backgroundColor: palette.brand[500],
@@ -475,11 +475,11 @@ const styles = StyleSheet.create({
   captureBtnText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
+    color: palette.black,
   },
   captureIcon: {
     fontSize: 20,
-    color: '#000',
+    color: palette.black,
   },
   vitalsContainer: {
     position: 'absolute',
@@ -505,12 +505,12 @@ const styles = StyleSheet.create({
   },
   vitalValue: {
     fontSize: 18,
-    color: '#FFF',
+    color: palette.white,
     fontWeight: 'bold',
   },
   vitalUnit: {
     fontSize: 10,
-    color: '#AAA',
+    color: palette.mono.aa,
   },
   backBtn: {
     marginTop: 20,

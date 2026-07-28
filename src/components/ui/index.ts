@@ -1,4 +1,6 @@
 export * from './Button';
+export * from './Card';
+export * from './SectionTitle';
 export * from './Badge';
 export * from './Alert';
 export * from './Accordion';

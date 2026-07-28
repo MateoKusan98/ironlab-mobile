@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { api } from './api';
 
+import { palette } from '../theme';
 // How notifications are displayed while app is in foreground.
 // Rest-timer alerts only need the SOUND while you're in the app — suppress the
 // redundant banner/list so the screen's own countdown UI stays the focus.
@@ -30,7 +31,7 @@ async function ensureRestChannel(): Promise<string | undefined> {
     importance: Notifications.AndroidImportance.MAX,
     vibrationPattern: [0, 200, 100, 200, 100, 400],
     sound: 'default',
-    lightColor: '#6366f1',
+    lightColor: palette.indigo[500],
   });
   return REST_CHANNEL_ID;
 }
@@ -99,7 +100,7 @@ export async function registerPushToken(): Promise<void> {
         name: 'IronLab',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#6366f1',
+        lightColor: palette.indigo[500],
       });
     }
 

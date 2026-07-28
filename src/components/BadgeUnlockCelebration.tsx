@@ -10,14 +10,14 @@ import {
   Dimensions,
   Easing,
 } from 'react-native';
-import { palette } from '../theme';
+import { theme, palette } from '../theme';
 import { BADGE_CATALOG, BadgeKey } from '../services/badges.service';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
 
 const STAR_COUNT = 12;
-const STAR_COLORS = ['#FFD700', '#FFA500', '#FF6B6B', '#C084FC', '#60A5FA', '#34D399'];
+const STAR_COLORS = [...theme.celebration.confetti, palette.purple[400], palette.info[400], palette.emerald[400]];
 const STAR_DISTANCES = [90, 120, 105, 135, 95, 115, 100, 130, 110, 90, 125, 105];
 
 interface Props {
@@ -243,9 +243,11 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
   },
+  // Not a <Card>: this surface is an Animated.View driving scale/opacity on the
+  // unlock burst, and it carries a bespoke glow shadow. Kept local deliberately.
   card: {
     width: CARD_WIDTH,
-    backgroundColor: '#0f0f14',
+    backgroundColor: theme.surfaceTint.neutral,
     borderRadius: 24,
     borderWidth: 1.5,
     borderColor: palette.brand[600],
@@ -297,7 +299,7 @@ const styles = StyleSheet.create({
   badgeName: {
     fontSize: 26,
     fontWeight: '900',
-    color: '#ffffff',
+    color: palette.white,
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -309,7 +311,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   ptsBadge: {
-    backgroundColor: palette.brand[900] ?? '#1a1040',
+    backgroundColor: palette.brand[900],
     borderWidth: 1,
     borderColor: palette.brand[600],
     borderRadius: 20,
@@ -339,7 +341,7 @@ const styles = StyleSheet.create({
   btnText: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#ffffff',
+    color: palette.white,
     letterSpacing: 0.5,
   },
 });

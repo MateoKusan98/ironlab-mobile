@@ -17,10 +17,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CoachStackParamList } from '../../navigation/CoachTabs';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { formCheckService, FormCheckRequest } from '../../services/form-check.service';
 import { ArrowLeft, Video, ImageSquare, CheckCircle, Clock } from 'phosphor-react-native';
 
+import { Card } from '../../components/ui';
 type QueueItem = FormCheckRequest & { user: { id: string; name: string } };
 
 type Nav = NativeStackNavigationProp<CoachStackParamList, 'FormCheckQueue'>;
@@ -32,11 +33,11 @@ const QueueCard = ({
   item: QueueItem;
   onPress: () => void;
 }) => (
-  <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
+  <Card variant="row" radius={14} padding={14} onPress={onPress} activeOpacity={0.75}>
     <View style={styles.cardLeft}>
       <View style={[styles.typeIcon, item.mediaUrls?.[0]?.match(/\.mp4|video/) ? styles.typeVideo : styles.typeImage]}>
         {item.mediaUrls?.[0]?.match(/\.mp4|video/) ? (
-          <Video size={18} weight="fill" color="#fb923c" />
+          <Video size={18} weight="fill" color={palette.brand[400]} />
         ) : (
           <ImageSquare size={18} weight="fill" color={palette.brand[400]} />
         )}
@@ -50,12 +51,12 @@ const QueueCard = ({
     </View>
     <View style={styles.cardRight}>
       {item.status === 'reviewed' ? (
-        <CheckCircle size={20} weight="fill" color="#22c55e" />
+        <CheckCircle size={20} weight="fill" color={palette.success[500]} />
       ) : (
-        <Clock size={20} weight="fill" color="#f59e0b" />
+        <Clock size={20} weight="fill" color={palette.warning[500]} />
       )}
     </View>
-  </TouchableOpacity>
+  </Card>
 );
 
 const DetailView = ({ item, onBack }: { item: QueueItem; onBack: () => void }) => {
@@ -134,13 +135,13 @@ const DetailView = ({ item, onBack }: { item: QueueItem; onBack: () => void }) =
             onPress={submit}
             disabled={saving || !response.trim()}
           >
-            {saving ? <ActivityIndicator size="small" color="#000" /> : <Text style={styles.submitBtnText}>{t('coach.sendFeedback')}</Text>}
+            {saving ? <ActivityIndicator size="small" color={palette.black} /> : <Text style={styles.submitBtnText}>{t('coach.sendFeedback')}</Text>}
           </TouchableOpacity>
         )}
 
         {item.status === 'reviewed' && (
           <View style={styles.reviewedBadge}>
-            <CheckCircle size={16} weight="fill" color="#22c55e" />
+            <CheckCircle size={16} weight="fill" color={palette.success[500]} />
             <Text style={styles.reviewedText}>{t('coach.feedbackAlreadySent')}</Text>
           </View>
         )}
@@ -223,15 +224,11 @@ const styles = StyleSheet.create({
 
   list: { padding: 16, gap: 10 },
 
-  card: {
-    flexDirection: 'row', backgroundColor: theme.colors.card, borderRadius: 14,
-    padding: 14, alignItems: 'center', gap: 12,
-    borderWidth: 1, borderColor: theme.colors.border,
-  },
+
   cardLeft: {},
   typeIcon: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  typeVideo: { backgroundColor: '#431407' },
-  typeImage: { backgroundColor: palette.brand[900] ?? '#1A1A00' },
+  typeVideo: { backgroundColor: palette.brand[950] },
+  typeImage: { backgroundColor: palette.brand[900] },
   cardBody: { flex: 1, gap: 2 },
   cardName: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
   cardExercise: { fontSize: 13, color: theme.colors.textSecondary },
@@ -276,10 +273,10 @@ const styles = StyleSheet.create({
     paddingVertical: 15, alignItems: 'center',
   },
   submitBtnDisabled: { opacity: 0.45 },
-  submitBtnText: { fontSize: 15, fontWeight: '700', color: '#000' },
+  submitBtnText: { fontSize: 15, fontWeight: '700', color: palette.black },
   reviewedBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#14532d22', borderRadius: 10, padding: 12,
+    backgroundColor: alpha(palette.success[900], 0.133), borderRadius: 10, padding: 12,
   },
-  reviewedText: { fontSize: 13, fontWeight: '600', color: '#22c55e' },
+  reviewedText: { fontSize: 13, fontWeight: '600', color: palette.success[500] },
 });

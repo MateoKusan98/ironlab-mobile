@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { palette } from '../../../theme';
+import { theme, palette } from '../../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
@@ -126,7 +126,7 @@ export const ProgramCreatorStartScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -135,19 +135,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backIcon: { color: '#FFF', fontSize: 24 },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  backIcon: { color: palette.white, fontSize: 24 },
+  headerTitle: { color: palette.white, fontSize: 18, fontWeight: 'bold' },
   content: { paddingHorizontal: 20, paddingBottom: 100 },
-  screenTitle: { color: '#FFF', fontSize: 32, fontWeight: 'bold', marginBottom: 8 },
+  screenTitle: { color: palette.white, fontSize: 32, fontWeight: 'bold', marginBottom: 8 },
   screenSubtitle: { color: palette.gray[400], fontSize: 14, marginBottom: 32 },
   inputGroup: { marginBottom: 24 },
   label: { color: palette.gray[300], fontSize: 14, fontWeight: '600', marginBottom: 8 },
   input: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     borderRadius: 12,
-    color: '#FFF',
+    color: palette.white,
     fontSize: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -155,9 +155,9 @@ const styles = StyleSheet.create({
   textArea: { height: 100, textAlignVertical: 'top' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   chip: {
-    backgroundColor: '#18181B',
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
-    borderColor: '#27272A',
+    borderColor: theme.colors.cardElevated,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -173,10 +173,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#09090B',
+    backgroundColor: theme.colors.background,
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#27272A',
+    borderTopColor: theme.colors.cardElevated,
   },
   nextBtn: {
     backgroundColor: palette.brand[500],
@@ -184,5 +184,5 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
   },
-  nextBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
+  nextBtnText: { color: palette.black, fontSize: 16, fontWeight: 'bold' },
 });

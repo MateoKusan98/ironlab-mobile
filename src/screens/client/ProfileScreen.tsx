@@ -302,7 +302,7 @@ export const ProfileScreen: React.FC = () => {
             </View>
             <View style={styles.avatarEditBadge}>
               {uploadingAvatar ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={palette.white} />
               ) : (
                 <Text style={styles.avatarEditIcon}>📷</Text>
               )}
@@ -590,7 +590,7 @@ export const ProfileScreen: React.FC = () => {
             style={styles.menuItem}
             onPress={() => navigation.navigate('FormCheck')}
           >
-            <Camera size={20} weight="fill" color="#a78bfa" />
+            <Camera size={20} weight="fill" color={palette.violet[400]} />
             <View style={styles.exportTextWrap}>
               <Text style={styles.menuText}>Assess Form</Text>
               <Text style={styles.exportSub}>AI instant analysis or IronLab coach review</Text>
@@ -610,7 +610,7 @@ export const ProfileScreen: React.FC = () => {
             style={styles.menuItem}
             onPress={() => navigation.navigate('Quiz')}
           >
-            <Brain size={20} weight="fill" color="#22d3ee" />
+            <Brain size={20} weight="fill" color={palette.cyan[400]} />
             <View style={styles.exportTextWrap}>
               <Text style={styles.menuText}>Fitness Quiz</Text>
               <Text style={styles.exportSub}>Test your knowledge — 100+ questions & answers</Text>
@@ -620,7 +620,7 @@ export const ProfileScreen: React.FC = () => {
             style={styles.menuItem}
             onPress={() => navigation.navigate('Messages')}
           >
-            <ChatCircleDots size={20} weight="fill" color="#34d399" />
+            <ChatCircleDots size={20} weight="fill" color={palette.emerald[400]} />
             <View style={styles.exportTextWrap}>
               <Text style={styles.menuText}>Messages</Text>
               <Text style={styles.exportSub}>Your direct conversations</Text>
@@ -728,7 +728,7 @@ export const ProfileScreen: React.FC = () => {
               disabled={cancellingDeletion}
             >
               {cancellingDeletion ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={palette.white} />
               ) : (
                 <Text style={styles.cancelDeletionBtnText}>Cancel Deletion</Text>
               )}
@@ -778,7 +778,7 @@ export const ProfileScreen: React.FC = () => {
                 disabled={!deletePassword.trim() || deletingAccount}
               >
                 {deletingAccount ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={palette.white} />
                 ) : (
                   <Text style={styles.modalConfirmText}>Delete</Text>
                 )}
@@ -922,7 +922,7 @@ const styles = StyleSheet.create({
   sessionStepValue: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#fff',
+    color: palette.white,
     minWidth: 28,
     textAlign: 'center',
   },
@@ -951,7 +951,7 @@ const styles = StyleSheet.create({
     borderColor: palette.brand[500],
   },
   dayBtnText: { fontSize: 13, fontWeight: '700', color: palette.gray[400] },
-  dayBtnTextActive: { color: '#fff' },
+  dayBtnTextActive: { color: palette.white },
 
   saveBtn: {
     backgroundColor: palette.brand[600],
@@ -960,7 +960,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  saveBtnText: { fontSize: 14, fontWeight: '700', color: palette.white },
 
   menu: {
     backgroundColor: theme.colors.card,
@@ -1040,7 +1040,7 @@ const styles = StyleSheet.create({
   },
   langFlag: { fontSize: 16 },
   langLabel: { fontSize: 13, fontWeight: '600', color: palette.gray[300] },
-  langLabelActive: { color: '#fff' },
+  langLabelActive: { color: palette.white },
 
   adminButton: {
     flexDirection: 'row',
@@ -1103,7 +1103,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
   },
-  cancelDeletionBtnText: { fontSize: theme.fontSize.sm, fontWeight: theme.fontWeight.bold, color: '#fff' },
+  cancelDeletionBtnText: { fontSize: theme.fontSize.sm, fontWeight: theme.fontWeight.bold, color: palette.white },
 
   modalOverlay: {
     flex: 1,
@@ -1163,5 +1163,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalConfirmDisabled: { opacity: 0.45 },
-  modalConfirmText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  modalConfirmText: { fontSize: 14, fontWeight: '700', color: palette.white },
 });

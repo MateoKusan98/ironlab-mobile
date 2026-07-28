@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     ...theme.shadow.sm,
   },
   label: {

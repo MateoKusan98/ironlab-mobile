@@ -16,7 +16,7 @@ import { useExerciseName } from '../../hooks/useExerciseName';
 import { useSettingsStore } from '../../stores/settings.store';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { sessionService, WorkoutSession } from '../../services/session.service';
 import { aiCoachService } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
@@ -406,9 +406,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dayDotPR: { backgroundColor: '#92400e' },
+  dayDotPR: { backgroundColor: palette.warning[800] },
   dayDotPRText: { fontSize: 14 },
-  dayDotCount: { fontSize: 11, fontWeight: '800', color: '#fff' },
+  dayDotCount: { fontSize: 11, fontWeight: '800', color: palette.white },
   dayDotPlanned: {
     width: 28,
     height: 28,
@@ -453,8 +453,8 @@ const styles = StyleSheet.create({
     borderColor: palette.gray[700],
   },
   sessionCardPR: {
-    borderColor: '#92400e',
-    backgroundColor: '#78350f18',
+    borderColor: palette.warning[800],
+    backgroundColor: alpha(palette.warning[900], 0.094),
   },
   cardioCard: {
     borderColor: palette.brand[800],
@@ -481,12 +481,12 @@ const styles = StyleSheet.create({
   cardDuration: { fontSize: 12, color: palette.gray[400], marginTop: 2 },
 
   prBadge: {
-    backgroundColor: '#92400e',
+    backgroundColor: palette.warning[800],
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  prBadgeText: { fontSize: 12, fontWeight: '700', color: '#fcd34d' },
+  prBadgeText: { fontSize: 12, fontWeight: '700', color: palette.warning[300] },
 
   cardStats: {
     flexDirection: 'row',
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   },
   prSetText: {
     fontSize: 12,
-    color: '#fcd34d',
+    color: palette.warning[300],
     fontWeight: '600',
   },
 

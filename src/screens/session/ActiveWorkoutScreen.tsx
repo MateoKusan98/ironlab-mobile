@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   Vibration,
   ActivityIndicator,
   Linking,
-  AppState,
 } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,15 +19,18 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { sessionService } from '../../services/session.service';
-import { exerciseCueService, exerciseCueKey, ExerciseCue } from '../../services/exerciseCue.service';
-import { scheduleRestTimerAlert, cancelRestTimerAlert } from '../../services/pushNotification.service';
+import { exerciseCueKey, ExerciseCue } from '../../services/exerciseCue.service';
 import { useSettingsStore } from '../../stores/settings.store';
 import { classifyExercise } from '../../utils/exerciseType';
 import { useExerciseName } from '../../hooks/useExerciseName';
+import { useWorkoutTimer } from '../../hooks/useWorkoutTimer';
+import { useRestTimer } from '../../hooks/useRestTimer';
+import { useExerciseCues } from '../../hooks/useExerciseCues';
 import { Barbell, Trophy } from 'phosphor-react-native';
 
+import { Card } from '../../components/ui';
 type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
 
 interface Exercise {
@@ -234,217 +236,39 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [substituteIdx, setSubstituteIdx] = useState<number | null>(null);
   const [substituteSearch, setSubstituteSearch] = useState('');
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [restSecs, setRestSecs] = useState<number | null>(null);
   const [rpeGuideVisible, setRpeGuideVisible] = useState(false);
   const rpeGuideSeen = useRef(false);
 
-  // Personal exercise cues the athlete has saved for future sessions, keyed by
-  // normalized exercise name. Kept in a map (rather than merged onto `exercises`)
-  // so adding/deleting a cue and matching it to the current exercise stay simple
-  // and never fight the set-logging state.
-  const [cuesByKey, setCuesByKey] = useState<Map<string, ExerciseCue[]>>(new Map());
-  // The reminder currently popped up (the exercise the athlete is about to do and
-  // the cues they saved for it), or null when nothing is showing.
-  const [cueReminder, setCueReminder] = useState<{ name: string; cues: ExerciseCue[] } | null>(null);
   // Which exercise (by index) has its inline "add a cue" form open.
   const [addCueFor, setAddCueFor] = useState<number | null>(null);
   const [newCueText, setNewCueText] = useState('');
-  const [savingCue, setSavingCue] = useState(false);
-  // Exercise keys we've already reminded about this session, so completing sets
-  // (or resuming the workout) doesn't pop the same reminder twice. Persisted to
-  // disk keyed by session so a resume mid-workout stays quiet.
-  const remindedRef = useRef<Set<string>>(new Set());
-  const cueRemindedKey = `cueReminded:${sessionId}`;
-  const persistReminded = useCallback(() => {
-    AsyncStorage.setItem(cueRemindedKey, JSON.stringify([...remindedRef.current])).catch(() => {});
-  }, [cueRemindedKey]);
   // Remembers which (exercise, field, value) prefill prompts we've already shown,
   // so blurring the same field repeatedly doesn't re-ask for the same value.
   const prefillAskedRef = useRef<Set<string>>(new Set());
   const compoundRestSecs = useSettingsStore((s) => s.compoundRestSecs);
   const isolationRestSecs = useSettingsStore((s) => s.isolationRestSecs);
-  // Active-time clock. The visible elapsed time is `accumulatedRef` (active
-  // seconds banked from previous running segments) plus the live seconds since
-  // `startTime` (the start of the current running segment). Pausing banks the
-  // current segment into `accumulatedRef` and freezes the display.
-  const startTime = useRef(Date.now());
-  const accumulatedRef = useRef(0);
-  // Wall-clock time of the last real activity (set logged, manual resume, or
-  // session start). Used to auto-pause after a stretch of inactivity so a
-  // forgotten/unended workout doesn't keep counting.
-  const lastActivityRef = useRef(Date.now());
-  const isPausedRef = useRef(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-  // Auto-pause once this much time passes with no completed set.
-  const IDLE_LIMIT_MS = 15 * 60 * 1000;
-  // Absolute wall-clock time (ms) the rest period ends, so the countdown stays
-  // accurate across app backgrounding (JS timers freeze in the background).
-  const restEndAtRef = useRef<number | null>(null);
-  // Id of the scheduled OS notification that beeps when rest ends.
-  const restNotifIdRef = useRef<string | null>(null);
-  // Where the running rest countdown is mirrored to disk, so it survives the
-  // screen unmounting (minimize to a tab, app backgrounded/killed). Keyed by
-  // session so a stale timer can't leak into a different workout.
-  const restPersistKey = `activeRest:${sessionId}`;
 
-  // Freeze the clock at wall-clock time `at`, banking the active portion of the
-  // current segment. Idle time after the last activity is intentionally excluded.
-  const pauseAt = useCallback((at: number) => {
-    if (isPausedRef.current) return;
-    accumulatedRef.current += Math.max(0, Math.floor((at - startTime.current) / 1000));
-    isPausedRef.current = true;
-    setIsPaused(true);
-    setElapsedSeconds(accumulatedRef.current);
-  }, []);
+  const { elapsedSeconds, isPaused, resume: resumeTimer, markActivity, syncStart } = useWorkoutTimer();
+  const { restSecs, startRest, stopRest, adjustRest } = useRestTimer(sessionId);
 
-  // Resume counting from now — starts a fresh active segment.
-  const resumeTimer = useCallback(() => {
-    if (!isPausedRef.current) return;
-    startTime.current = Date.now();
-    lastActivityRef.current = Date.now();
-    isPausedRef.current = false;
-    setIsPaused(false);
-  }, []);
-
-  // Record real activity (e.g. a logged set). Resets the idle window and resumes
-  // the clock if it had auto-paused.
-  const markActivity = useCallback(() => {
-    lastActivityRef.current = Date.now();
-    if (isPausedRef.current) resumeTimer();
-  }, [resumeTimer]);
-
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      if (isPausedRef.current) return;
-      const now = Date.now();
-      if (now - lastActivityRef.current >= IDLE_LIMIT_MS) {
-        // Auto-pause and freeze at the last activity so the idle gap isn't counted.
-        pauseAt(lastActivityRef.current);
-        return;
-      }
-      setElapsedSeconds(accumulatedRef.current + Math.floor((now - startTime.current) / 1000));
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [pauseAt]);
-
-  // Start a rest period: track the end time and schedule a background-safe
-  // notification (sound + vibration) for when it elapses.
-  const startRest = useCallback((seconds: number) => {
-    if (seconds <= 0) return;
-    const endAt = Date.now() + seconds * 1000;
-    restEndAtRef.current = endAt;
-    setRestSecs(seconds);
-    cancelRestTimerAlert(restNotifIdRef.current);
-    restNotifIdRef.current = null;
-    // Persist the absolute end time immediately, then attach the notification id
-    // once it's scheduled so a remount can still cancel it.
-    AsyncStorage.setItem(restPersistKey, JSON.stringify({ endAt })).catch(() => {});
-    scheduleRestTimerAlert(seconds).then((id) => {
-      restNotifIdRef.current = id;
-      AsyncStorage.setItem(restPersistKey, JSON.stringify({ endAt, notifId: id })).catch(() => {});
-    });
-  }, [restPersistKey]);
-
-  // Cancel the rest period entirely (skip / un-complete a set / leave workout).
-  const stopRest = useCallback(() => {
-    restEndAtRef.current = null;
-    setRestSecs(null);
-    cancelRestTimerAlert(restNotifIdRef.current);
-    restNotifIdRef.current = null;
-    AsyncStorage.removeItem(restPersistKey).catch(() => {});
-  }, [restPersistKey]);
-
-  // Add/subtract time, recomputed from the live remaining seconds.
-  const adjustRest = useCallback((delta: number) => {
-    const remaining = restEndAtRef.current
-      ? Math.max(0, Math.round((restEndAtRef.current - Date.now()) / 1000))
-      : 0;
-    const next = remaining + delta;
-    if (next <= 0) stopRest();
-    else startRest(next);
-  }, [startRest, stopRest]);
-
-  // Rest timer countdown — derives remaining seconds from the absolute end time
-  // so it self-corrects after the app returns from the background.
-  useEffect(() => {
-    if (restSecs === null) return;
-    if (restSecs <= 0) {
-      Vibration.vibrate([0, 200, 100, 200, 100, 400]);
-      // Don't cancel the notification here — let it fire so the sound plays even
-      // if the screen is in the foreground (the handler suppresses its banner).
-      restEndAtRef.current = null;
-      restNotifIdRef.current = null;
-      AsyncStorage.removeItem(restPersistKey).catch(() => {});
-      setRestSecs(null);
-      return;
-    }
-    const id = setTimeout(() => {
-      const remaining = restEndAtRef.current
-        ? Math.max(0, Math.round((restEndAtRef.current - Date.now()) / 1000))
-        : 0;
-      setRestSecs(remaining);
-    }, 1000);
-    return () => clearTimeout(id);
-  }, [restSecs, restPersistKey]);
-
-  // Re-sync the visible countdown when returning from the background.
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state !== 'active') return;
-      if (restEndAtRef.current !== null) {
-        setRestSecs(Math.max(0, Math.round((restEndAtRef.current - Date.now()) / 1000)));
-      }
-      // JS timers freeze in the background, so the idle auto-pause can't fire
-      // while away. Catch it on return: if we were idle past the limit, pause
-      // and freeze at the last activity so the gap isn't counted.
-      if (!isPausedRef.current && Date.now() - lastActivityRef.current >= IDLE_LIMIT_MS) {
-        pauseAt(lastActivityRef.current);
-      }
-    });
-    return () => sub.remove();
-  }, []);
-
-  // Restore a rest countdown that was running when the screen was last torn down
-  // (app backgrounded/killed, or minimized to another tab). The end time is
-  // absolute, so we recompute the remaining seconds and pick the countdown back
-  // up — and the OS notification keeps the beep firing meanwhile. We deliberately
-  // DON'T cancel the alert on plain unmount, so leaving the screen doesn't kill
-  // an in-progress rest; it's only cancelled on an explicit skip/finish/cancel.
-  useEffect(() => {
-    let cancelled = false;
-    AsyncStorage.getItem(restPersistKey).then((raw) => {
-      if (cancelled || !raw) return;
-      try {
-        const { endAt, notifId } = JSON.parse(raw) as { endAt: number; notifId?: string | null };
-        const remaining = Math.round((endAt - Date.now()) / 1000);
-        if (remaining > 0) {
-          restEndAtRef.current = endAt;
-          restNotifIdRef.current = notifId ?? null;
-          setRestSecs(remaining);
-        } else {
-          AsyncStorage.removeItem(restPersistKey).catch(() => {});
-        }
-      } catch {
-        AsyncStorage.removeItem(restPersistKey).catch(() => {});
-      }
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, [restPersistKey]);
+  // The exercise the athlete is about to do — the first with an incomplete set.
+  // Drives which saved cue gets reminded.
+  const currentExerciseName = exercises.find((ex) => ex.sets.some((s) => !s.isCompleted))?.name ?? null;
+  const {
+    cuesByKey,
+    cueReminder,
+    dismissReminder,
+    savingCue,
+    saveCue,
+    deleteCue,
+  } = useExerciseCues(sessionId, currentExerciseName, !resumeLoading);
 
   // Always fetch the session to restore the clock and any logged sets.
   // Falls back to plannedExercises if the session has no sets yet (e.g. resumed before logging anything).
   useEffect(() => {
     sessionService.getSession(sessionId).then((session) => {
       if (session.startedAt) {
-        const realStart = new Date(session.startedAt).getTime();
-        startTime.current = realStart;
-        accumulatedRef.current = 0;
-        // Treat the resume as activity so a just-reopened session doesn't trip
-        // the idle auto-pause immediately.
-        lastActivityRef.current = Date.now();
-        setElapsedSeconds(Math.floor((Date.now() - realStart) / 1000));
+        syncStart(new Date(session.startedAt).getTime());
       }
 
       if (session.sets?.length) {
@@ -537,92 +361,18 @@ export const ActiveWorkoutScreen: React.FC = () => {
     }).catch(() => setResumeLoading(false));
   }, [sessionId]);
 
-  // Load the athlete's saved cues (and which reminders already fired this
-  // session) so the right cue can pop up the moment its exercise comes up.
-  useEffect(() => {
-    AsyncStorage.getItem(cueRemindedKey)
-      .then((raw) => {
-        if (raw) {
-          try {
-            for (const k of JSON.parse(raw) as string[]) remindedRef.current.add(k);
-          } catch {
-            /* ignore malformed cache */
-          }
-        }
-      })
-      .catch(() => {});
-
-    exerciseCueService.getCues()
-      .then((cues) => {
-        const map = new Map<string, ExerciseCue[]>();
-        for (const c of cues) {
-          const list = map.get(c.exerciseKey) ?? [];
-          list.push(c);
-          map.set(c.exerciseKey, list);
-        }
-        setCuesByKey(map);
-      })
-      .catch(() => {});
-  }, [cueRemindedKey]);
-
-  // Pop the reminder for the exercise the athlete is about to do — the first one
-  // (in order) that still has an incomplete set. Fires immediately on load when
-  // that exercise is first, and again each time completing the prior exercise
-  // makes a new cued exercise current. remindedRef keeps it to once per session.
-  useEffect(() => {
-    if (resumeLoading) return;
-    if (cueReminder) return; // don't stack reminders
-    if (cuesByKey.size === 0) return;
-    const current = exercises.find((ex) => ex.sets.some((s) => !s.isCompleted));
-    if (!current) return;
-    const key = exerciseCueKey(current.name);
-    const cues = cuesByKey.get(key);
-    if (cues?.length && !remindedRef.current.has(key)) {
-      remindedRef.current.add(key);
-      persistReminded();
-      setCueReminder({ name: current.name, cues });
-    }
-  }, [exercises, cuesByKey, resumeLoading, cueReminder, persistReminded]);
-
   const savePersonalCue = async (exIdx: number) => {
-    const ex = exercises[exIdx];
-    const text = newCueText.trim();
-    if (!text || savingCue) return;
-    setSavingCue(true);
-    try {
-      const saved = await exerciseCueService.addCue({ exerciseName: ex.name, text });
-      setCuesByKey((prev) => {
-        const next = new Map(prev);
-        next.set(saved.exerciseKey, [saved, ...(next.get(saved.exerciseKey) ?? [])]);
-        return next;
-      });
-      // Don't turn around and remind them of a cue they just wrote this session.
-      remindedRef.current.add(saved.exerciseKey);
-      persistReminded();
-      setAddCueFor(null);
-      setNewCueText('');
-    } catch {
-      Alert.alert('Error', 'Could not save cue. Check connection.');
-    } finally {
-      setSavingCue(false);
+    const ok = await saveCue(exercises[exIdx].name, newCueText);
+    if (!ok) {
+      if (newCueText.trim()) Alert.alert('Error', 'Could not save cue. Check connection.');
+      return;
     }
+    setAddCueFor(null);
+    setNewCueText('');
   };
 
   const deletePersonalCue = async (cue: ExerciseCue) => {
-    const prev = cuesByKey;
-    setCuesByKey((p) => {
-      const next = new Map(p);
-      const list = (next.get(cue.exerciseKey) ?? []).filter((c) => c.id !== cue.id);
-      if (list.length) next.set(cue.exerciseKey, list);
-      else next.delete(cue.exerciseKey);
-      return next;
-    });
-    try {
-      await exerciseCueService.deleteCue(cue.id);
-    } catch {
-      setCuesByKey(prev); // restore on failure
-      Alert.alert('Error', 'Could not delete cue.');
-    }
+    if (!(await deleteCue(cue))) Alert.alert('Error', 'Could not delete cue.');
   };
 
   const formatTime = (secs: number) => {
@@ -1013,7 +763,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
         {/* Rest Timer Banner */}
         {restSecs !== null && (() => {
-          const restColor = restSecs > 30 ? '#22c55e' : restSecs > 10 ? '#f59e0b' : '#ef4444';
+          const restColor = restSecs > 30 ? palette.success[500] : restSecs > 10 ? palette.warning[500] : palette.error[500];
           const mm = String(Math.floor(restSecs / 60)).padStart(2, '0');
           const ss = String(restSecs % 60).padStart(2, '0');
           return (
@@ -1141,7 +891,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                                 accessibilityRole="button"
                               >
                                 {savingCue
-                                  ? <ActivityIndicator color="#fff" size="small" />
+                                  ? <ActivityIndicator color={palette.white} size="small" />
                                   : <Text style={styles.addCueSaveText}>{t('common.save', { defaultValue: 'Save' })}</Text>}
                               </TouchableOpacity>
                             </View>
@@ -1230,7 +980,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                           </TouchableOpacity>
                           {set.isSaving ? (
                             <View style={styles.logBtn}>
-                              <ActivityIndicator color="#fff" size="small" />
+                              <ActivityIndicator color={palette.white} size="small" />
                             </View>
                           ) : set.isCompleted ? (
                             <TouchableOpacity style={styles.doneCheck} onPress={() => uncompleteSet(exIdx, setIdx)}>
@@ -1466,7 +1216,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
       {/* RPE Guide Modal */}
       <Modal visible={rpeGuideVisible} transparent animationType="fade" onRequestClose={() => setRpeGuideVisible(false)}>
         <TouchableOpacity style={rpeStyles.overlay} activeOpacity={1} onPress={() => setRpeGuideVisible(false)}>
-          <TouchableOpacity activeOpacity={1} style={rpeStyles.card}>
+          <Card background={palette.gray[900]} borderColor={palette.gray[700]} padding={20} style={rpeStyles.cardBox}>
             <View style={rpeStyles.header}>
               <Text style={rpeStyles.title}>What is RPE?</Text>
               <TouchableOpacity
@@ -1506,7 +1256,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
             <TouchableOpacity style={rpeStyles.gotIt} onPress={() => setRpeGuideVisible(false)}>
               <Text style={rpeStyles.gotItText}>Got it</Text>
             </TouchableOpacity>
-          </TouchableOpacity>
+          </Card>
         </TouchableOpacity>
       </Modal>
 
@@ -1516,16 +1266,16 @@ export const ActiveWorkoutScreen: React.FC = () => {
         visible={cueReminder !== null}
         transparent
         animationType="fade"
-        onRequestClose={() => setCueReminder(null)}
+        onRequestClose={() => dismissReminder()}
       >
-        <TouchableOpacity style={rpeStyles.overlay} activeOpacity={1} onPress={() => setCueReminder(null)}>
-          <TouchableOpacity activeOpacity={1} style={rpeStyles.card}>
+        <TouchableOpacity style={rpeStyles.overlay} activeOpacity={1} onPress={() => dismissReminder()}>
+          <Card background={palette.gray[900]} borderColor={palette.gray[700]} padding={20} style={rpeStyles.cardBox}>
             <View style={rpeStyles.header}>
               <Text style={rpeStyles.title}>
                 💡 {t('activeWorkout.cueReminderTitle', { defaultValue: 'Remember for' })} {cueReminder ? exName(cueReminder.name) : ''}
               </Text>
               <TouchableOpacity
-                onPress={() => setCueReminder(null)}
+                onPress={() => dismissReminder()}
                 accessibilityRole="button"
                 accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
               >
@@ -1543,10 +1293,10 @@ export const ActiveWorkoutScreen: React.FC = () => {
               </View>
             ))}
 
-            <TouchableOpacity style={rpeStyles.gotIt} onPress={() => setCueReminder(null)}>
+            <TouchableOpacity style={rpeStyles.gotIt} onPress={() => dismissReminder()}>
               <Text style={rpeStyles.gotItText}>{t('activeWorkout.cueReminderGotIt', { defaultValue: "Got it — let's go" })}</Text>
             </TouchableOpacity>
-          </TouchableOpacity>
+          </Card>
         </TouchableOpacity>
       </Modal>
     </SafeAreaView>
@@ -1567,7 +1317,7 @@ const styles = StyleSheet.create({
   },
   timerBlock: { flex: 1 },
   timerLabel: { fontSize: 10, color: palette.gray[400], fontWeight: '700', letterSpacing: 1 },
-  timerLabelPaused: { color: '#f59e0b' },
+  timerLabelPaused: { color: palette.warning[500] },
   timer: { fontSize: 22, fontWeight: '800', color: theme.colors.text, fontVariant: ['tabular-nums'] },
   timerPaused: { color: palette.gray[500] },
   progressBlock: { flex: 1, alignItems: 'center' },
@@ -1579,7 +1329,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
   },
-  finishBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  finishBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
   cancelBtn: {
     width: 36,
     height: 36,
@@ -1599,15 +1349,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#78350f33',
+    backgroundColor: alpha(palette.warning[900], 0.2),
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderLeftWidth: 3,
-    borderLeftColor: '#f59e0b',
+    borderLeftColor: palette.warning[500],
     borderBottomWidth: 1,
     borderBottomColor: palette.gray[800],
   },
-  pausedTitle: { fontSize: 13, fontWeight: '800', color: '#f59e0b', marginBottom: 2 },
+  pausedTitle: { fontSize: 13, fontWeight: '800', color: palette.warning[500], marginBottom: 2 },
   pausedText: { fontSize: 11, color: palette.gray[300], lineHeight: 15 },
   resumeBtn: {
     backgroundColor: palette.brand[600],
@@ -1615,7 +1365,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 9,
   },
-  resumeBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  resumeBtnText: { fontSize: 14, fontWeight: '700', color: palette.white },
 
   restBanner: {
     flexDirection: 'row',
@@ -1687,12 +1437,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    backgroundColor: '#78350f22',
+    backgroundColor: alpha(palette.warning[900], 0.133),
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
-  personalCueText: { flex: 1, fontSize: 13, color: '#fbbf24' },
+  personalCueText: { flex: 1, fontSize: 13, color: palette.warning[400] },
   personalCueDelete: { fontSize: 12, color: palette.gray[500] },
   addCueBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
   addCueBtnText: { fontSize: 12, color: palette.brand[400], fontWeight: '600' },
@@ -1719,7 +1469,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addCueSaveDisabled: { opacity: 0.5 },
-  addCueSaveText: { fontSize: 13, color: '#fff', fontWeight: '700' },
+  addCueSaveText: { fontSize: 13, color: palette.white, fontWeight: '700' },
 
   // Cue reminder modal rows
   cueReminderRow: { flexDirection: 'row', gap: 8, paddingVertical: 6 },
@@ -1747,15 +1497,15 @@ const styles = StyleSheet.create({
     borderBottomColor: palette.gray[700],
   },
   setRowDone: { backgroundColor: palette.brand[600] + '15' },
-  setRowPR: { backgroundColor: '#78350f' + '40', borderLeftWidth: 2, borderLeftColor: '#f59e0b' },
+  setRowPR: { backgroundColor: palette.warning[900] + '40', borderLeftWidth: 2, borderLeftColor: palette.warning[500] },
   setNum: { width: 30, fontSize: 14, fontWeight: '700', color: palette.gray[400] },
   setNumDone: { color: palette.brand[400] },
-  setNumPR: { color: '#f59e0b' },
+  setNumPR: { color: palette.warning[500] },
 
-  prBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, paddingHorizontal: 16, paddingVertical: 6, backgroundColor: '#78350f' + '25' },
+  prBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, paddingHorizontal: 16, paddingVertical: 6, backgroundColor: palette.warning[900] + '25' },
   prBadgeRowMini: { backgroundColor: palette.gray[800] },
-  prBadge: { backgroundColor: '#92400e', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  prBadgeText: { fontSize: 11, color: '#fcd34d', fontWeight: '700' },
+  prBadge: { backgroundColor: palette.warning[800], borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  prBadgeText: { fontSize: 11, color: palette.warning[300], fontWeight: '700' },
   prBadgeMini: { backgroundColor: palette.gray[700] },
   prBadgeMiniText: { color: palette.gray[300] },
   setInput: {
@@ -1781,7 +1531,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logBtnText: { fontSize: 16, color: '#fff', fontWeight: '700' },
+  logBtnText: { fontSize: 16, color: palette.white, fontWeight: '700' },
   doneCheck: {
     width: 36,
     height: 36,
@@ -1790,7 +1540,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  doneCheckText: { fontSize: 16, color: '#fff', fontWeight: '700' },
+  doneCheckText: { fontSize: 16, color: palette.white, fontWeight: '700' },
 
   addSetBtn: {
     margin: 12,
@@ -1861,12 +1611,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-    backgroundColor: '#dc262622',
+    backgroundColor: alpha(palette.error[600], 0.133),
     borderWidth: 1,
-    borderColor: '#dc262644',
+    borderColor: alpha(palette.error[600], 0.267),
     marginRight: 4,
   },
-  tutorialBtnText: { fontSize: 12, color: '#ef4444', fontWeight: '700' },
+  tutorialBtnText: { fontSize: 12, color: palette.error[500], fontWeight: '700' },
 
   substituteBtn: {
     paddingHorizontal: 8,
@@ -1892,16 +1642,16 @@ const styles = StyleSheet.create({
   subWarning: {
     marginHorizontal: 16,
     marginBottom: 8,
-    backgroundColor: '#78350f33',
+    backgroundColor: alpha(palette.warning[900], 0.2),
     borderRadius: 12,
     padding: 14,
     flexDirection: 'row',
     gap: 10,
     borderWidth: 1,
-    borderColor: '#f59e0b44',
+    borderColor: alpha(palette.warning[500], 0.267),
   },
   subWarningIcon: { fontSize: 20 },
-  subWarningTitle: { fontSize: 13, fontWeight: '700', color: '#f59e0b', marginBottom: 4 },
+  subWarningTitle: { fontSize: 13, fontWeight: '700', color: palette.warning[500], marginBottom: 4 },
   subWarningText: { fontSize: 12, color: palette.gray[300], lineHeight: 17 },
 
   subNote: {
@@ -1971,7 +1721,7 @@ const styles = StyleSheet.create({
   },
   techDotActive: { backgroundColor: palette.brand[600] },
   techDotText: { fontSize: 13, fontWeight: '700', color: palette.gray[400] },
-  techDotTextActive: { color: '#fff' },
+  techDotTextActive: { color: palette.white },
   reviewNotes: {
     backgroundColor: palette.gray[800],
     borderRadius: 10,
@@ -1992,22 +1742,14 @@ const rpeStyles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
-  card: {
-    backgroundColor: palette.gray[900],
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: palette.gray[700],
-    padding: 20,
-    width: '100%',
-    maxWidth: 380,
-  },
+  cardBox: { width: '100%', maxWidth: 380 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
   },
-  title: { fontSize: 18, fontWeight: '800', color: '#fff' },
+  title: { fontSize: 18, fontWeight: '800', color: palette.white },
   close: { fontSize: 18, color: palette.gray[400], paddingLeft: 12 },
   subtitle: { fontSize: 13, color: palette.gray[400], marginBottom: 16 },
   row: {
@@ -2026,9 +1768,9 @@ const rpeStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeText: { fontSize: 16, fontWeight: '800', color: '#fff' },
+  badgeText: { fontSize: 16, fontWeight: '800', color: palette.white },
   rowText: { flex: 1 },
-  rowLabel: { fontSize: 14, fontWeight: '700', color: '#fff', marginBottom: 2 },
+  rowLabel: { fontSize: 14, fontWeight: '700', color: palette.white, marginBottom: 2 },
   rowDetail: { fontSize: 12, color: palette.gray[400] },
   note: {
     backgroundColor: palette.gray[800],
@@ -2044,5 +1786,5 @@ const rpeStyles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 14,
   },
-  gotItText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  gotItText: { fontSize: 15, fontWeight: '700', color: palette.white },
 });

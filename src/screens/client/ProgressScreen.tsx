@@ -17,12 +17,13 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../stores/auth.store';
 import { api } from '../../services/api';
-import { palette } from '../../theme';
+import { theme, palette } from '../../theme';
 import { ProgressPhotoResponse , ApiResponse } from '@shared';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { Camera, Trash, ScanSmiley } from 'phosphor-react-native';
 
+import { Card } from '../../components/ui';
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
 
@@ -145,15 +146,15 @@ export const ProgressScreen: React.FC = () => {
           <View style={styles.headerBtns}>
             <TouchableOpacity style={styles.uploadBtn} onPress={handleAddPhoto} disabled={isUploading}>
               {isUploading
-                ? <ActivityIndicator color="#000" size="small" />
-                : <Camera size={18} weight="bold" color="#000" />
+                ? <ActivityIndicator color={palette.black} size="small" />
+                : <Camera size={18} weight="bold" color={palette.black} />
               }
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.scanBtn}
               onPress={() => navigation.navigate('BodyScan', {})}
             >
-              <ScanSmiley size={18} weight="bold" color="#000" />
+              <ScanSmiley size={18} weight="bold" color={palette.black} />
               <Text style={styles.scanBtnText}>{t('progress.scan')}</Text>
             </TouchableOpacity>
           </View>
@@ -230,7 +231,7 @@ const PhotoCard: React.FC<{
   const dateLabel = new Date(photo.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
-    <View style={cardStyles.card}>
+    <Card padding={0} radius={18} borderColor={theme.colors.cardElevated} style={cardStyles.cardBox}>
       <Image source={{ uri: photo.imageUrl }} style={cardStyles.image} resizeMode="cover" />
 
       {/* Top row: date + delete */}
@@ -240,8 +241,8 @@ const PhotoCard: React.FC<{
         </View>
         <TouchableOpacity onPress={onDelete} style={cardStyles.deleteBtn} disabled={isDeleting}>
           {isDeleting
-            ? <ActivityIndicator size="small" color="#FFF" />
-            : <Trash size={14} weight="bold" color="#FFF" />
+            ? <ActivityIndicator size="small" color={palette.white} />
+            : <Trash size={14} weight="bold" color={palette.white} />
           }
         </TouchableOpacity>
       </View>
@@ -266,7 +267,7 @@ const PhotoCard: React.FC<{
           <Text style={cardStyles.scanBadgeText}>AI Scan</Text>
         </View>
       )}
-    </View>
+    </Card>
   );
 };
 
@@ -278,17 +279,17 @@ const StatChip: React.FC<{ color: string; label: string }> = ({ color, label }) 
 );
 
 const QuickStat: React.FC<{ label: string; value: string; sub?: string; color: string }> = ({ label, value, sub, color }) => (
-  <View style={quickStyles.card}>
+  <Card radius={14} padding={12} borderColor={theme.colors.cardElevated} gap={2} style={quickStyles.cardBox}>
     <Text style={[quickStyles.value, { color }]}>{value}</Text>
     {sub && <Text style={quickStyles.sub}>{sub}</Text>}
     <Text style={quickStyles.label}>{label}</Text>
-  </View>
+  </Card>
 );
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#09090B' },
+  container: { flex: 1, backgroundColor: theme.colors.background },
   scroll: { paddingHorizontal: 16, paddingTop: 4 },
 
   header: {
@@ -297,15 +298,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
   },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#FFF' },
-  subtitle: { fontSize: 13, color: '#71717A', marginTop: 2 },
+  title: { fontSize: 26, fontWeight: 'bold', color: palette.white },
+  subtitle: { fontSize: 13, color: palette.zinc[500], marginTop: 2 },
   headerLeft: { flex: 1, marginRight: 8, minWidth: 0 },
   headerBtns: { flexDirection: 'row', gap: 8, alignItems: 'center', flexShrink: 0 },
   uploadBtn: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#27272A',
+    backgroundColor: theme.colors.cardElevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -318,13 +319,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
   },
-  scanBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
+  scanBtnText: { fontSize: 14, fontWeight: '700', color: palette.black },
 
   trendBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#111',
+    backgroundColor: palette.mono[11],
     borderWidth: 1,
     borderRadius: 14,
     paddingHorizontal: 14,
@@ -332,7 +333,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   trendEmoji: { fontSize: 18 },
-  trendText: { fontSize: 14, color: '#A1A1AA' },
+  trendText: { fontSize: 14, color: palette.zinc[400] },
 
   statsRow: {
     flexDirection: 'row',
@@ -344,7 +345,7 @@ const styles = StyleSheet.create({
   monthLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#71717A',
+    color: palette.zinc[500],
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 12,
@@ -353,26 +354,19 @@ const styles = StyleSheet.create({
 
   empty: { alignItems: 'center', marginTop: 80, paddingHorizontal: 32 },
   emptyEmoji: { fontSize: 64, marginBottom: 16 },
-  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFF', marginBottom: 8 },
-  emptySub: { fontSize: 14, color: '#71717A', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: palette.white, marginBottom: 8 },
+  emptySub: { fontSize: 14, color: palette.zinc[500], textAlign: 'center', lineHeight: 22, marginBottom: 24 },
   emptyBtn: {
     backgroundColor: palette.brand[500],
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 14,
   },
-  emptyBtnText: { fontSize: 15, fontWeight: '700', color: '#000' },
+  emptyBtnText: { fontSize: 15, fontWeight: '700', color: palette.black },
 });
 
 const cardStyles = StyleSheet.create({
-  card: {
-    width: CARD_WIDTH,
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: '#18181B',
-    borderWidth: 1,
-    borderColor: '#27272A',
-  },
+  cardBox: { width: CARD_WIDTH, overflow: 'hidden' },
   image: {
     width: '100%',
     height: CARD_WIDTH * 1.4,
@@ -392,7 +386,7 @@ const cardStyles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
-  dateText: { fontSize: 11, fontWeight: '700', color: '#FFF' },
+  dateText: { fontSize: 11, fontWeight: '700', color: palette.white },
   deleteBtn: {
     width: 26,
     height: 26,
@@ -439,21 +433,12 @@ const chipStyles = StyleSheet.create({
     borderWidth: 1,
   },
   dot: { width: 5, height: 5, borderRadius: 3 },
-  label: { fontSize: 10, fontWeight: '600', color: '#FFF' },
+  label: { fontSize: 10, fontWeight: '600', color: palette.white },
 });
 
 const quickStyles = StyleSheet.create({
-  card: {
-    flex: 1,
-    backgroundColor: '#18181B',
-    borderRadius: 14,
-    padding: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#27272A',
-    gap: 2,
-  },
+  cardBox: { flex: 1, alignItems: 'center' },
   value: { fontSize: 16, fontWeight: 'bold' },
-  sub: { fontSize: 10, color: '#71717A' },
-  label: { fontSize: 10, color: '#71717A', textAlign: 'center' },
+  sub: { fontSize: 10, color: palette.zinc[500] },
+  label: { fontSize: 10, color: palette.zinc[500], textAlign: 'center' },
 });

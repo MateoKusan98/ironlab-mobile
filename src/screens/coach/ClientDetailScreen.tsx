@@ -17,6 +17,7 @@ import { useClientWorkoutLogs } from '../../hooks/useWorkout';
 import { useClientNotes } from '../../hooks/useNotes';
 import { theme } from '../../theme';
 
+import { Card } from '../../components/ui';
 type Route = RouteProp<CoachStackParamList, 'ClientDetail'>;
 type Nav = NativeStackNavigationProp<CoachStackParamList, 'ClientDetail'>;
 
@@ -80,7 +81,7 @@ export const ClientDetailScreen: React.FC = () => {
           logsLoading ? <ActivityIndicator color={theme.colors.primary} /> :
           workoutLogs && workoutLogs.length > 0 ? (
             workoutLogs.map((log) => (
-              <View key={log.id} style={styles.card}>
+              <Card key={log.id} radius={theme.borderRadius.md} padding={theme.spacing.md} style={styles.cardSpacing}>
                 <Text style={styles.cardTitle}>
                   {log.mood ? `${log.mood} ` : ''}Workout Log
                 </Text>
@@ -92,7 +93,7 @@ export const ClientDetailScreen: React.FC = () => {
                 )}
                 {log.notes && <Text style={styles.cardNotes}>{log.notes}</Text>}
                 <Text style={styles.cardDate}>{new Date(log.submittedAt).toLocaleDateString()}</Text>
-              </View>
+              </Card>
             ))
           ) : <Text style={styles.empty}>{t('coach.noWorkoutLogs')}</Text>
         )}
@@ -101,14 +102,14 @@ export const ClientDetailScreen: React.FC = () => {
           foodLoading ? <ActivityIndicator color={theme.colors.primary} /> :
           foodLogs && foodLogs.length > 0 ? (
             foodLogs.map((log) => (
-              <View key={log.id} style={styles.card}>
+              <Card key={log.id} radius={theme.borderRadius.md} padding={theme.spacing.md} style={styles.cardSpacing}>
                 <Text style={styles.cardTitle}>{log.mealType}</Text>
                 <Text style={styles.cardDetail}>
                   {log.calories ? `${log.calories} cal` : 'No calories logged'}
                 </Text>
                 {log.notes && <Text style={styles.cardNotes}>{log.notes}</Text>}
                 <Text style={styles.cardDate}>{log.date}</Text>
-              </View>
+              </Card>
             ))
           ) : <Text style={styles.empty}>{t('coach.noNutritionLogs')}</Text>
         )}
@@ -117,10 +118,10 @@ export const ClientDetailScreen: React.FC = () => {
           notesLoading ? <ActivityIndicator color={theme.colors.primary} /> :
           notes && notes.length > 0 ? (
             notes.map((note) => (
-              <View key={note.id} style={styles.card}>
+              <Card key={note.id} radius={theme.borderRadius.md} padding={theme.spacing.md} style={styles.cardSpacing}>
                 <Text style={styles.cardNotes}>{note.content}</Text>
                 <Text style={styles.cardDate}>{new Date(note.createdAt).toLocaleDateString()}</Text>
-              </View>
+              </Card>
             ))
           ) : <Text style={styles.empty}>{t('coach.noNotes')}</Text>
         )}
@@ -163,14 +164,7 @@ const styles = StyleSheet.create({
   tabText: { color: theme.colors.textSecondary, fontWeight: theme.fontWeight.medium },
   tabTextActive: { color: theme.colors.text },
   scrollView: { flex: 1, paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md },
-  card: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
+  cardSpacing: { marginBottom: theme.spacing.sm },
   cardTitle: { fontSize: theme.fontSize.md, fontWeight: theme.fontWeight.semibold, color: theme.colors.text },
   cardDetail: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary, marginTop: 4 },
   cardNotes: { fontSize: theme.fontSize.sm, color: theme.colors.text, marginTop: theme.spacing.sm },

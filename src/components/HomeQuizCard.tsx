@@ -6,6 +6,7 @@ import { theme, palette } from '../theme';
 import { ratingTitle, DIFFICULTY_LABELS } from '../data/fitnessQuiz';
 import { useRatedQuiz } from '../hooks/useRatedQuiz';
 
+import { Card } from '../components/ui';
 /**
  * Compact rated-quiz card for the Home screen: one question at a time,
  * answered inline. Shares the persistent Elo rating with the full quiz
@@ -38,7 +39,7 @@ export const HomeQuizCard: React.FC<{ style?: StyleProp<ViewStyle> }> = ({ style
   };
 
   return (
-    <View style={[styles.card, style]}>
+    <Card radius={theme.borderRadius.xl} padding={theme.spacing.lg} style={style}>
       {/* Header */}
       <View style={styles.headerRow}>
         <Brain size={18} weight="fill" color={palette.brand[400]} />
@@ -109,18 +110,12 @@ export const HomeQuizCard: React.FC<{ style?: StyleProp<ViewStyle> }> = ({ style
           </View>
         </>
       )}
-    </View>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.xl,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.lg,
-  },
+
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
