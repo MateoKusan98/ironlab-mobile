@@ -1061,17 +1061,6 @@ export const AICoachPlanScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
 
-  generatingContainer: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32,
-  },
-  generatingIcon: { fontSize: 56, marginBottom: 20 },
-  generatingTitle: { fontSize: 24, fontWeight: '800', color: theme.colors.text, textAlign: 'center', marginBottom: 10, lineHeight: 32 },
-  generatingSubtitle: { fontSize: 14, color: palette.gray[400], textAlign: 'center', lineHeight: 20 },
-  generateBtn: {
-    marginTop: 32, backgroundColor: palette.brand[600],
-    borderRadius: 14, paddingHorizontal: 32, paddingVertical: 16,
-  },
-  generateBtnText: { fontSize: 16, fontWeight: '700', color: palette.white },
 
   header: {
     flexDirection: 'row', alignItems: 'center',
@@ -1079,7 +1068,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: palette.gray[800],
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backArrow: { fontSize: 22, color: theme.colors.text },
   headerTitle: { fontSize: 17, fontWeight: '700', color: theme.colors.text },
   headerSub: { fontSize: 11, color: palette.gray[500], marginTop: 1 },
   debugBtn: {
@@ -1087,7 +1075,6 @@ const styles = StyleSheet.create({
     backgroundColor: palette.gray[800], alignItems: 'center', justifyContent: 'center',
     marginRight: 8,
   },
-  debugBtnText: { fontSize: 16 },
   regenBtn: {
     paddingHorizontal: 12, paddingVertical: 7,
     borderRadius: 8, borderWidth: 1, borderColor: palette.gray[700],
@@ -1114,8 +1101,6 @@ const styles = StyleSheet.create({
   },
   noteGenerateBtnText: { fontSize: 13, fontWeight: '700', color: palette.white },
 
-  scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 16 },
 
 
   footer: {
@@ -1178,7 +1163,6 @@ const banner = StyleSheet.create({
     borderBottomWidth: 1,
   },
   left: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  emoji: { fontSize: 20 },
   label: { fontSize: 13, fontWeight: '700', color: palette.white },
   sub: { fontSize: 11, color: palette.gray[400], marginTop: 1 },
   edit: { fontSize: 13, color: palette.gray[500], fontWeight: '600' },

@@ -156,7 +156,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: theme.spacing.xxl,
   },
-  emptyEmoji: { fontSize: 48, marginBottom: theme.spacing.md },
   emptyText: {
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.semibold,

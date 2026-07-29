@@ -553,10 +553,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backIcon: {
-    color: palette.white,
-    fontSize: 32,
-  },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',

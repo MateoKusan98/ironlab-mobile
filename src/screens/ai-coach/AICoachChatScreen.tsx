@@ -259,7 +259,6 @@ const styles = StyleSheet.create({
     borderBottomColor: palette.gray[800],
   },
   headerBack: { width: 36 },
-  headerBackIcon: { color: palette.white, fontSize: 28 },
   headerCenter: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerAvatar: {
     width: 40,

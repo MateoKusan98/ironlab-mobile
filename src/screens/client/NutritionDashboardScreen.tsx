@@ -461,25 +461,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 30,
   },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: theme.colors.cardElevated,
-  },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: palette.white,
-  },
-  notificationBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerSpacer: {
     width: 40,
@@ -545,50 +530,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
-  chartContainer: {
-    backgroundColor: theme.colors.background,
-    padding: 20,
-    borderRadius: 24,
-    marginBottom: 20,
-  },
-  chartBars: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: 160,
-    marginBottom: 20,
-  },
-  barGroup: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  barBackground: {
-    position: 'absolute',
-    bottom: 25,
-    width: 6,
-    height: 120,
-    backgroundColor: theme.colors.card,
-    borderRadius: 3,
-  },
-  barValue: {
-    width: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 25,
-  },
-  barSegment: { flex: 1 },
-  barLabel: {
-    fontSize: 10,
-    color: palette.zinc[500],
-    marginTop: 5,
-    position: 'absolute',
-    bottom: 0,
-  },
-  chartLegend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20,
-  },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -642,10 +583,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: palette.white,
-  },
-  seeAllText: {
-    fontSize: 12,
-    color: palette.brand[500],
   },
   mealCard: {
     height: 180,
@@ -718,8 +655,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 20,
   },
-  dashboardLink: { alignItems: 'center' },
-  dashboardLinkText: { color: palette.brand[500], fontSize: 14, fontWeight: 'bold' },
   cardioBurnRow: {
     flexDirection: 'row',
     alignItems: 'center',

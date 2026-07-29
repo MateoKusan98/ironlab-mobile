@@ -224,7 +224,6 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border,
   },
   backBtn: { width: 36 },
-  backIcon: { color: theme.colors.text, fontSize: 28 },
   headerCenter: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerAvatar: {
     width: 40,
@@ -236,7 +235,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: palette.brand[500],
   },
-  headerAvatarIcon: { fontSize: 22 },
   headerTitle: { color: theme.colors.text, fontSize: 15, fontWeight: '700' },
   headerSub: { color: theme.colors.textSecondary, fontSize: 11, marginTop: 1 },
 
@@ -256,7 +254,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.brand[600],
   },
-  avatarIcon: { fontSize: 16 },
 
   bubble: {
     maxWidth: '78%',

@@ -7,7 +7,6 @@ import {
   TextInput,
   ScrollView,
   Alert,
-  Modal,
   Vibration,
   ActivityIndicator,
   Linking,
@@ -30,7 +29,11 @@ import { useRestTimer } from '../../hooks/useRestTimer';
 import { useExerciseCues } from '../../hooks/useExerciseCues';
 import { Barbell, Trophy } from 'phosphor-react-native';
 
-import { Card } from '../../components/ui';
+import { RpeGuideModal } from './components/RpeGuideModal';
+import { CueReminderModal } from './components/CueReminderModal';
+import { RestTimerBanner } from './components/RestTimerBanner';
+import { AddExerciseModal } from './components/AddExerciseModal';
+import { SubstituteExerciseModal } from './components/SubstituteExerciseModal';
 type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
 
 interface Exercise {
@@ -233,9 +236,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [resumeLoading, setResumeLoading] = useState(true);
   const [showAddExercise, setShowAddExercise] = useState(false);
-  const [exerciseSearch, setExerciseSearch] = useState('');
   const [substituteIdx, setSubstituteIdx] = useState<number | null>(null);
-  const [substituteSearch, setSubstituteSearch] = useState('');
   const [rpeGuideVisible, setRpeGuideVisible] = useState(false);
   const rpeGuideSeen = useRef(false);
 
@@ -392,7 +393,6 @@ export const ActiveWorkoutScreen: React.FC = () => {
     };
     setExercises((prev) => [...prev, newEx]);
     setShowAddExercise(false);
-    setExerciseSearch('');
   };
 
   const addSet = (exIdx: number) => {
@@ -573,7 +573,6 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const substituteExercise = (exIdx: number, newName: string) => {
     setExercises((prev) => prev.map((ex, i) => i === exIdx ? { ...ex, name: newName } : ex));
     setSubstituteIdx(null);
-    setSubstituteSearch('');
   };
 
   const removeSet = (exIdx: number, setIdx: number) => {
@@ -687,11 +686,6 @@ export const ActiveWorkoutScreen: React.FC = () => {
     navigation.replace('SessionSummary', { sessionId, durationMinutes, prs: allPRs.length ? allPRs : undefined });
   };
 
-  const filteredExercises = COMMON_EXERCISES.filter((e) =>
-    e.toLowerCase().includes(exerciseSearch.toLowerCase())
-  );
-  const customMatch = exerciseSearch.trim().length > 2 &&
-    !COMMON_EXERCISES.some((e) => e.toLowerCase() === exerciseSearch.toLowerCase().trim());
 
   const completedSets = exercises.reduce((acc, ex) => acc + ex.sets.filter((s) => s.isCompleted).length, 0);
   const totalSets = exercises.reduce((acc, ex) => acc + ex.sets.length, 0);
@@ -761,33 +755,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Rest Timer Banner */}
-        {restSecs !== null && (() => {
-          const restColor = restSecs > 30 ? palette.success[500] : restSecs > 10 ? palette.warning[500] : palette.error[500];
-          const mm = String(Math.floor(restSecs / 60)).padStart(2, '0');
-          const ss = String(restSecs % 60).padStart(2, '0');
-          return (
-            <View style={[styles.restBanner, { borderLeftColor: restColor }]}>
-              <View style={styles.restLeft}>
-                <View>
-                  <Text style={styles.restLabel}>REST</Text>
-                  <Text style={[styles.restCountdown, { color: restColor }]}>{mm}:{ss}</Text>
-                </View>
-              </View>
-              <View style={styles.restControls}>
-                <TouchableOpacity style={styles.restBtn} onPress={() => adjustRest(-15)}>
-                  <Text style={styles.restBtnText}>−15</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.restBtn} onPress={() => adjustRest(15)}>
-                  <Text style={styles.restBtnText}>+15</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.restSkipBtn} onPress={stopRest}>
-                  <Text style={styles.restSkipText}>Skip</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        })()}
+        <RestTimerBanner restSecs={restSecs} onAdjust={adjustRest} onSkip={stopRest} />
 
         <ScrollView
           style={styles.scroll}
@@ -821,7 +789,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                   <Text style={styles.tutorialBtnText}>▶</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => { setSubstituteIdx(exIdx); setSubstituteSearch(''); }}
+                  onPress={() => setSubstituteIdx(exIdx)}
                   style={styles.substituteBtn}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   accessibilityRole="button"
@@ -1073,232 +1041,35 @@ export const ActiveWorkoutScreen: React.FC = () => {
       </KeyboardAvoidingView>
 
       {/* Substitute Exercise Modal */}
-      <Modal
-        visible={substituteIdx !== null}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSubstituteIdx(null)}
-      >
-        {substituteIdx !== null && (() => {
-          const ex = exercises[substituteIdx];
-          const isKey = KEY_EXERCISE_PATTERN.test(ex.name);
-          const loggedCount = ex.sets.filter(s => s.isCompleted && s.id).length;
-          const suggestions = getSubstitutes(ex.name);
-          const filtered = substituteSearch.trim()
-            ? suggestions.filter(s => s.toLowerCase().includes(substituteSearch.toLowerCase()))
-                .concat(
-                  COMMON_EXERCISES.filter(e =>
-                    e.toLowerCase().includes(substituteSearch.toLowerCase()) &&
-                    !suggestions.includes(e) &&
-                    e !== ex.name
-                  )
-                )
-            : suggestions;
-          const customSub = substituteSearch.trim().length > 2 &&
-            !COMMON_EXERCISES.some(e => e.toLowerCase() === substituteSearch.toLowerCase().trim()) &&
-            !suggestions.some(e => e.toLowerCase() === substituteSearch.toLowerCase().trim());
-
-          return (
-            <SafeAreaView style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Substitute Exercise</Text>
-                <TouchableOpacity
-                  onPress={() => { setSubstituteIdx(null); setSubstituteSearch(''); }}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
-                >
-                  <Text style={styles.modalClose}>✕</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.subCurrentCard}>
-                <Text style={styles.subCurrentLabel}>REPLACING</Text>
-                <Text style={styles.subCurrentName}>{exName(ex.name)}</Text>
-              </View>
-
-              {isKey && (
-                <View style={styles.subWarning}>
-                  <Text style={styles.subWarningIcon}>⚠️</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.subWarningTitle}>Key lift for today's program</Text>
-                    <Text style={styles.subWarningText}>
-                      This is a primary exercise in your plan. Substituting reduces specificity — only swap if you have a real reason (injury, equipment, fatigue).
-                    </Text>
-                  </View>
-                </View>
-              )}
-
-              {loggedCount > 0 && (
-                <View style={styles.subNote}>
-                  <Text style={styles.subNoteText}>
-                    {loggedCount} already-logged set{loggedCount > 1 ? 's' : ''} will remain under "{ex.name}" in your history. New sets will use the substituted name.
-                  </Text>
-                </View>
-              )}
-
-              <TextInput
-                style={styles.searchInput}
-                value={substituteSearch}
-                onChangeText={setSubstituteSearch}
-                placeholder="Search substitutes..."
-                placeholderTextColor={palette.gray[500]}
-                autoFocus={!isKey}
-              />
-
-              <Text style={styles.subSuggestionsLabel}>SUGGESTIONS</Text>
-
-              <ScrollView>
-                {customSub && (
-                  <TouchableOpacity
-                    style={styles.customExerciseRow}
-                    onPress={() => substituteExercise(substituteIdx, substituteSearch.trim())}
-                  >
-                    <Text style={styles.customExerciseText}>+ Use "{substituteSearch.trim()}"</Text>
-                  </TouchableOpacity>
-                )}
-                {filtered.map((name) => (
-                  <TouchableOpacity
-                    key={name}
-                    style={styles.exerciseRow}
-                    onPress={() => substituteExercise(substituteIdx, name)}
-                  >
-                    <Text style={styles.exerciseRowText}>{name}</Text>
-                    <Text style={styles.subArrow}>→</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </SafeAreaView>
-          );
-        })()}
-      </Modal>
+      {(() => {
+        const ex = substituteIdx !== null ? exercises[substituteIdx] : null;
+        return (
+          <SubstituteExerciseModal
+            exerciseName={ex?.name ?? null}
+            loggedSetCount={ex ? ex.sets.filter((set) => set.isCompleted && set.id).length : 0}
+            isKeyLift={ex ? KEY_EXERCISE_PATTERN.test(ex.name) : false}
+            suggestions={ex ? getSubstitutes(ex.name) : []}
+            catalogue={COMMON_EXERCISES}
+            onClose={() => setSubstituteIdx(null)}
+            onSubstitute={(name) => substituteIdx !== null && substituteExercise(substituteIdx, name)}
+            exName={exName}
+          />
+        );
+      })()}
 
       {/* Add Exercise Modal */}
-      <Modal visible={showAddExercise} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{t('activeWorkout.addExercise')}</Text>
-            <TouchableOpacity
-              onPress={() => { setShowAddExercise(false); setExerciseSearch(''); }}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
-            >
-              <Text style={styles.modalClose}>✕</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TextInput
-            style={styles.searchInput}
-            value={exerciseSearch}
-            onChangeText={setExerciseSearch}
-            placeholder={t('activeWorkout.searchExercise')}
-            placeholderTextColor={palette.gray[500]}
-            autoFocus
-          />
-
-          <ScrollView>
-            {customMatch && (
-              <TouchableOpacity
-                style={styles.customExerciseRow}
-                onPress={() => addExercise(exerciseSearch.trim())}
-              >
-                <Text style={styles.customExerciseText}>+ Add "{exerciseSearch.trim()}"</Text>
-              </TouchableOpacity>
-            )}
-            {filteredExercises.map((name) => (
-              <TouchableOpacity key={name} style={styles.exerciseRow} onPress={() => addExercise(name)}>
-                <Text style={styles.exerciseRowText}>{name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
+      <AddExerciseModal
+        visible={showAddExercise}
+        onClose={() => setShowAddExercise(false)}
+        onAdd={addExercise}
+        catalogue={COMMON_EXERCISES}
+      />
 
       {/* RPE Guide Modal */}
-      <Modal visible={rpeGuideVisible} transparent animationType="fade" onRequestClose={() => setRpeGuideVisible(false)}>
-        <TouchableOpacity style={rpeStyles.overlay} activeOpacity={1} onPress={() => setRpeGuideVisible(false)}>
-          <Card background={palette.gray[900]} borderColor={palette.gray[700]} padding={20} style={rpeStyles.cardBox}>
-            <View style={rpeStyles.header}>
-              <Text style={rpeStyles.title}>What is RPE?</Text>
-              <TouchableOpacity
-                onPress={() => setRpeGuideVisible(false)}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
-              >
-                <Text style={rpeStyles.close}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={rpeStyles.subtitle}>Rate of Perceived Exertion — how hard was that set?</Text>
+      <RpeGuideModal visible={rpeGuideVisible} onClose={() => setRpeGuideVisible(false)} />
 
-            {[
-              { rpe: '10', label: 'Max effort', detail: 'Could not do one more rep. True maximum.' },
-              { rpe: '9',  label: 'Near max',   detail: 'Could squeeze out 1 more rep at most.' },
-              { rpe: '8',  label: 'Hard',        detail: '2 reps left in the tank. Main working sets.' },
-              { rpe: '7',  label: 'Moderate',    detail: '3 reps in reserve. Challenging but controlled.' },
-              { rpe: '6',  label: 'Easy',         detail: '4+ reps left. Warm-up and technique work.' },
-            ].map(({ rpe, label, detail }) => (
-              <View key={rpe} style={rpeStyles.row}>
-                <View style={rpeStyles.badge}>
-                  <Text style={rpeStyles.badgeText}>{rpe}</Text>
-                </View>
-                <View style={rpeStyles.rowText}>
-                  <Text style={rpeStyles.rowLabel}>{label}</Text>
-                  <Text style={rpeStyles.rowDetail}>{detail}</Text>
-                </View>
-              </View>
-            ))}
+      <CueReminderModal reminder={cueReminder} onDismiss={dismissReminder} exName={exName} />
 
-            <View style={rpeStyles.note}>
-              <Text style={rpeStyles.noteText}>
-                Accurate RPE logging is how the AI detects fatigue and adjusts your loads automatically. Random numbers break the system.
-              </Text>
-            </View>
-
-            <TouchableOpacity style={rpeStyles.gotIt} onPress={() => setRpeGuideVisible(false)}>
-              <Text style={rpeStyles.gotItText}>Got it</Text>
-            </TouchableOpacity>
-          </Card>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Cue Reminder — pops up when a cued exercise becomes the one you're about
-          to do, so a technique cue from a past session isn't forgotten. */}
-      <Modal
-        visible={cueReminder !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => dismissReminder()}
-      >
-        <TouchableOpacity style={rpeStyles.overlay} activeOpacity={1} onPress={() => dismissReminder()}>
-          <Card background={palette.gray[900]} borderColor={palette.gray[700]} padding={20} style={rpeStyles.cardBox}>
-            <View style={rpeStyles.header}>
-              <Text style={rpeStyles.title}>
-                💡 {t('activeWorkout.cueReminderTitle', { defaultValue: 'Remember for' })} {cueReminder ? exName(cueReminder.name) : ''}
-              </Text>
-              <TouchableOpacity
-                onPress={() => dismissReminder()}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
-              >
-                <Text style={rpeStyles.close}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={rpeStyles.subtitle}>
-              {t('activeWorkout.cueReminderSubtitle', { defaultValue: 'Cues you saved last time:' })}
-            </Text>
-
-            {(cueReminder?.cues ?? []).map((c) => (
-              <View key={c.id} style={styles.cueReminderRow}>
-                <Text style={styles.cueReminderBullet}>•</Text>
-                <Text style={styles.cueReminderText}>{c.text}</Text>
-              </View>
-            ))}
-
-            <TouchableOpacity style={rpeStyles.gotIt} onPress={() => dismissReminder()}>
-              <Text style={rpeStyles.gotItText}>{t('activeWorkout.cueReminderGotIt', { defaultValue: "Got it — let's go" })}</Text>
-            </TouchableOpacity>
-          </Card>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -1367,41 +1138,11 @@ const styles = StyleSheet.create({
   },
   resumeBtnText: { fontSize: 14, fontWeight: '700', color: palette.white },
 
-  restBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: palette.gray[800],
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderLeftWidth: 3,
-    borderBottomWidth: 1,
-    borderBottomColor: palette.gray[700],
-  },
-  restLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  restLabel: { fontSize: 10, fontWeight: '800', color: palette.gray[400], letterSpacing: 1.5 },
-  restCountdown: { fontSize: 30, fontWeight: '800', letterSpacing: -1 },
-  restControls: { flexDirection: 'row', gap: 6, alignItems: 'center' },
-  restBtn: {
-    backgroundColor: palette.gray[700],
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  restBtnText: { fontSize: 13, fontWeight: '700', color: theme.colors.text },
-  restSkipBtn: {
-    backgroundColor: palette.gray[700],
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  restSkipText: { fontSize: 13, fontWeight: '600', color: palette.gray[400] },
 
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },
 
   emptyState: { alignItems: 'center', paddingTop: 60, paddingBottom: 20 },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyText: { fontSize: 15, color: palette.gray[400], textAlign: 'center' },
 
   exerciseCard: {
@@ -1472,9 +1213,6 @@ const styles = StyleSheet.create({
   addCueSaveText: { fontSize: 13, color: palette.white, fontWeight: '700' },
 
   // Cue reminder modal rows
-  cueReminderRow: { flexDirection: 'row', gap: 8, paddingVertical: 6 },
-  cueReminderBullet: { fontSize: 15, color: palette.brand[400], lineHeight: 22 },
-  cueReminderText: { flex: 1, fontSize: 15, color: theme.colors.text, lineHeight: 22 },
 
   colHeaders: {
     flexDirection: 'row',
@@ -1565,46 +1303,6 @@ const styles = StyleSheet.create({
   addExerciseBtnText: { fontSize: 15, fontWeight: '700', color: palette.brand[400] },
 
   // Modal
-  modalContainer: { flex: 1, backgroundColor: palette.gray[900] },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: palette.gray[800],
-  },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.text },
-  modalClose: { fontSize: 18, color: palette.gray[400] },
-  searchInput: {
-    margin: 16,
-    backgroundColor: palette.gray[800],
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-    fontSize: 15,
-    color: theme.colors.text,
-  },
-  customExerciseRow: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: palette.brand[600] + '22',
-    borderBottomWidth: 1,
-    borderBottomColor: palette.gray[800],
-  },
-  customExerciseText: { fontSize: 15, color: palette.brand[400], fontWeight: '600' },
-  exerciseRow: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: palette.gray[800],
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  exerciseRowText: { fontSize: 15, color: theme.colors.text },
-  subArrow: { fontSize: 14, color: palette.gray[500] },
 
   // Tutorial & Substitute buttons
   tutorialBtn: {
@@ -1628,49 +1326,9 @@ const styles = StyleSheet.create({
   substituteBtnText: { fontSize: 14, color: palette.brand[400], fontWeight: '700' },
 
   // Substitute modal
-  subCurrentCard: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
-    backgroundColor: palette.gray[800],
-    borderRadius: 12,
-    padding: 14,
-  },
-  subCurrentLabel: { fontSize: 10, fontWeight: '700', color: palette.gray[500], letterSpacing: 1, marginBottom: 4 },
-  subCurrentName: { fontSize: 17, fontWeight: '700', color: theme.colors.text },
 
-  subWarning: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-    backgroundColor: alpha(palette.warning[900], 0.2),
-    borderRadius: 12,
-    padding: 14,
-    flexDirection: 'row',
-    gap: 10,
-    borderWidth: 1,
-    borderColor: alpha(palette.warning[500], 0.267),
-  },
-  subWarningIcon: { fontSize: 20 },
-  subWarningTitle: { fontSize: 13, fontWeight: '700', color: palette.warning[500], marginBottom: 4 },
-  subWarningText: { fontSize: 12, color: palette.gray[300], lineHeight: 17 },
 
-  subNote: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-    backgroundColor: palette.gray[700],
-    borderRadius: 10,
-    padding: 12,
-  },
-  subNoteText: { fontSize: 11, color: palette.gray[400], lineHeight: 16 },
 
-  subSuggestionsLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: palette.gray[500],
-    letterSpacing: 1,
-    marginHorizontal: 20,
-    marginBottom: 4,
-  },
 
   // Per-exercise review section
   exerciseReview: {
@@ -1734,57 +1392,3 @@ const styles = StyleSheet.create({
   },
 });
 
-const rpeStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  cardBox: { width: '100%', maxWidth: 380 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  title: { fontSize: 18, fontWeight: '800', color: palette.white },
-  close: { fontSize: 18, color: palette.gray[400], paddingLeft: 12 },
-  subtitle: { fontSize: 13, color: palette.gray[400], marginBottom: 16 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: palette.gray[800],
-    gap: 14,
-  },
-  badge: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: palette.brand[700],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: { fontSize: 16, fontWeight: '800', color: palette.white },
-  rowText: { flex: 1 },
-  rowLabel: { fontSize: 14, fontWeight: '700', color: palette.white, marginBottom: 2 },
-  rowDetail: { fontSize: 12, color: palette.gray[400] },
-  note: {
-    backgroundColor: palette.gray[800],
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 16,
-  },
-  noteText: { fontSize: 12, color: palette.brand[300], lineHeight: 18 },
-  gotIt: {
-    backgroundColor: palette.brand[600],
-    borderRadius: 10,
-    paddingVertical: 13,
-    alignItems: 'center',
-    marginTop: 14,
-  },
-  gotItText: { fontSize: 15, fontWeight: '700', color: palette.white },
-});

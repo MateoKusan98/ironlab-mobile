@@ -196,7 +196,6 @@ export const CreateWorkoutScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   scroll: { flex: 1, paddingHorizontal: theme.spacing.md, paddingBottom: theme.spacing.xxl },
-  back: { fontSize: theme.fontSize.md, color: theme.colors.primary, paddingVertical: theme.spacing.sm },
   title: {
     fontSize: theme.fontSize.xxl,
     fontWeight: theme.fontWeight.bold,

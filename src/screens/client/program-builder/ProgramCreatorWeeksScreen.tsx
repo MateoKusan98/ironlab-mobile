@@ -188,7 +188,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backIcon: { color: palette.white, fontSize: 24 },
   headerTitle: { color: palette.white, fontSize: 18, fontWeight: 'bold' },
   content: { paddingHorizontal: 20, paddingBottom: 100 },
   

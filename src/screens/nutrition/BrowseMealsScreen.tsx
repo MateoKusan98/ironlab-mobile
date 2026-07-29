@@ -330,10 +330,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  backIcon: {
-    color: palette.white,
-    fontSize: 28,
-  },
   headerTextGroup: {
     flex: 1,
   },

@@ -154,7 +154,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backIcon: { color: palette.white, fontSize: 24 },
   headerTitles: { alignItems: 'center' },
   headerTitle: { color: palette.white, fontSize: 18, fontWeight: 'bold' },
   headerSubtitle: { color: palette.gray[400], fontSize: 12 },

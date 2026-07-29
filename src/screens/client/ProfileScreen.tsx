@@ -995,7 +995,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   restRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  restRowIcon: { fontSize: 22 },
   restRowTitle: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
   restRowSub: { fontSize: 11, color: palette.gray[400], marginTop: 1 },
   restStepper: { flexDirection: 'row', alignItems: 'center', gap: 10 },

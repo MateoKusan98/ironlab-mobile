@@ -209,7 +209,6 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   backBtn: { padding: 4, marginRight: 10 },
-  backArrow: { fontSize: 22, color: theme.colors.text },
   title: { flex: 1, fontSize: 20, fontWeight: '700', color: theme.colors.text },
   count: { fontSize: 13, color: palette.gray[500], backgroundColor: palette.gray[800], paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
 

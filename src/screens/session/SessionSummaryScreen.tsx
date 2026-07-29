@@ -549,7 +549,6 @@ const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 40 },
 
   trophyBlock: { alignItems: 'center', paddingVertical: 28 },
-  trophyIcon: { fontSize: 56, marginBottom: 12 },
   doneTitle: { fontSize: 26, fontWeight: '800', color: theme.colors.text, marginBottom: 4 },
   doneSubtitle: { fontSize: 14, color: palette.gray[400] },
 

@@ -363,8 +363,6 @@ export const WorkoutHistoryScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
 
-  backBtn: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center' },
-  backBtnText: { fontSize: 22, color: theme.colors.text, fontWeight: '600' },
 
   weekNav: {
     flexDirection: 'row',
@@ -407,7 +405,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dayDotPR: { backgroundColor: palette.warning[800] },
-  dayDotPRText: { fontSize: 14 },
   dayDotCount: { fontSize: 11, fontWeight: '800', color: palette.white },
   dayDotPlanned: {
     width: 28,

@@ -369,15 +369,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     zIndex: 10,
   },
-  backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backIcon: { color: palette.white, fontSize: 32, marginBottom: 4 },
   titleWrapper: { flex: 1, alignItems: 'center' },
   headerTitle: { color: palette.white, fontSize: 18, fontWeight: 'bold' },
   saveBtn: {

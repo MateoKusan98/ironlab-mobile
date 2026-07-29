@@ -213,7 +213,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   backBtn: { width: 36, height: 36, justifyContent: 'center' },
-  backArrow: { fontSize: 22, color: theme.colors.text },
   headerTitle: { fontSize: 15, fontWeight: '700', color: theme.colors.text },
   headerSub: { fontSize: 12, color: palette.gray[500], marginTop: 1 },
   prBadge: {

@@ -719,17 +719,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: palette.white,
   },
-  caloriesSummary: {
-    alignItems: 'center',
-  },
-  summaryText: {
-    fontSize: 18,
-    color: theme.colors.textSecondary,
-  },
-  boldText: {
-    color: palette.white,
-    fontWeight: 'bold',
-  },
   calculateBtn: {
     flexDirection: 'row',
     alignItems: 'center',

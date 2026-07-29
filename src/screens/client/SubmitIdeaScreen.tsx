@@ -160,7 +160,6 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
   backBtn: { padding: 4, marginRight: 10 },
-  backArrow: { fontSize: 22, color: theme.colors.text },
   title: { fontSize: 22, fontWeight: '700', color: theme.colors.text },
 
   heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 20, backgroundColor: palette.brand[900] + '55', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: palette.brand[700] + '55' },

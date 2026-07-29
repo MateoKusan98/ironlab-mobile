@@ -128,7 +128,6 @@ const styles = StyleSheet.create({
   pageTitle: { fontSize: 24, fontWeight: '900', color: theme.colors.text, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 },
 
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
-  emptyIcon: { fontSize: 64, marginBottom: 16 },
   emptyTitle: { fontSize: 22, fontWeight: '800', color: theme.colors.text, marginBottom: 8 },
   emptySubtitle: { fontSize: 14, color: palette.gray[400], textAlign: 'center', lineHeight: 20 },
 
