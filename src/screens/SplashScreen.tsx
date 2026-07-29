@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { palette } from '../theme';
 import { Loader } from '../components/ui/Loader';
+import { IronLabIcon } from '../components/IronLabIcon';
 
 
 export const SplashScreen: React.FC = () => {
@@ -28,6 +29,9 @@ export const SplashScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.centerContent, { transform: [{ scale: pulseAnim }] }]}>
+        {/* The gear mark needs its dark badge here — the icon is brand-orange and
+            the splash background is too, so it would vanish without it. */}
+        <IronLabIcon size={96} bg />
         <Text style={styles.logoText}>IronLab</Text>
       </Animated.View>
 
@@ -52,6 +56,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logoText: {
+    marginTop: 20,
     fontSize: 48,
     fontWeight: '900',
     color: palette.white,

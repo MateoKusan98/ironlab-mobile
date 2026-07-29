@@ -38,6 +38,7 @@ import { CardioLogScreen } from '../screens/session/CardioLogScreen';
 import { WorkoutHistoryScreen } from '../screens/client/WorkoutHistoryScreen';
 import { ProgressScreen } from '../screens/client/ProgressScreen';
 import { StatsScreen } from '../screens/client/StatsScreen';
+import { PRScreen } from '../screens/client/PRScreen';
 import { SessionDetailScreen } from '../screens/client/SessionDetailScreen';
 
 // Program Creator Screens
@@ -118,6 +119,7 @@ export type RootStackParamList = {
   WorkoutHistory: undefined;
   Progress: undefined;
   Stats: undefined;
+  PRs: undefined;
   SessionDetail: { sessionId: string };
   StartSession: { plan?: string; nextSessionJson?: import('../services/ai-coach.service').NextSession | null; freeSession?: boolean; makeUp?: boolean; skipNext?: boolean; trainAhead?: boolean };
   ActiveWorkout: { sessionId: string; plannedExercises?: { name: string; sets: number; reps: number; weight: number; rpe?: number; weightPerc?: number; cue?: string }[] };
@@ -224,6 +226,7 @@ export const AppNavigator: React.FC = () => {
                       <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
                       <Stack.Screen name="Progress" component={ProgressScreen} />
                       <Stack.Screen name="Stats" component={StatsScreen} />
+                      <Stack.Screen name="PRs" component={PRScreen} />
                       <Stack.Screen name="SessionDetail" component={SessionDetailScreen} />
 
                       <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>

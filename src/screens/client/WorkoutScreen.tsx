@@ -15,7 +15,7 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserAvatar } from '../../components/ui/UserAvatar';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
-import { Bell, PersonSimpleRun, Lightning, Robot, CalendarBlank, ChartBar, ArrowRight, Camera, Flask } from 'phosphor-react-native';
+import { Bell, PersonSimpleRun, Lightning, Robot, CalendarBlank, ChartBar, ArrowRight, Camera, Flask, Trophy } from 'phosphor-react-native';
 import { UserRole } from '@shared';
 import { RecoveryWeekCard } from '../../components/ui/RecoveryWeekControl';
 
@@ -117,7 +117,14 @@ export const WorkoutScreen: React.FC = () => {
               <ChartBar size={22} weight="bold" color={palette.brand[400]} />
             </View>
             <Text style={styles.quickLabel}>{t('nav.stats')}</Text>
-            <Text style={styles.quickSub}>Volume & PRs</Text>
+            <Text style={styles.quickSub}>Volume trends</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('PRs')}>
+            <View style={styles.quickIconWrap}>
+              <Trophy size={22} weight="bold" color={palette.brand[400]} />
+            </View>
+            <Text style={styles.quickLabel}>{t('nav.prs', { defaultValue: 'Records' })}</Text>
+            <Text style={styles.quickSub}>All-time bests</Text>
           </TouchableOpacity>
         </View>
 

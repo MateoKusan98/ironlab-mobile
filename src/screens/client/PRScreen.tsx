@@ -9,8 +9,7 @@ import { useExerciseName } from '../../hooks/useExerciseName';
 import { theme, palette } from '../../theme';
 import { Trophy } from 'phosphor-react-native';
 import { sessionService } from '../../services/session.service';
-
-interface RepPR { exerciseName: string; reps: string; maxWeight: string; achievedAt: string }
+import { RepPR } from '@shared';
 
 export const PRScreen: React.FC = () => {
   const { t } = useTranslation();
