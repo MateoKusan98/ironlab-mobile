@@ -99,7 +99,7 @@ export const NutritionDashboardScreen: React.FC = () => {
   const todayTotals = summary?.today || { calories: 0, protein: 0, carbs: 0, fat: 0 };
   const targets = summary?.targets || { calories: 2000, protein: 150, carbs: 200, fat: 60 };
   const netBalance = summary?.netBalance || 0;
-  const cardioCaloriesBurned: number = (summary as any)?.cardioCaloriesBurned ?? 0;
+  const cardioCaloriesBurned: number = summary?.cardioCaloriesBurned ?? 0;
 
   // Net calories = consumed - cardio burned. Remaining = target - net
   const netCalories = Math.max(0, todayTotals.calories - cardioCaloriesBurned);
@@ -113,7 +113,7 @@ export const NutritionDashboardScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile' as any)}>
+          <TouchableOpacity onPress={() => navigation.navigate('ClientApp')}>
             <UserAvatar user={user} size={40} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('nav.nutrition')}</Text>

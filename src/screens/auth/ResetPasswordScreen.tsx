@@ -18,6 +18,7 @@ import { theme, palette } from '../../theme';
 import { authService } from '../../services/auth.service';
 import { Lock, Eye, EyeSlash, Hash } from 'phosphor-react-native';
 
+import { apiErrorMessage } from '../../utils/apiError';
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
 const GYM_BG = require('../../../assets/IRONLAB.png');
@@ -52,8 +53,8 @@ export const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
       Alert.alert(t('auth.resetSuccessTitle'), t('auth.resetSuccessMessage'), [
         { text: t('auth.signIn'), onPress: () => navigation.navigate('Login') },
       ]);
-    } catch (error: any) {
-      const message = error.response?.data?.message || t('auth.resetError');
+    } catch (error: unknown) {
+      const message = apiErrorMessage(error, t('auth.resetError'));
       Alert.alert(t('common.error'), message);
     } finally {
       setIsLoading(false);

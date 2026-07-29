@@ -17,6 +17,7 @@ import { theme, palette } from '../../theme';
 import { authService } from '../../services/auth.service';
 import { Envelope } from 'phosphor-react-native';
 
+import { apiErrorMessage } from '../../utils/apiError';
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
 };
@@ -41,8 +42,8 @@ export const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
       // The backend always responds the same way (no account enumeration), so we
       // unconditionally advance to the code-entry screen.
       navigation.navigate('ResetPassword', { email: trimmed });
-    } catch (error: any) {
-      const message = error.response?.data?.message || t('auth.resetRequestError');
+    } catch (error: unknown) {
+      const message = apiErrorMessage(error, t('auth.resetRequestError'));
       Alert.alert(t('common.error'), message);
     } finally {
       setIsLoading(false);

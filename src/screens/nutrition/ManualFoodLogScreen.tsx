@@ -29,6 +29,8 @@ import {
   Switch,
 } from '../../components/ui';
 
+import { appendFile } from '../../utils/upload';
+import { IngredientSearchResult } from '@shared';
 interface SelectedIngredient {
   id: string;
   name: string;
@@ -64,7 +66,7 @@ export const ManualFoodLogScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [ingredients, setIngredients] = useState<SelectedIngredient[]>([]);
-  const [selectedIngredient, setSelectedIngredient] = useState<any>(null);
+  const [selectedIngredient, setSelectedIngredient] = useState<IngredientSearchResult | null>(null);
   const [ingredientGrams, setIngredientGrams] = useState('100');
 
   // Image states — use scanned image if available
@@ -225,17 +227,17 @@ export const ManualFoodLogScreen: React.FC = () => {
     if (mealImage) {
       const uriParts = mealImage.split('.');
       const fileType = uriParts[uriParts.length - 1];
-      formData.append('image', {
+      appendFile(formData, 'image', {
         uri: Platform.OS === 'ios' ? mealImage.replace('file://', '') : mealImage,
         name: `meal_${Date.now()}.${fileType}`,
         type: `image/${fileType}`,
-      } as any);
+      });
     }
 
     try {
       await createFoodLog.mutateAsync(formData);
       Alert.alert(t('common.success'), t('manualFood.mealLoggedSuccess'));
-      navigation.navigate('ClientApp' as any);
+      navigation.navigate('ClientApp');
     } catch (error) {
       Alert.alert(t('common.error'), t('manualFood.logError'));
       console.error(error);
@@ -391,7 +393,7 @@ export const ManualFoodLogScreen: React.FC = () => {
                             {searchResults.length === 0 ? (
                                 <Text style={styles.noResultsText}>{t('manualFood.noResults')}</Text>
                             ) : undefined}
-                            {searchResults.slice(0, 5).map((res: any) => (
+                            {searchResults.slice(0, 5).map((res: IngredientSearchResult) => (
                                 <TouchableOpacity 
                                     key={res.fdcId} 
                                     style={styles.searchResultItem}
@@ -741,7 +743,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   pasteBtn: {
-    marginLeft: 'auto' as any,
+    marginLeft: 'auto',
     backgroundColor: theme.colors.card,
     borderWidth: 1,
     borderColor: palette.brand[500],

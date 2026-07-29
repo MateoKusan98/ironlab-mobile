@@ -13,6 +13,7 @@ import { authService } from '../../services/auth.service';
 import { UserRole } from '@shared';
 import { User, Lock } from 'phosphor-react-native';
 
+import { apiErrorMessage } from '../../utils/apiError';
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 };
@@ -59,8 +60,8 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
       await setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
       // navigation will happen automatically via AppNavigator
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to create account. Please try again.';
+    } catch (error: unknown) {
+      const message = apiErrorMessage(error, 'Failed to create account. Please try again.');
       Alert.alert(t('auth.registrationError'), message);
     } finally {
       setIsLoading(false);

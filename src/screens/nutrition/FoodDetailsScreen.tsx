@@ -73,7 +73,7 @@ export const FoodDetailsScreen: React.FC = () => {
       createFoodLog.mutate(formData, {
         onSuccess: () => {
           // Navigating instantly without "ugly" success message per user request
-          navigation.navigate('ClientApp' as any);
+          navigation.navigate('ClientApp');
         },
         onError: (error) => {
           console.error('Error logging meal:', error);
@@ -226,7 +226,7 @@ export const FoodDetailsScreen: React.FC = () => {
 
                 <Text style={styles.sectionTitle}>{t('foodDetails.instructions')}</Text>
                 <View style={styles.instructionsTimeline}>
-                    {displayData.instructions.map((step: any, i: number) => (
+                    {displayData.instructions.map((step: { step: string; text: string }, i: number) => (
                         <View key={i} style={styles.timelineItem}>
                             <View style={styles.timelineMarker}>
                                 <View style={styles.markerDotInner}>
@@ -244,7 +244,7 @@ export const FoodDetailsScreen: React.FC = () => {
 
                 <View style={styles.rowBetween}>
                     <Text style={styles.sectionTitle}>{t('foodDetails.youMightLike')}</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('BrowseMeals' as any)}>
+                    <TouchableOpacity onPress={() => navigation.navigate('BrowseMeals')}>
                         <Text style={styles.seeAllText}>{t('foodDetails.seeAll')}</Text>
                     </TouchableOpacity>
                 </View>
@@ -267,7 +267,7 @@ export const FoodDetailsScreen: React.FC = () => {
                                         imageUrl: item.img,
                                         tags: ['Recommended'],
                                         notes: 'A delicious and healthy choice recommended by our nutrition experts.'
-                                    } as any 
+                                    }
                                 });
                             }}
                         >
@@ -292,7 +292,7 @@ export const FoodDetailsScreen: React.FC = () => {
                     <TouchableOpacity><Text style={styles.seeAllText}>{t('foodDetails.seeAll')}</Text></TouchableOpacity>
                 </View>
                 <View style={styles.ingredientsList}>
-                    {displayData.ingredients.map((ing: any, i: number) => (
+                    {displayData.ingredients.map((ing: { name: string; amount?: string; unit?: string }, i: number) => (
                         <View key={i} style={styles.ingredientRow}>
                             <Text style={styles.ingPrimary}>{ing.amount} {ing.unit || ''}</Text>
                             <Text style={styles.ingSecondary}>{ing.name}</Text>

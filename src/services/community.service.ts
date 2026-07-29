@@ -1,6 +1,7 @@
 import { api } from './api';
-import { ApiResponse } from '@shared';
+import { ApiResponse, PostMetadata } from '@shared';
 
+import { appendFile } from '../utils/upload';
 export type PostType = 'TEXT' | 'WORKOUT_SHARE' | 'PR_SHARE' | 'FORM_CHECK';
 
 export interface FeedPost {
@@ -9,7 +10,7 @@ export interface FeedPost {
   type: PostType;
   content: string | null;
   imageUrl: string | null;
-  metadata: Record<string, any> | null;
+  metadata: PostMetadata | null;
   likesCount: number;
   commentsCount: number;
   isLiked: boolean;
@@ -45,7 +46,7 @@ export interface CreatePostPayload {
   type: PostType;
   content?: string;
   imageUrl?: string;
-  metadata?: Record<string, any>;
+  metadata?: PostMetadata;
 }
 
 export const communityService = {
@@ -71,11 +72,11 @@ export const communityService = {
   ): Promise<FeedPost> => {
     const formData = new FormData();
     mediaUris.forEach((uri, i) => {
-      formData.append('media', {
+      appendFile(formData, 'media', {
         uri,
         name: mediaType === 'video' ? `form-video-${i}.mp4` : `form-${i}.jpg`,
         type: mediaType === 'video' ? 'video/mp4' : 'image/jpeg',
-      } as any);
+      });
     });
     formData.append('exerciseName', exerciseName);
     formData.append('mediaType', mediaType);

@@ -3,7 +3,8 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  PanResponder, 
+  PanResponder,
+  DimensionValue,
 } from 'react-native';
 import { theme, palette } from '../../theme';
 
@@ -76,10 +77,10 @@ export const Slider: React.FC<SliderProps> = ({
         <View
           style={[
             styles.trackFill,
-            { backgroundColor: getTrackColor(), width: `${value}%` as any },
+            { backgroundColor: getTrackColor(), width: `${value}%` as DimensionValue },
           ]}
         />
-        <View style={[styles.thumb, { left: `${value}%` as any, borderColor: getTrackColor() }]} />
+        <View style={[styles.thumb, { left: `${value}%` as DimensionValue, borderColor: getTrackColor() }]} />
       </View>
 
       {/* Bottom Range Labels */}

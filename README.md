@@ -14,6 +14,7 @@ The app uses native modules (camera, notifications, secure store, keyboard-contr
 | | |
 |---|---|
 | Typecheck / lint | `npm run typecheck` / `npm run lint` |
+| Tests | `npm test` — 36 hook tests, no device or network needed |
 | Release APK | `npm run build:local` → `ironlab-latest.apk` |
 
 ## Layout
@@ -21,15 +22,24 @@ The app uses native modules (camera, notifications, secure store, keyboard-contr
 ```
 src/
   screens/        61 screens, grouped by domain (session, ai-coach, nutrition, client, admin, …)
-  components/ui/  27 shared primitives — Button, Slider, Pagination, KeyboardAwareScreen, …
+  components/ui/  29 shared primitives — Button, Card, Slider, KeyboardAwareScreen, …
   services/       typed API clients, one per backend module
   hooks/          React Query wrappers (server state)
   stores/         Zustand (client state: auth, settings)
   i18n/           8 locales: en, hr, bs, sr, sl, mk, sq, cnr
-  theme/          palette + typography tokens
+  theme/          the ONLY place a colour literal may be written
 ```
 
 Server state is React Query; client state is Zustand. If you're adding a screen that reads from the API, it goes through `hooks/` — not a `useEffect` + `fetch`.
+
+## Two rules the linter enforces
+
+Both are **errors**, not warnings, because both failure modes are silent.
+
+- **No raw hex colours outside `src/theme`.** A hardcoded `'#27272A'` looks right forever and simply stops tracking the theme; that's how ~490 literals accumulated across 48 files, including 74 copies of a value that already had a token. If a colour has no token, add one to `src/theme`.
+- **No `any`.** It switches off type checking wherever it lands and spreads through everything derived from it. Typing the API layer properly surfaced two real defects `any` had been hiding. If a shape is genuinely open-ended, use `unknown` and narrow it.
+
+Screen-level state machines belong in `src/hooks`, not inside the component — that's what makes them testable. `useWorkoutTimer`, `useRestTimer` and `useExerciseCues` were extracted out of `ActiveWorkoutScreen` for exactly that reason and carry the app's 36 tests.
 
 ## Things that will bite you
 
@@ -44,5 +54,5 @@ These are all load-bearing and were each learned the hard way on a release build
 ## Known rough edges
 
 - `src/store/` (one file) and `src/stores/` (two) both exist — the program-builder store should move into `stores/`.
-- There are no tests here yet; the logic worth testing lives in the backend, which has 444.
-- `no-explicit-any` is a warning, not an error — mostly in the API service layer, where responses aren't fully typed yet.
+- Test coverage is the extracted hooks only (36 tests). Screen rendering is untested; the deeper coaching logic lives in the backend, which has 499.
+- Eleven screens are still over 800 lines. The state is out of the biggest one, but the JSX has not been split into components yet.

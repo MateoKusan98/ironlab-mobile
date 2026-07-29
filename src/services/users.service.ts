@@ -1,6 +1,7 @@
 import { api } from './api';
 import { ApiResponse, UserResponse, UpdateProfilePayload } from '@shared';
 
+import { appendFile } from '../utils/upload';
 export interface AdminUserEntry extends UserResponse {
   totalSessions: number;
   lastSessionAt: string | null;
@@ -33,11 +34,11 @@ export const usersService = {
   ): Promise<UserResponse> => {
     const filename = imageUri.split('/').pop() ?? 'avatar.jpg';
     const formData = new FormData();
-    formData.append('file', {
+    appendFile(formData, 'file', {
       uri: imageUri,
       name: filename,
       type: 'image/jpeg',
-    } as any);
+    });
 
     const { data } = await api.post<ApiResponse<UserResponse>>('/users/me/avatar', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -77,7 +78,7 @@ export const usersService = {
   },
 
   getUsageStats: async (since?: string): Promise<{ perUser: UsageStatEntry[]; totals: { tokens: number; costUsd: number; calls: number } }> => {
-    const { data } = await api.get<ApiResponse<{ perUser: UsageStatEntry[]; totals: any }>>('/ai-coach/admin/usage-stats', {
+    const { data } = await api.get<ApiResponse<{ perUser: UsageStatEntry[]; totals: { tokens: number; costUsd: number; calls: number } }>>('/ai-coach/admin/usage-stats', {
       params: since ? { since } : undefined,
     });
     return data.data;

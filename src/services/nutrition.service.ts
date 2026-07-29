@@ -1,5 +1,17 @@
 import { api } from './api';
-import { ApiResponse, FoodLogResponse } from '@shared';
+import {
+  ApiResponse,
+  FoodLogResponse,
+  MyMeal,
+  ParseIngredientsResult,
+  NutritionSummary,
+  CalendarDay,
+  IngredientSearchResult,
+  TdeeResult,
+  ComputedTargets,
+  WeightLogEntry,
+  CalorieAdaptation,
+} from '@shared';
 
 export const nutritionService = {
   createFoodLog: async (formData: FormData): Promise<FoodLogResponse> => {
@@ -29,7 +41,7 @@ export const nutritionService = {
     minCalories?: number,
     maxCalories?: number,
   ): Promise<{ meals: FoodLogResponse[]; total: number }> => {
-    const params: any = { tag, page, limit, search };
+    const params: Record<string, string | number | undefined> = { tag, page, limit, search };
     if (minCalories !== undefined) params.minCalories = minCalories;
     if (maxCalories !== undefined) params.maxCalories = maxCalories;
     
@@ -49,32 +61,32 @@ export const nutritionService = {
     return data.data;
   },
 
-  searchIngredients: async (query: string, page: number = 1): Promise<any[]> => {
-    const { data } = await api.get<ApiResponse<any[]>>('/nutrition/ingredients/search', {
+  searchIngredients: async (query: string, page: number = 1): Promise<IngredientSearchResult[]> => {
+    const { data } = await api.get<ApiResponse<IngredientSearchResult[]>>('/nutrition/ingredients/search', {
       params: { query, page },
     });
     return data.data;
   },
   
-  getSummary: async (period?: string): Promise<any> => {
-    const { data } = await api.get<ApiResponse<any>>('/nutrition/summary', {
+  getSummary: async (period?: string): Promise<NutritionSummary> => {
+    const { data } = await api.get<ApiResponse<NutritionSummary>>('/nutrition/summary', {
       params: { period },
     });
     return data.data;
   },
 
-  getCalendar: async (): Promise<any[]> => {
-    const { data } = await api.get<ApiResponse<any[]>>('/nutrition/calendar');
+  getCalendar: async (): Promise<CalendarDay[]> => {
+    const { data } = await api.get<ApiResponse<CalendarDay[]>>('/nutrition/calendar');
     return data.data;
   },
 
-  getMyMeals: async (): Promise<any[]> => {
-    const { data } = await api.get<ApiResponse<any[]>>('/nutrition/my-meals');
+  getMyMeals: async (): Promise<MyMeal[]> => {
+    const { data } = await api.get<ApiResponse<MyMeal[]>>('/nutrition/my-meals');
     return data.data;
   },
 
-  quickLogMeal: async (mealId: string, mealType: string, date?: string): Promise<any> => {
-    const { data } = await api.post<ApiResponse<any>>(`/nutrition/my-meals/${mealId}/log`, { mealType, date });
+  quickLogMeal: async (mealId: string, mealType: string, date?: string): Promise<FoodLogResponse> => {
+    const { data } = await api.post<ApiResponse<FoodLogResponse>>(`/nutrition/my-meals/${mealId}/log`, { mealType, date });
     return data.data;
   },
 
@@ -82,54 +94,33 @@ export const nutritionService = {
     await api.delete(`/nutrition/my-meals/${mealId}`);
   },
 
-  parseIngredients: async (text: string): Promise<{
-    mealName: string;
-    totalCalories: number;
-    totalProtein: number;
-    totalCarbs: number;
-    totalFat: number;
-    ingredients: { name: string; quantity: number; unit: string; calories: number; protein: number; carbs: number; fat: number }[];
-  }> => {
-    const { data } = await api.post<ApiResponse<any>>('/nutrition/parse-ingredients', { text });
+  parseIngredients: async (text: string): Promise<ParseIngredientsResult> => {
+    const { data } = await api.post<ApiResponse<ParseIngredientsResult>>('/nutrition/parse-ingredients', { text });
     return data.data;
   },
 
-  getTDEE: async (): Promise<{ tdee: number; bmr: number; activityLevel: string; breakdown: Record<string, any> }> => {
-    const { data } = await api.get<ApiResponse<any>>('/nutrition/tdee');
+  getTDEE: async (): Promise<TdeeResult> => {
+    const { data } = await api.get<ApiResponse<TdeeResult>>('/nutrition/tdee');
     return data.data;
   },
 
-  computeTargets: async (opts: { goal?: string; calorieOverride?: number; trainingDaysPerWeek?: number } = {}): Promise<{
-    tdee: number;
-    bmr: number;
-    activityLevel: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    goal: string;
-  }> => {
-    const { data } = await api.post<ApiResponse<any>>('/nutrition/targets', opts);
+  computeTargets: async (opts: { goal?: string; calorieOverride?: number; trainingDaysPerWeek?: number } = {}): Promise<ComputedTargets> => {
+    const { data } = await api.post<ApiResponse<ComputedTargets>>('/nutrition/targets', opts);
     return data.data;
   },
 
-  logWeight: async (weight: number, options?: { unit?: string; date?: string; notes?: string }): Promise<any> => {
-    const { data } = await api.post<ApiResponse<any>>('/nutrition/weight-log', { weight, ...options });
+  logWeight: async (weight: number, options?: { unit?: string; date?: string; notes?: string }): Promise<WeightLogEntry> => {
+    const { data } = await api.post<ApiResponse<WeightLogEntry>>('/nutrition/weight-log', { weight, ...options });
     return data.data;
   },
 
-  getWeightLogs: async (days?: number): Promise<any[]> => {
-    const { data } = await api.get<ApiResponse<any[]>>('/nutrition/weight-logs', { params: { days } });
+  getWeightLogs: async (days?: number): Promise<WeightLogEntry[]> => {
+    const { data } = await api.get<ApiResponse<WeightLogEntry[]>>('/nutrition/weight-logs', { params: { days } });
     return data.data;
   },
 
-  getCalorieAdaptation: async (): Promise<{
-    currentTarget: number;
-    tdeeEstimate: number | null;
-    lastAdjustedAt: string | null;
-    history: { date: string; fromCalories: number; toCalories: number; reason: string; weightTrendKgPerWeek: number }[];
-  }> => {
-    const { data } = await api.get<ApiResponse<any>>('/nutrition/calorie-adaptation');
+  getCalorieAdaptation: async (): Promise<CalorieAdaptation> => {
+    const { data } = await api.get<ApiResponse<CalorieAdaptation>>('/nutrition/calorie-adaptation');
     return data.data;
   },
 };

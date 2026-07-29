@@ -13,10 +13,11 @@ import {
 import { theme, palette } from '../../../theme';
 import { useExercises } from '../../../hooks/useWorkout';
 
+import { ExerciseCatalogItem } from '@shared';
 interface ExerciseSearchModalProps {
   visible: boolean;
   onClose: () => void;
-  onSelect: (exercise: any) => void;
+  onSelect: (exercise: ExerciseCatalogItem) => void;
 }
 
 const MUSCLE_GROUPS = [
@@ -42,7 +43,7 @@ export const ExerciseSearchModal: React.FC<ExerciseSearchModalProps> = ({ visibl
     muscle: selectedMuscle || undefined,
   });
 
-  const renderExercise = ({ item }: { item: any }) => (
+  const renderExercise = ({ item }: { item: ExerciseCatalogItem }) => (
     <TouchableOpacity style={styles.exerciseItem} onPress={() => onSelect(item)}>
       <View style={styles.exerciseInfo}>
         <Text style={styles.exerciseName}>{item.name}</Text>

@@ -15,8 +15,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 import { useCreateProgram } from '../../../hooks/useWorkout';
 
+import { RootStackParamList } from '../../../navigation/AppNavigator';
 export const ProgramCreatorWeeksScreen: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { draft, copyWeek, resetDraft } = useProgramBuilderStore();
   const createProgramMutation = useCreateProgram();
 

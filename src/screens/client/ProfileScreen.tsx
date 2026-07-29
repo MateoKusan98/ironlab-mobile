@@ -10,6 +10,7 @@ import {
   Switch,
   Modal,
   TextInput,
+  DimensionValue,
 } from 'react-native';
 import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,7 +29,7 @@ import { usersService } from '../../services/users.service';
 import { nutritionService } from '../../services/nutrition.service';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
-import { LANGUAGES } from '../../i18n';
+import { LANGUAGES, LanguageCode } from '../../i18n';
 import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug, Sparkle, Brain, ScanSmiley, TreeStructure } from 'phosphor-react-native';
 import { useWhatsNew } from '../../contexts/WhatsNewContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -37,6 +38,7 @@ import { rankForPoints } from '../../services/rank';
 import { Medallion, TIERS } from '../../components/ui/Medallion';
 import { UserRole } from '@shared';
 
+import { apiErrorMessage } from '../../utils/apiError';
 const CREATINE_ENABLED_KEY = '@ironlab_creatine_enabled';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -201,8 +203,8 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleLanguageChange = async (code: string) => {
-    setLanguage(code as any);
+  const handleLanguageChange = async (code: LanguageCode) => {
+    setLanguage(code);
     try {
       await usersService.updateProfile({ preferredLanguage: code });
     } catch {}
@@ -244,13 +246,13 @@ export const ProfileScreen: React.FC = () => {
       setDeleteModalVisible(false);
       setDeletePassword('');
       const updatedUser = await usersService.getProfile();
-      await setUser(updatedUser as any);
+      await setUser(updatedUser);
       Alert.alert(
         'Deletion Scheduled',
         'Your account is scheduled for deletion in 15 days. Logging back in before then will cancel this.',
       );
-    } catch (e: any) {
-      const msg = e?.response?.data?.message ?? 'Incorrect password. Please try again.';
+    } catch (e: unknown) {
+      const msg = apiErrorMessage(e, 'Incorrect password. Please try again.');
       Alert.alert('Error', msg);
     } finally {
       setDeletingAccount(false);
@@ -267,7 +269,7 @@ export const ProfileScreen: React.FC = () => {
           try {
             await usersService.cancelAccountDeletion();
             const updatedUser = await usersService.getProfile();
-            await setUser(updatedUser as any);
+            await setUser(updatedUser);
           } catch {
             Alert.alert('Error', 'Could not cancel deletion. Please try again.');
           } finally {
@@ -335,7 +337,7 @@ export const ProfileScreen: React.FC = () => {
                     <View
                       style={[
                         styles.rankFill,
-                        { width: `${rank.progress * 100}%` as any, backgroundColor: TIERS[rank.tier].glow },
+                        { width: `${rank.progress * 100}%` as DimensionValue, backgroundColor: TIERS[rank.tier].glow },
                       ]}
                     />
                   </View>
@@ -712,12 +714,12 @@ export const ProfileScreen: React.FC = () => {
           </>
         )}
 
-        {(user as any)?.deletionScheduledAt ? (
+        {user?.deletionScheduledAt ? (
           <View style={styles.deletionBanner}>
             <Text style={styles.deletionBannerTitle}>Account Deletion Scheduled</Text>
             <Text style={styles.deletionBannerSub}>
               Your account will be permanently deleted on{' '}
-              {new Date((user as any).deletionScheduledAt).toLocaleDateString(undefined, {
+              {new Date(user.deletionScheduledAt).toLocaleDateString(undefined, {
                 year: 'numeric', month: 'long', day: 'numeric',
               })}.
               {'\n'}Log in again or tap below to cancel.

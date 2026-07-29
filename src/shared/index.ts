@@ -1,6 +1,14 @@
 export { UserRole, MealType, Mood, BadgeKey } from './enums';
 export { FitnessGoal } from './types';
+export { asStringList, asText, asNumber, asTriState, asOptionalText } from './types';
 export type {
+  RepPR,
+  ExerciseCatalogItem,
+  LogContext,
+  PostMetadata,
+  BodyScanAnalysis,
+  FormValue,
+  FormValues,
   ApiResponse,
   PaginatedResponse,
   TokenPair,
@@ -28,4 +36,16 @@ export type {
   SubmitWorkoutLogDto,
   CreateCoachNoteDto,
   UpdateUserDto,
+  MacroTotals,
+  MyMeal,
+  ParsedIngredient,
+  ParseIngredientsResult,
+  NutritionSummary,
+  CalendarDay,
+  IngredientSearchResult,
+  TdeeResult,
+  ComputedTargets,
+  WeightLogEntry,
+  CalorieAdaptation,
+  CalorieAdjustment,
 } from './dto';

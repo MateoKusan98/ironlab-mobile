@@ -275,7 +275,7 @@ export const ScanResultScreen: React.FC = () => {
         {/* ── CTA ── */}
         <TouchableOpacity
           style={styles.ctaBtn}
-          onPress={() => navigation.navigate('ClientApp' as any)}
+          onPress={() => navigation.navigate('ClientApp')}
         >
           <Text style={styles.ctaBtnText}>{t('scanResult.continueBtn')}</Text>
         </TouchableOpacity>

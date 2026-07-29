@@ -13,17 +13,18 @@ import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { palette } from '../../theme';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { api } from '../../services/api';
 
+import { appendFile } from '../../utils/upload';
 const { width, height } = Dimensions.get('window');
 
 export const BodyScanScreen: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute();
+  const route = useRoute<RouteProp<RootStackParamList, 'BodyScan'>>();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
@@ -31,7 +32,7 @@ export const BodyScanScreen: React.FC = () => {
   const TIMER_OPTIONS = [0, 3, 5, 10];
   const [timerDuration, setTimerDuration] = useState(0);
   const [countdown, setCountdown] = useState<number | null>(null);
-  const cameraRef = useRef<any>(null);
+  const cameraRef = useRef<CameraView>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -52,14 +53,14 @@ export const BodyScanScreen: React.FC = () => {
   const analyzeImage = async (uri: string) => {
     try {
       setIsAnalyzing(true);
-      const returnTo = (route.params as any)?.returnTo;
+      const returnTo = route.params?.returnTo;
 
       const formData = new FormData();
-      formData.append('image', {
+      appendFile(formData, 'image', {
         uri,
         name: 'scan.jpg',
         type: 'image/jpeg',
-      } as any);
+      });
 
       if (returnTo === 'FoodDetails') {
         const response = await api.post('/nutrition/analyze-food', formData, {

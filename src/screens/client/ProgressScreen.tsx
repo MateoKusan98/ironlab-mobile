@@ -24,6 +24,7 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import { Camera, Trash, ScanSmiley } from 'phosphor-react-native';
 
 import { Card } from '../../components/ui';
+import { appendFile } from '../../utils/upload';
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
 
@@ -106,7 +107,7 @@ export const ProgressScreen: React.FC = () => {
     const match = /\.(\w+)$/.exec(filename);
     const type = match ? `image/${match[1]}` : 'image/jpeg';
     const formData = new FormData();
-    formData.append('image', { uri, name: filename, type } as any);
+    appendFile(formData, 'image', { uri, name: filename, type });
 
     setIsUploading(true);
     uploadMutation.mutate(formData, { onSettled: () => setIsUploading(false) });

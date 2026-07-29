@@ -13,6 +13,8 @@ import { theme, palette } from '../../theme';
 import { aiCoachService, AICoachProfileData, CoachPreferences } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 
+import { apiErrorMessage } from '../../utils/apiError';
+import { FormValue, FormValues, asNumber, asOptionalText, asStringList, asText, asTriState } from '@shared';
 const { width } = Dimensions.get('window');
 
 type Props = {
@@ -39,7 +41,7 @@ interface Question {
   allowDontKnow?: boolean; // shows "Not sure yet" escape hatch; stores '__unknown__', skipped on save
   trueLabel?: string;
   falseLabel?: string;
-  showIf?: (answers: Record<string, any>) => boolean;
+  showIf?: (answers: FormValues) => boolean;
 }
 
 interface Section { id: string; title: string; icon: string; subtitle: string; questions: Question[] }
@@ -764,7 +766,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
   const editMode = route.params?.editMode ?? false;
   const { user, setUser } = useAuthStore();
   const [sectionIndex, setSectionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<FormValues>({});
   const [isSaving, setIsSaving] = useState(false);
 
   // Keys the form actually edits — used to filter the prefill so we never load
@@ -782,8 +784,8 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
     if (!editMode) return;
     aiCoachService.getProfile().then((profile) => {
       if (!profile) return;
-      const loaded: Record<string, any> = {};
-      (Object.entries(profile) as [string, any][]).forEach(([k, v]) => {
+      const loaded: FormValues = {};
+      (Object.entries(profile) as [string, FormValue][]).forEach(([k, v]) => {
         if (!EDITABLE_KEYS.has(k)) return; // skip id/userId/timestamps/internal columns
         if (v !== null && v !== undefined && v !== '') loaded[k] = v;
       });
@@ -816,9 +818,9 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
   const totalSections = SECTIONS.length;
   const progress = (sectionIndex + 1) / totalSections;
 
-  const get = (id: string, def: any = '') => answers[id] ?? def;
+  const get = (id: string, def: FormValue = '') => answers[id] ?? def;
 
-  const set = (id: string, value: any) => setAnswers((prev) => ({ ...prev, [id]: value }));
+  const set = (id: string, value: FormValue) => setAnswers((prev) => ({ ...prev, [id]: value }));
 
   const animateTransition = (direction: 'forward' | 'back', callback: () => void) => {
     const startX = direction === 'forward' ? width : -width;
@@ -843,7 +845,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
     if (!suggestions) return;
     setAnswers((prev) => {
       const next = { ...prev };
-      if (suggestions.trainingDays && !prev.trainingDays?.length) next.trainingDays = suggestions.trainingDays;
+      if (suggestions.trainingDays && asStringList(prev.trainingDays).length === 0) next.trainingDays = suggestions.trainingDays;
       if (suggestions.avgSessionMinutes && !prev.sessionDurationMinutes) next.sessionDurationMinutes = suggestions.avgSessionMinutes;
       if (suggestions.squatFrequencyPerWeek && !prev.squatFrequencyPerWeek) next.squatFrequencyPerWeek = Math.round(suggestions.squatFrequencyPerWeek);
       if (suggestions.benchFrequencyPerWeek && !prev.benchFrequencyPerWeek) next.benchFrequencyPerWeek = Math.round(suggestions.benchFrequencyPerWeek);
@@ -905,22 +907,25 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
       if (preferences?.duration) profileData.sessionDurationMinutes = preferences.duration;
       if (preferences?.intensity) profileData.preferredIntensity = preferences.intensity;
 
+      // The questionnaire is rendered from a config array, so its answers are
+      // keyed by string — which no static type can line up with the DTO's fixed
+      // shape. EDITABLE_KEYS is the real gate (it drops every internal column),
+      // so narrow once here rather than casting at each write.
+      const dynamic = profileData as unknown as FormValues;
       Object.entries(answers).forEach(([key, val]) => {
         if (!EDITABLE_KEYS.has(key)) return; // never send internal/non-DTO columns
         if (val !== '' && val !== null && val !== undefined && val !== '__unknown__') {
-          if (numericFields.includes(key)) {
-            (profileData as any)[key] = typeof val === 'number' ? val : parseFloat(val);
-          } else {
-            (profileData as any)[key] = val;
-          }
+          dynamic[key] = numericFields.includes(key)
+            ? (typeof val === 'number' ? val : asNumber(val))
+            : val;
         }
       });
 
       // The competition/PR date lives behind its own endpoint (it re-anchors the
       // periodization block clock), and the profile DTO would reject it. Strip it
       // out of the profile payload and reconcile it separately.
-      delete (profileData as any).competitionDate;
-      delete (profileData as any).competitionType;
+      delete dynamic.competitionDate;
+      delete dynamic.competitionType;
 
       // Express (beginner) onboarding fills in sensible defaults for everything we
       // deliberately didn't ask, so the coach can build a safe general program on
@@ -956,9 +961,8 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
         if (user) setUser({ ...user, isAICoachSetupComplete: true });
         navigation.replace('StartSession', {});
       }
-    } catch (err: any) {
-      const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
-      Alert.alert(t('aiCoachExtendedSetup.saveFailedTitle'), String(Array.isArray(msg) ? msg.join('\n') : msg));
+    } catch (err: unknown) {
+      Alert.alert(t('aiCoachExtendedSetup.saveFailedTitle'), apiErrorMessage(err, 'Unknown error'));
     } finally {
       setIsSaving(false);
     }
@@ -974,16 +978,16 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
     const input = (() => {
       switch (type) {
         case 'single':
-          return <SingleChoice options={options} value={notSure ? '' : get(id)} onChange={(v) => set(id, v)} />;
+          return <SingleChoice options={options} value={notSure ? '' : asText(get(id))} onChange={(v) => set(id, v)} />;
         case 'multi':
-          return <MultiChoice options={options} value={get(id, [])} onChange={(v) => set(id, v)} />;
+          return <MultiChoice options={options} value={asStringList(get(id, []))} onChange={(v) => set(id, v)} />;
         case 'number':
-          return <NumberInput value={get(id)} onChange={(v) => set(id, v)} unit={unit} placeholder={placeholder} min={min} max={max} />;
+          return <NumberInput value={asText(get(id))} onChange={(v) => set(id, v)} unit={unit} placeholder={placeholder} min={min} max={max} />;
         case 'text':
           return (
             <TextInput
               style={s.textArea}
-              value={get(id)}
+              value={asText(get(id))}
               onChangeText={(v) => set(id, v)}
               placeholder={placeholder}
               placeholderTextColor={palette.gray[600]}
@@ -995,7 +999,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
           return (
             <TextInput
               style={[s.textArea, s.textAreaLarge]}
-              value={get(id)}
+              value={asText(get(id))}
               onChangeText={(v) => set(id, v)}
               placeholder={placeholder}
               placeholderTextColor={palette.gray[600]}
@@ -1007,21 +1011,27 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
         case 'bool':
           return (
             <BoolInput
-              value={notSure ? null : get(id, null)}
+              value={notSure ? null : asTriState(get(id, null))}
               onChange={(v) => set(id, v)}
               trueLabel={trueLabel ?? (id === 'prefersStructure' ? t('aiCoachExtendedSetup.optionRigidStructure') : t('common.yes'))}
               falseLabel={falseLabel ?? (id === 'prefersStructure' ? t('aiCoachExtendedSetup.optionFlexible') : t('common.no'))}
             />
           );
         case 'slider':
-          return <SliderInput value={get(id, min ?? 1)} onChange={(v) => set(id, v)} min={min} max={max} />;
+          return <SliderInput value={asNumber(get(id, min ?? 1)) ?? min ?? 1} onChange={(v) => set(id, v)} min={min} max={max} />;
         case 'focus_slider':
-          return <FocusSlider value={get(id, '')} onChange={(v) => set(id, v)} t={t} />;
+          return <FocusSlider value={asText(get(id, ''))} onChange={(v) => set(id, v)} t={t} />;
         case 'comp_date':
           return (
             <CompDateField
-              date={get('competitionDate', null)}
-              type={get('competitionType', null)}
+              date={asOptionalText(get('competitionDate', null))}
+              // The field only ever stores these two literals; validate rather
+              // than assert, so a stale saved answer can't smuggle in anything else.
+              type={
+                asOptionalText(get('competitionType', null)) === 'meet' ? 'meet'
+                : asOptionalText(get('competitionType', null)) === 'pr_test' ? 'pr_test'
+                : null
+              }
               onChange={(d, ty) => setAnswers((prev) => ({ ...prev, competitionDate: d, competitionType: ty }))}
               t={t}
             />

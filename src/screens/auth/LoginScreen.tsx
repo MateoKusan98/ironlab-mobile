@@ -21,6 +21,7 @@ import { authService } from '../../services/auth.service';
 import { Envelope, Eye, EyeSlash, GoogleLogo, Lock } from 'phosphor-react-native';
 import { useSocialAuth } from '../../hooks/useSocialAuth';
 
+import { apiErrorMessage } from '../../utils/apiError';
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 };
@@ -48,8 +49,8 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     try {
       const response = await authService.login({ email, password });
       await setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Invalid email or password.';
+    } catch (error: unknown) {
+      const message = apiErrorMessage(error, 'Invalid email or password.');
       Alert.alert(t('auth.signIn'), message);
     } finally {
       setIsLoading(false);

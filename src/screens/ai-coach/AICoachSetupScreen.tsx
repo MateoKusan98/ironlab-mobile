@@ -42,7 +42,7 @@ const TIME_OPTIONS = [
   { value: 'morning', labelKey: 'aiCoachSetup.morning', subKey: 'aiCoachSetup.morningSub' },
   { value: 'afternoon', labelKey: 'aiCoachSetup.afternoon', subKey: 'aiCoachSetup.afternoonSub' },
   { value: 'evening', labelKey: 'aiCoachSetup.evening', subKey: 'aiCoachSetup.eveningSub' },
-];
+] as const;
 
 
 const DURATIONS = Array.from({ length: 23 }, (_, i) => (i + 1) * 5);
@@ -365,7 +365,7 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
                 <TouchableOpacity
                   key={opt.value}
                   style={[styles.optionCard, selected && styles.optionCardSelected]}
-                  onPress={() => setPrefs((p) => ({ ...p, timeSlot: opt.value as any }))}
+                  onPress={() => setPrefs((p) => ({ ...p, timeSlot: opt.value }))}
                 >
                   <View>
                     <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>

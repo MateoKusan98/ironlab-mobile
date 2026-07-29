@@ -40,7 +40,7 @@ function logApiError(error: AxiosError) {
   const cfg = (error.config ?? {}) as InternalAxiosRequestConfig & { metadata?: { startTime: number } };
   const durationMs = cfg.metadata?.startTime ? Date.now() - cfg.metadata.startTime : undefined;
   const status = error.response?.status;
-  const serverMsg = (error.response?.data as any)?.message;
+  const serverMsg = (error.response?.data as { message?: string } | undefined)?.message;
   const detail = Array.isArray(serverMsg) ? serverMsg.join(', ') : serverMsg ?? error.message;
   logService.capture({
     level: 'error',
@@ -66,7 +66,7 @@ api.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    (config as any).metadata = { startTime: Date.now() };
+    (config as InternalAxiosRequestConfig & { metadata?: { startTime: number } }).metadata = { startTime: Date.now() };
     return config;
   },
   (error) => Promise.reject(error),

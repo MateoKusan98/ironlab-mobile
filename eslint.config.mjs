@@ -32,7 +32,12 @@ export default tseslint.config(
   {
     files: ['src/**/*.{ts,tsx}'],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // `any` switches off type checking wherever it lands and spreads through
+      // every value derived from it. Typing the API layer properly turned up two
+      // real defects that `any` had been hiding, so this is an error: if a shape
+      // is genuinely unknown, use `unknown` and narrow it, or add the type to
+      // src/shared.
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },

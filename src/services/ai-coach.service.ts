@@ -1,5 +1,6 @@
 import { api } from './api';
 
+import { FormValues } from '@shared';
 // LLM session generation runs a reasoning model server-side and routinely takes
 // far longer than the api client's default 15s timeout — without this override
 // the mobile client aborts with a timeout error while the backend completes and
@@ -14,6 +15,17 @@ export interface NextSessionExercise {
   rpe?: number;
   weightPerc?: number;
   cue?: string;
+}
+
+/** Schedule + big-3 frequency the coach infers from recent logged sessions. */
+export interface SuggestedConstraints {
+  trainingDays: string[] | null;
+  sessionsPerWeek: number | null;
+  avgSessionMinutes: number | null;
+  squatFrequencyPerWeek: number | null;
+  benchFrequencyPerWeek: number | null;
+  deadliftFrequencyPerWeek: number | null;
+  sessionCount: number;
 }
 
 export interface NextSession {
@@ -330,17 +342,9 @@ export const aiCoachService = {
     await api.post('/ai-coach/injury-preference', { handling });
   },
 
-  getSuggestedConstraints: async (): Promise<{
-    trainingDays: string[] | null;
-    sessionsPerWeek: number | null;
-    avgSessionMinutes: number | null;
-    squatFrequencyPerWeek: number | null;
-    benchFrequencyPerWeek: number | null;
-    deadliftFrequencyPerWeek: number | null;
-    sessionCount: number;
-  } | null> => {
+  getSuggestedConstraints: async (): Promise<SuggestedConstraints | null> => {
     try {
-      const { data } = await api.get<{ data: any }>('/ai-coach/suggested-constraints');
+      const { data } = await api.get<{ data: SuggestedConstraints }>('/ai-coach/suggested-constraints');
       return data.data;
     } catch {
       return null;
@@ -403,7 +407,7 @@ export interface AdminUserState {
   squatFreq: number | null;
   benchFreq: number | null;
   deadliftFreq: number | null;
-  nextSessionJson: any;
+  nextSessionJson: NextSession | null;
   planGeneratedAt: string | null;
 }
 
@@ -466,12 +470,12 @@ export const adminAiService = {
 
   // The editable source profile behind the context message. Numeric columns are
   // returned as strings (see backend getProfile projection), arrays/booleans as-is.
-  getProfile: async (userId: string): Promise<Record<string, any> | null> => {
-    const { data } = await api.get<{ data: Record<string, any> | null }>(`/ai-coach/admin/lab/${userId}/profile`);
+  getProfile: async (userId: string): Promise<FormValues | null> => {
+    const { data } = await api.get<{ data: FormValues | null }>(`/ai-coach/admin/lab/${userId}/profile`);
     return data.data;
   },
 
-  saveProfile: async (userId: string, updates: Record<string, any>): Promise<void> => {
+  saveProfile: async (userId: string, updates: FormValues): Promise<void> => {
     await api.post(`/ai-coach/admin/lab/${userId}/profile`, updates);
   },
 };

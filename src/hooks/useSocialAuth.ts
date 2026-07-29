@@ -6,6 +6,7 @@ import { Alert } from 'react-native';
 import { useAuthStore } from '../stores/auth.store';
 import { authService } from '../services/auth.service';
 
+import { apiErrorMessage } from '../utils/apiError';
 WebBrowser.maybeCompleteAuthSession();
 
 export function useSocialAuth() {
@@ -32,8 +33,8 @@ export function useSocialAuth() {
     try {
       const response = await authService.socialAuth({ provider, accessToken });
       await setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
-    } catch (error: any) {
-      const message = error.response?.data?.message ?? 'Something went wrong. Please try again.';
+    } catch (error: unknown) {
+      const message = apiErrorMessage(error, 'Something went wrong. Please try again.');
       Alert.alert('Sign-In Failed', message);
     } finally {
       setIsLoading(false);

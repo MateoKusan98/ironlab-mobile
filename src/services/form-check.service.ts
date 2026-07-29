@@ -1,5 +1,6 @@
 import { api } from './api';
 
+import { appendFile } from '../utils/upload';
 // These endpoints upload media AND run AI/ffmpeg server-side before responding,
 // so they take far longer than the api client's 15s default. Video is the
 // heaviest (≤60MB upload + frame extraction + GPT-4o vision on 8 frames).
@@ -41,11 +42,11 @@ export const formCheckService = {
   ): Promise<{ id: string; aiAnalysis: AIFormCheckAnalysis; mediaUrls: string[] }> => {
     const formData = new FormData();
     imageUris.forEach((uri, i) => {
-      formData.append('images', {
+      appendFile(formData, 'images', {
         uri,
         name: `form-${i}.jpg`,
         type: 'image/jpeg',
-      } as any);
+      });
     });
     formData.append('exerciseName', exerciseName);
     if (userNotes) formData.append('userNotes', userNotes);
@@ -63,11 +64,11 @@ export const formCheckService = {
     userNotes?: string,
   ): Promise<{ id: string; aiAnalysis: AIFormCheckAnalysis; mediaUrls: string[] }> => {
     const formData = new FormData();
-    formData.append('video', {
+    appendFile(formData, 'video', {
       uri: videoUri,
       name: 'form-video.mp4',
       type: 'video/mp4',
-    } as any);
+    });
     formData.append('exerciseName', exerciseName);
     if (userNotes) formData.append('userNotes', userNotes);
 
@@ -86,11 +87,11 @@ export const formCheckService = {
   ): Promise<{ id: string; status: string }> => {
     const formData = new FormData();
     mediaUris.forEach((uri, i) => {
-      formData.append('media', {
+      appendFile(formData, 'media', {
         uri,
         name: mediaType === 'video' ? `form-video-${i}.mp4` : `form-${i}.jpg`,
         type: mediaType === 'video' ? 'video/mp4' : 'image/jpeg',
-      } as any);
+      });
     });
     formData.append('exerciseName', exerciseName);
     if (userNotes) formData.append('userNotes', userNotes);

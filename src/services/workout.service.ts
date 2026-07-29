@@ -1,21 +1,15 @@
 import { api } from './api';
-import {
-  ApiResponse,
-  WorkoutPlanResponse,
-  WorkoutLogResponse,
-  CreateWorkoutPlanDto,
-  SubmitWorkoutLogDto,
-} from '@shared';
+import { ApiResponse, CreateWorkoutPlanDto, ExerciseCatalogItem, SubmitWorkoutLogDto, WorkoutLogResponse, WorkoutPlanResponse } from '@shared';
 import { DraftProgram } from '../store/useProgramBuilderStore';
 
 export const workoutService = {
-  getExercises: async (params?: { q?: string; muscle?: string; equipment?: string }): Promise<any[]> => {
-    const { data } = await api.get<ApiResponse<any[]>>('/workouts/exercises', { params });
+  getExercises: async (params?: { q?: string; muscle?: string; equipment?: string }): Promise<ExerciseCatalogItem[]> => {
+    const { data } = await api.get<ApiResponse<ExerciseCatalogItem[]>>('/workouts/exercises', { params });
     return data.data;
   },
 
-  createProgram: async (dto: DraftProgram): Promise<any> => {
-    const { data } = await api.post<ApiResponse<any>>('/workouts/programs', dto);
+  createProgram: async (dto: DraftProgram): Promise<{ id: string }> => {
+    const { data } = await api.post<ApiResponse<{ id: string }>>('/workouts/programs', dto);
     return data.data;
   },
 

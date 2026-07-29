@@ -7,6 +7,8 @@ import { ratingTitle, DIFFICULTY_LABELS } from '../data/fitnessQuiz';
 import { useRatedQuiz } from '../hooks/useRatedQuiz';
 
 import { Card } from '../components/ui';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 /**
  * Compact rated-quiz card for the Home screen: one question at a time,
  * answered inline. Shares the persistent Elo rating with the full quiz
@@ -14,7 +16,7 @@ import { Card } from '../components/ui';
  * knowledge badges.
  */
 export const HomeQuizCard: React.FC<{ style?: StyleProp<ViewStyle> }> = ({ style }) => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { rating, question, scoreAnswer, nextQuestion } = useRatedQuiz();
 
   const [selected, setSelected] = useState<number | null>(null);

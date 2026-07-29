@@ -10,6 +10,7 @@ import {
   Modal,
   Animated,
   Platform,
+  DimensionValue,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -649,7 +650,7 @@ export const HomeScreen: React.FC = () => {
               <Text style={styles.stepGoal}>/ {STEP_GOAL.toLocaleString()}</Text>
             </View>
             <View style={styles.stepBarBg}>
-              <View style={[styles.stepBarFill, { width: `${Math.min((steps / STEP_GOAL) * 100, 100)}%` as any }]} />
+              <View style={[styles.stepBarFill, { width: `${Math.min((steps / STEP_GOAL) * 100, 100)}%` as DimensionValue }]} />
             </View>
             <Text style={styles.stepPercent}>
               {steps >= STEP_GOAL ? t('home.goalReached') : t('home.percentOfGoal', { percent: Math.round((steps / STEP_GOAL) * 100) })}

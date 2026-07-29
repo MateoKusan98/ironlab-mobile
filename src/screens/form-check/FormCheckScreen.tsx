@@ -43,6 +43,7 @@ import {
   Plus,
 } from 'phosphor-react-native';
 
+import { apiErrorMessage } from '../../utils/apiError';
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'FormCheck'>;
 };
@@ -274,8 +275,8 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
       setAiResult(aiAnalysis);
       // Result is in — keep the quiz up and flip it to the "Continue" CTA.
       setAnalysisReady(true);
-    } catch (e: any) {
-      Alert.alert(t('formCheck.analysisFailed'), e?.response?.data?.message || t('errors.unknownError'));
+    } catch (e: unknown) {
+      Alert.alert(t('formCheck.analysisFailed'), apiErrorMessage(e, t('errors.unknownError')));
       setAnalyzing(false);
       setAnalysisReady(false);
     }
@@ -324,8 +325,8 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
       setRequestsLoaded(false);
       await loadMyRequests();
       Alert.alert(t('formCheck.submitSuccess'), t('formCheck.submitSuccessMsg'));
-    } catch (e: any) {
-      Alert.alert(t('formCheck.submitFailed'), e?.response?.data?.message || t('errors.unknownError'));
+    } catch (e: unknown) {
+      Alert.alert(t('formCheck.submitFailed'), apiErrorMessage(e, t('errors.unknownError')));
     } finally {
       setSubmitting(false);
     }
@@ -379,8 +380,8 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
       setCommExercise('');
       setCommNotes('');
       navigation.navigate('PostDetail', { postId: post.id });
-    } catch (e: any) {
-      Alert.alert(t('formCheck.postFailed'), e?.response?.data?.message || t('errors.unknownError'));
+    } catch (e: unknown) {
+      Alert.alert(t('formCheck.postFailed'), apiErrorMessage(e, t('errors.unknownError')));
     } finally {
       setPosting(false);
     }

@@ -1,5 +1,6 @@
 import { api } from './api';
 
+import { RepPR } from '@shared';
 export interface PRResult {
   type: string;
   label: string;
@@ -339,8 +340,8 @@ export const sessionService = {
     return data.data;
   },
 
-  getPRs: async (): Promise<{ repPRs: any[] }> => {
-    const { data } = await api.get<{ data: { repPRs: any[] } }>('/sessions/prs');
+  getPRs: async (): Promise<{ repPRs: RepPR[] }> => {
+    const { data } = await api.get<{ data: { repPRs: RepPR[] } }>('/sessions/prs');
     return data.data;
   },
 

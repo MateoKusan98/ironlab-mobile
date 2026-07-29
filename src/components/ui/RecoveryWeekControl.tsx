@@ -17,6 +17,7 @@ import { theme, palette, alpha } from '../../theme';
 import { aiCoachService, RecoveryWeekStatus } from '../../services/ai-coach.service';
 
 import { Card } from '../../components/ui';
+import { apiErrorMessage } from '../../utils/apiError';
 // ─── Recovery / Vacation Modal ────────────────────────────────────────────────
 
 export const RecoveryModal: React.FC<{
@@ -161,9 +162,8 @@ export const RecoveryWeekCard: React.FC = () => {
         Alert.alert(t('aiCoach.recovery.recoveryOnTitle'), t('aiCoach.recovery.recoveryOnMsg', { date: dateStr }));
         aiCoachService.generatePlan().catch(() => {});
       }
-    } catch (err: any) {
-      const msg = err?.response?.data?.message;
-      Alert.alert('Error', String(Array.isArray(msg) ? msg.join('\n') : msg ?? t('aiCoach.recovery.error')));
+    } catch (err: unknown) {
+      Alert.alert('Error', apiErrorMessage(err, t('aiCoach.recovery.error')));
     } finally {
       setBusy(false);
     }

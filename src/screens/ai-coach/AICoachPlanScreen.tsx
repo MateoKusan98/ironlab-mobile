@@ -25,6 +25,7 @@ import { MagnifyingGlass, Trophy, ChartBar } from 'phosphor-react-native';
 import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
 import { RecoveryModal, RecoveryBanner } from '../../components/ui/RecoveryWeekControl';
 
+import { apiErrorMessage, apiErrorStatus } from '../../utils/apiError';
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'AICoachPlan'>;
 
 
@@ -706,8 +707,8 @@ export const AICoachPlanScreen: React.FC = () => {
     setFatigueBusy(true);
     try {
       setFatigue(await aiCoachService.dismissFatigue());
-    } catch (e: any) {
-      Alert.alert('Not available', e?.response?.data?.message ?? 'Could not clear your fatigue status.');
+    } catch (e: unknown) {
+      Alert.alert('Not available', apiErrorMessage(e, 'Could not clear your fatigue status.'));
     } finally {
       setFatigueBusy(false);
     }
@@ -784,8 +785,8 @@ export const AICoachPlanScreen: React.FC = () => {
       await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
       setRegenUsedToday(true);
       setPlanReady(true);
-    } catch (err: any) {
-      const status = err?.response?.status;
+    } catch (err: unknown) {
+      const status = apiErrorStatus(err);
       if (status === 429) {
         const today = new Date().toISOString().split('T')[0];
         await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
@@ -820,9 +821,8 @@ export const AICoachPlanScreen: React.FC = () => {
           setGenerating(false);
         }
       }
-    } catch (err: any) {
-      const msg = err?.response?.data?.message;
-      Alert.alert('Error', String(Array.isArray(msg) ? msg.join('\n') : msg ?? t('aiCoach.recovery.error')));
+    } catch (err: unknown) {
+      Alert.alert('Error', apiErrorMessage(err, t('aiCoach.recovery.error')));
     } finally {
       setRecoveryBusy(false);
     }
@@ -862,14 +862,13 @@ export const AICoachPlanScreen: React.FC = () => {
       await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
       setRegenUsedToday(true);
       setPlanReady(true);
-    } catch (err: any) {
-      const status = (err as any)?.response?.status;
+    } catch (err: unknown) {
+      const status = apiErrorStatus(err);
       if (status === 429) {
         await AsyncStorage.setItem(REGEN_DATE_KEY, today).catch(() => {});
         setRegenUsedToday(true);
       }
-      const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
-      Alert.alert('Could not generate plan', String(Array.isArray(msg) ? msg.join('\n') : msg));
+      Alert.alert('Could not generate plan', apiErrorMessage(err, 'Unknown error'));
       setGenerating(false);
     }
   };

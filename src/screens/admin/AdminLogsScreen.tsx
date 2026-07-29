@@ -218,10 +218,10 @@ const styles = StyleSheet.create({
   time: { flex: 1, textAlign: 'right', fontSize: 11, color: palette.gray[600] },
 
   message: { fontSize: 13, color: theme.colors.text, fontWeight: '500' },
-  route: { fontSize: 12, color: palette.brand[300], marginTop: 4, fontFamily: 'monospace' as any },
+  route: { fontSize: 12, color: palette.brand[300], marginTop: 4, fontFamily: 'monospace' },
   identity: { fontSize: 11, color: palette.gray[500], marginTop: 6 },
 
   detail: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: palette.gray[800], gap: 8 },
-  detailText: { fontSize: 11, color: palette.gray[400], fontFamily: 'monospace' as any },
+  detailText: { fontSize: 11, color: palette.gray[400], fontFamily: 'monospace' },
   detailMeta: { fontSize: 11, color: palette.gray[600] },
 });

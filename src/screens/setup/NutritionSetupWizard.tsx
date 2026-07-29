@@ -747,7 +747,7 @@ const styles = StyleSheet.create({
   },
   calculateBtnText: {
     fontSize: 16,
-    fontWeight: theme.fontWeight.bold as any,
+    fontWeight: theme.fontWeight.bold,
     color: palette.black,
   },
   orText: {

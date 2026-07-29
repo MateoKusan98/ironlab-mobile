@@ -13,6 +13,7 @@ import { ideasService, IdeaSubmission } from '../../services/ideas.service';
 import { theme, palette } from '../../theme';
 
 import { Card } from '../../components/ui';
+import { apiErrorMessage } from '../../utils/apiError';
 type FilterStatus = 'PENDING' | 'THANKED' | 'REJECTED' | 'ALL';
 
 function fmtDate(iso: string) {
@@ -66,8 +67,8 @@ export const AdminIdeasScreen: React.FC = () => {
             try {
               const updated = await ideasService.thankIdea(idea.id);
               setIdeas((prev) => prev.map((i) => (i.id === updated.id ? { ...i, ...updated } : i)));
-            } catch (e: any) {
-              Alert.alert('Error', e?.response?.data?.message ?? 'Something went wrong.');
+            } catch (e: unknown) {
+              Alert.alert('Error', apiErrorMessage(e, 'Something went wrong.'));
             } finally {
               setProcessingId(null);
             }
@@ -91,8 +92,8 @@ export const AdminIdeasScreen: React.FC = () => {
             try {
               const updated = await ideasService.rejectIdea(idea.id);
               setIdeas((prev) => prev.map((i) => (i.id === updated.id ? { ...i, ...updated } : i)));
-            } catch (e: any) {
-              Alert.alert('Error', e?.response?.data?.message ?? 'Something went wrong.');
+            } catch (e: unknown) {
+              Alert.alert('Error', apiErrorMessage(e, 'Something went wrong.'));
             } finally {
               setProcessingId(null);
             }

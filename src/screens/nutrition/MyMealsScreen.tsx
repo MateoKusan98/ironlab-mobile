@@ -9,6 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { nutritionService } from '../../services/nutrition.service';
 import { theme, palette } from '../../theme';
 import { Card } from '../../components/ui';
+import { MyMeal } from '@shared';
 const MEAL_TYPES = [
   { value: 'BREAKFAST', label: 'Breakfast', emoji: '🌅' },
   { value: 'LUNCH',     label: 'Lunch',     emoji: '☀️' },
@@ -16,16 +17,8 @@ const MEAL_TYPES = [
   { value: 'SNACK',     label: 'Snack',     emoji: '🍿' },
 ];
 
-type Meal = {
-  id: string;
-  name: string;
-  image: string | null;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  tags: string[];
-};
+// Shape comes from the shared DTO so the screen and the service cannot drift.
+type Meal = MyMeal;
 
 export const MyMealsScreen: React.FC = () => {
   const { t } = useTranslation();

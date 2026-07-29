@@ -13,8 +13,9 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 
+import { RootStackParamList } from '../../../navigation/AppNavigator';
 export const ProgramCreatorStructureScreen: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { draft, generateBlocks } = useProgramBuilderStore();
 
   const [localBlocks, setLocalBlocks] = useState<{name: string, weeks: number}[]>(

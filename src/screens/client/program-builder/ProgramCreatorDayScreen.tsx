@@ -13,6 +13,7 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 import { ExerciseSearchModal } from './ExerciseSearchModal';
 
+import { ExerciseCatalogItem } from '@shared';
 type RouteParams = {
     params: {
         blockIndex: number;
@@ -34,7 +35,7 @@ export const ProgramCreatorDayScreen: React.FC = () => {
       updateDay(blockIndex, weekIndex, dayIndex, { isRestDay: value });
   };
 
-  const handleSelectExercise = (exercise: any) => {
+  const handleSelectExercise = (exercise: ExerciseCatalogItem) => {
       addExerciseToDay(blockIndex, weekIndex, dayIndex, {
           id: `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           exerciseId: exercise.id,

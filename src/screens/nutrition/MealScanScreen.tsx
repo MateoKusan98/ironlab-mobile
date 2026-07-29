@@ -17,6 +17,7 @@ import { palette } from '../../theme';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { api } from '../../services/api';
 
+import { appendFile } from '../../utils/upload';
 const { width } = Dimensions.get('window');
 const FRAME_SIZE = width * 0.78;
 
@@ -26,7 +27,7 @@ export const MealScanScreen: React.FC = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const cameraRef = useRef<any>(null);
+  const cameraRef = useRef<CameraView>(null);
 
   React.useEffect(() => {
     Camera.requestCameraPermissionsAsync().then(({ status }) => {
@@ -40,7 +41,7 @@ export const MealScanScreen: React.FC = () => {
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.8, base64: false });
       const formData = new FormData();
-      formData.append('image', { uri: photo.uri, name: 'meal.jpg', type: 'image/jpeg' } as any);
+      appendFile(formData, 'image', { uri: photo.uri, name: 'meal.jpg', type: 'image/jpeg' });
 
       const response = await api.post('/nutrition/analyze-food', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },

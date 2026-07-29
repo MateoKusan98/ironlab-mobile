@@ -18,6 +18,7 @@ import { theme, palette } from '../../theme';
 import { communityService, PostType } from '../../services/community.service';
 import { X, PaperPlaneTilt, TextT, Barbell, Trophy } from 'phosphor-react-native';
 
+import { PostMetadata } from '@shared';
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'CreatePost'>;
 };
@@ -56,7 +57,7 @@ export const CreatePostScreen: React.FC<Props> = ({ navigation }) => {
     if (!canSubmit()) return;
     setSubmitting(true);
     try {
-      let metadata: Record<string, any> | null = null;
+      let metadata: PostMetadata | null = null;
       if (type === 'WORKOUT_SHARE') {
         metadata = {
           exercises: workoutExercises.trim() || null,

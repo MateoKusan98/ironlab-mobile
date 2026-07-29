@@ -10,6 +10,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  DimensionValue,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, RouteProp } from '@react-navigation/native';
@@ -18,9 +19,11 @@ import { adminAiService, AdminUserEntry, AdminUserState } from '../../services/a
 import { KeyboardAwareScreen } from '../../components/ui';
 import { palette, theme } from '../../theme';
 
+import { apiErrorMessage } from '../../utils/apiError';
+import { FormValue, FormValues, asStringList, asText } from '@shared';
 type RouteProps = RouteProp<RootStackParamList, 'AdminAILab'>;
 
-const PHASES = ['accumulation', 'intensification', 'peaking', 'deload'];
+const PHASES = ['accumulation', 'intensification', 'peaking', 'deload'] as const;
 const FATIGUE_LEVELS = ['none', 'mild', 'elevated', 'high'] as const;
 type FatigueLevel = typeof FATIGUE_LEVELS[number];
 
@@ -42,7 +45,7 @@ function PhaseBar({ week, total, phase }: { week: number; total: number; phase: 
   const color = PHASE_COLORS[phase] ?? palette.brand[400];
   return (
     <View style={phasebar.track}>
-      <View style={[phasebar.fill, { width: `${pct * 100}%` as any, backgroundColor: color }]} />
+      <View style={[phasebar.fill, { width: `${pct * 100}%` as DimensionValue, backgroundColor: color }]} />
       <Text style={[phasebar.label, { color }]}>{`Wk ${week}/${total}`}</Text>
     </View>
   );
@@ -276,8 +279,8 @@ const PROFILE_FIELDS: FieldSpec[] = [
   { key: 'preferredIntensity', label: 'Preferred intensity (1–5)', type: 'number', group: 'Philosophy' },
 ];
 
-function profileToForm(profile: Record<string, any> | null): Record<string, any> {
-  const form: Record<string, any> = {};
+function profileToForm(profile: FormValues | null): FormValues {
+  const form: FormValues = {};
   for (const f of PROFILE_FIELDS) {
     const raw = profile?.[f.key];
     if (f.type === 'bool') form[f.key] = raw === true || raw === 1 || raw === '1';
@@ -287,8 +290,8 @@ function profileToForm(profile: Record<string, any> | null): Record<string, any>
   return form;
 }
 
-function formToPayload(form: Record<string, any>): Record<string, any> {
-  const payload: Record<string, any> = {};
+function formToPayload(form: FormValues): FormValues {
+  const payload: FormValues = {};
   for (const f of PROFILE_FIELDS) {
     const v = form[f.key];
     if (f.type === 'bool') {
@@ -313,7 +316,7 @@ function ProfileEditModal({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
-  const [form, setForm] = useState<Record<string, any>>({});
+  const [form, setForm] = useState<FormValues>({});
 
   useEffect(() => {
     if (!visible) return;
@@ -324,7 +327,7 @@ function ProfileEditModal({
       .finally(() => setLoading(false));
   }, [visible, userId]);
 
-  const set = (key: string, value: any) => setForm((prev) => ({ ...prev, [key]: value }));
+  const set = (key: string, value: FormValue) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const toggleArrayValue = (key: string, value: string) =>
     setForm((prev) => {
@@ -339,8 +342,8 @@ function ProfileEditModal({
       Alert.alert('Saved', 'Profile updated. The next plan will use the new context.');
       onSaved();
       onClose();
-    } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message ?? e?.message ?? 'Could not save profile');
+    } catch (e: unknown) {
+      Alert.alert('Error', apiErrorMessage(e, 'Could not save profile'));
     } finally {
       setSaving(false);
     }
@@ -409,7 +412,7 @@ function ProfileEditModal({
                     {f.type === 'days' && (
                       <View style={edit.chipRow}>
                         {WEEKDAYS.map((d) => {
-                          const active = Array.isArray(form[f.key]) && form[f.key].includes(d);
+                          const active = asStringList(form[f.key]).includes(d);
                           return (
                             <TouchableOpacity
                               key={d}
@@ -425,7 +428,7 @@ function ProfileEditModal({
                     {(f.type === 'text' || f.type === 'multiline' || f.type === 'number' || f.type === 'csv') && (
                       <TextInput
                         style={[edit.input, f.type === 'multiline' && edit.inputMultiline]}
-                        value={f.type === 'csv' ? (Array.isArray(form[f.key]) ? form[f.key].join(', ') : '') : form[f.key]}
+                        value={f.type === 'csv' ? asStringList(form[f.key]).join(', ') : asText(form[f.key])}
                         onChangeText={(txt) =>
                           f.type === 'csv'
                             ? set(f.key, txt.split(',').map((s) => s.trim()).filter(Boolean))
@@ -542,8 +545,8 @@ export const AdminAILabScreen: React.FC = () => {
       await fn();
       if (successMsg) Alert.alert('Done', successMsg);
       if (selectedUser) await loadState(selectedUser.id);
-    } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message ?? e.message ?? 'Something went wrong');
+    } catch (e: unknown) {
+      Alert.alert('Error', apiErrorMessage(e, 'Something went wrong'));
     } finally {
       setBusy(null);
     }
@@ -692,7 +695,7 @@ export const AdminAILabScreen: React.FC = () => {
           {/* ── Phase Control ──────────────────────────────────────────── */}
           <Section title="Phase Control">
             <Text style={styles.fieldLabel}>Phase</Text>
-            <ChipRow options={PHASES as any} selected={editPhase} onSelect={setEditPhase} colorMap={PHASE_COLORS} />
+            <ChipRow options={PHASES} selected={editPhase} onSelect={setEditPhase} colorMap={PHASE_COLORS} />
             <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Week into phase</Text>
             <View style={styles.weekRow}>
               {[1, 2, 3, 4, 5, 6].map((w) => (

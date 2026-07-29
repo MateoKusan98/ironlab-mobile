@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { theme, palette } from '../../theme';
 import { Button } from './Button';
 
@@ -10,7 +10,7 @@ export interface TooltipProps {
   onAction?: () => void;
   arrowPosition?: 'up' | 'down';
   color?: 'brand' | 'warning' | 'error' | 'gray';
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({

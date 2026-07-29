@@ -15,6 +15,7 @@ import { ideasService, IdeaSubmission } from '../../services/ideas.service';
 import { theme, palette } from '../../theme';
 import { Lightbulb, CheckCircle } from 'phosphor-react-native';
 
+import { apiErrorMessage } from '../../utils/apiError';
 const MAX_CHARS = 1000;
 
 export const SubmitIdeaScreen: React.FC = () => {
@@ -52,8 +53,8 @@ export const SubmitIdeaScreen: React.FC = () => {
       setSubmitted(idea);
       setContent('');
       loadHistory();
-    } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message ?? 'Could not submit idea.');
+    } catch (e: unknown) {
+      Alert.alert('Error', apiErrorMessage(e, 'Could not submit idea.'));
     } finally {
       setLoading(false);
     }

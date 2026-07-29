@@ -50,7 +50,7 @@ export const Switch: React.FC<SwitchProps> = ({
       <Animated.View
         style={[
           styles.switchBase,
-          { backgroundColor: switchContainerColor as any },
+          { backgroundColor: switchContainerColor },
         ]}
       >
         <Animated.View

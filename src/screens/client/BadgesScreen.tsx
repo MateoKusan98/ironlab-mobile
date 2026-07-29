@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  DimensionValue,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Trophy } from 'phosphor-react-native';
@@ -92,7 +93,7 @@ export const BadgesScreen: React.FC = () => {
           {nextThreshold !== null && (
             <>
               <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: `${progressPct * 100}%` as any }]} />
+                <View style={[styles.progressFill, { width: `${progressPct * 100}%` as DimensionValue }]} />
               </View>
               <View style={styles.progressLabels}>
                 <Text style={styles.progressSub}>{nextThreshold - points} pts to next milestone</Text>

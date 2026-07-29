@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { useAuthStore } from '../stores/auth.store';
 import { registerPushToken } from '../services/pushNotification.service';
-import { UserRole } from '@shared';
+import { BodyScanAnalysis, UserRole } from '@shared';
 import { ImpersonationBanner } from '../components/ImpersonationBanner';
 import { AuthStack } from './AuthStack';
 import { SetupWizardScreen } from '../screens/setup/SetupWizardScreen';
@@ -60,6 +60,31 @@ import { UserProfileScreen } from '../screens/community/UserProfileScreen';
 import { MessagesScreen } from '../screens/messaging/MessagesScreen';
 import { ConversationScreen } from '../screens/messaging/ConversationScreen';
 
+/** A meal/food handed to the details screen, either scanned or picked from search. */
+export type FoodDetailsParam = {
+  id?: string;
+  name?: string;
+  /** Meals coming from the log carry `mealName`; the details screen prefers it. */
+  mealName?: string | null;
+  notes?: string | null;
+  imageUrl?: string | null;
+  prepTime?: number | string | null;
+  rating?: number | null;
+  servings?: string | null;
+  benefits?: string[];
+  // Nullable to match FoodLogResponse, which is passed straight through from the
+  // meal list — the details screen already treats a missing macro as unknown.
+  calories?: number | null;
+  protein?: number | null;
+  carbs?: number | null;
+  fat?: number | null;
+  image?: string | null;
+  tags?: string[];
+  ingredients?: { name: string; amount?: string; calories?: number }[];
+  instructions?: string[];
+  fullInstructions?: { step: string; text: string }[];
+};
+
 export type RootStackParamList = {
   Auth: undefined;
   Badges: undefined;
@@ -72,9 +97,9 @@ export type RootStackParamList = {
   Messages: undefined;
   Conversation: { conversationId: string; otherUserId: string; otherUserName: string };
   BodyScan: { returnTo?: string };
-  ScanResult: { analysis: any };
+  ScanResult: { analysis: BodyScanAnalysis };
   FoodScanOnboarding: undefined;
-  FoodDetails: { food?: any };
+  FoodDetails: { food?: FoodDetailsParam };
   ManualFoodLog: { prefill?: { mealName?: string; calories?: number; protein?: number; carbs?: number; fat?: number; category?: string; imageUri?: string; ingredients?: { name: string; amount?: string; calories?: number; protein?: number; carbs?: number; fat?: number }[] } } | undefined;
   MealScan: undefined;
   BarcodeScanner: undefined;

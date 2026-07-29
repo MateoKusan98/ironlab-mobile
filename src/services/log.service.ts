@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { api } from './api';
 import { useAuthStore } from '../stores/auth.store';
 
+import { LogContext } from '@shared';
 const API_URL = process.env.EXPO_PUBLIC_API_URL || `http://localhost:3020/api`;
 const APP_VERSION = Constants.expoConfig?.version ?? undefined;
 
@@ -27,7 +28,7 @@ export interface ClientLogPayload {
   route?: string;
   method?: string;
   statusCode?: number;
-  context?: Record<string, any>;
+  context?: LogContext;
 }
 
 export interface ClientErrorLogEntry {
@@ -41,7 +42,7 @@ export interface ClientErrorLogEntry {
   route: string | null;
   method: string | null;
   statusCode: number | null;
-  context: Record<string, any> | null;
+  context: LogContext | null;
   appVersion: string | null;
   platform: string | null;
   createdAt: string;

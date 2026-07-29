@@ -32,6 +32,7 @@ import {
 } from 'phosphor-react-native';
 
 import { Card } from '../../components/ui';
+import { PostMetadata } from '@shared';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const formatRelativeTime = (dateStr: string) => {
@@ -65,7 +66,7 @@ const PostTypeIcon = ({ type }: { type: FeedPost['type'] }) => {
   return null;
 };
 
-const FormCheckMeta = ({ metadata }: { metadata: Record<string, any> }) => {
+const FormCheckMeta = ({ metadata }: { metadata: PostMetadata }) => {
   const { t } = useTranslation();
   return (
     <View style={styles.formCheckMeta}>
@@ -77,7 +78,7 @@ const FormCheckMeta = ({ metadata }: { metadata: Record<string, any> }) => {
   );
 };
 
-const WorkoutMeta = ({ metadata }: { metadata: Record<string, any> }) => {
+const WorkoutMeta = ({ metadata }: { metadata: PostMetadata }) => {
   const { t } = useTranslation();
   return (
   <View style={styles.workoutMeta}>
@@ -109,7 +110,7 @@ const WorkoutMeta = ({ metadata }: { metadata: Record<string, any> }) => {
   );
 };
 
-const PRMeta = ({ metadata }: { metadata: Record<string, any> }) => (
+const PRMeta = ({ metadata }: { metadata: PostMetadata }) => (
   <View style={styles.prMeta}>
     <Trophy size={20} color={palette.warning[400]} weight="fill" />
     <View style={{ marginLeft: 10, flex: 1 }}>

@@ -27,6 +27,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Moon, Minus, ThumbsUp, Fire, Lightning } from 'phosphor-react-native';
 
 import { Card } from '../../components/ui';
+import { apiErrorMessage } from '../../utils/apiError';
 // Tracks which generated workout a readiness check was already submitted for.
 // Keyed per-user; value pins the plan's `generatedAt` so the readiness step is
 // skipped until a NEW workout is generated (e.g. after completing a session).
@@ -229,9 +230,8 @@ export const StartSessionScreen: React.FC = () => {
       // Plan is ready in the background — keep the quiz up and flip it to the
       // "Continue" CTA. The step-2 reveal happens when the athlete taps Continue.
       setPlanReady(true);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
-      Alert.alert(t('common.error'), String(Array.isArray(msg) ? msg.join('\n') : msg));
+    } catch (err: unknown) {
+      Alert.alert(t('common.error'), apiErrorMessage(err, 'Unknown error'));
       setGenerating(false);
       setPlanReady(false);
     }
