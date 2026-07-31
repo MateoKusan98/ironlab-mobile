@@ -40,10 +40,13 @@ export const WorkoutScreen: React.FC = () => {
       />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-        {/* AI Banner */}
+        {/* AI Banner — opens the coach hub (plan screen), which owns the competition
+            date, coach memory and recovery controls, and has its own Start button.
+            Jumping straight to StartSession from here hid all of that: no other
+            entry point in the Workouts tab reaches AICoachPlan. */}
         <TouchableOpacity
           style={styles.aiBanner}
-          onPress={() => user?.isAICoachSetupComplete ? navigation.navigate('StartSession', {}) : navigation.navigate('AICoachWelcome')}
+          onPress={() => user?.isAICoachSetupComplete ? navigation.navigate('AICoachPlan') : navigation.navigate('AICoachWelcome')}
         >
           <View style={styles.aiBannerLeft}>
             <Text style={styles.aiBannerLabel}>M-7EO · Personal AI Trainer</Text>
@@ -51,7 +54,7 @@ export const WorkoutScreen: React.FC = () => {
               {user?.isAICoachSetupComplete ? t('workouts.sessionReady') : t('workouts.getAI')}
             </Text>
             <View style={styles.aiBannerCta}>
-              <Text style={styles.aiBannerCtaText}>{user?.isAICoachSetupComplete ? 'Start session' : 'Get started'}</Text>
+              <Text style={styles.aiBannerCtaText}>{user?.isAICoachSetupComplete ? 'Open coach' : 'Get started'}</Text>
               <ArrowRight size={14} weight="bold" color="rgba(0,0,0,0.7)" />
             </View>
           </View>

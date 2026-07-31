@@ -24,7 +24,7 @@ import { sessionService } from '../../services/session.service';
 import { aiCoachService } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Moon, Minus, ThumbsUp, Fire, Lightning } from 'phosphor-react-native';
+import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, ChartBar } from 'phosphor-react-native';
 
 import { Card } from '../../components/ui';
 import { apiErrorMessage } from '../../utils/apiError';
@@ -80,6 +80,25 @@ const MOOD_ICONS: Record<string, React.ReactElement> = {
   elite:   <Lightning size={24} weight="fill" color={palette.yellow[500]} />,
 };
 
+// Compact "X weeks out" chip for a set competition / PR-test date. Mirrors the
+// urgency thresholds of the plan screen's CompBanner (≤2 weeks critical, ≤6 high).
+const CompCountdown: React.FC<{ date: string; type: string | null }> = ({ date, type }) => {
+  const weeks = Math.ceil((new Date(date).getTime() - Date.now()) / (7 * 86_400_000));
+  if (weeks < 0) return null; // date has passed — nothing useful to count down to
+  const critical = weeks <= 2;
+  const Icon = type === 'pr_test' ? ChartBar : Trophy;
+  return (
+    <View style={[styles.compBadge, critical && styles.compBadgeCritical]}>
+      <Icon size={12} weight="fill" color={critical ? palette.error[400] : palette.warning[400]} />
+      <Text style={[styles.compBadgeText, critical && styles.compBadgeTextCritical]}>
+        {weeks <= 0
+          ? (type === 'pr_test' ? 'PR test week' : 'Comp week')
+          : `${type === 'pr_test' ? 'PR test' : 'Comp'} in ${weeks}w`}
+      </Text>
+    </View>
+  );
+};
+
 export const StartSessionScreen: React.FC = () => {
   const { t } = useTranslation();
   const { exName } = useExerciseName();
@@ -115,6 +134,9 @@ export const StartSessionScreen: React.FC = () => {
     return [];
   });
   const [cycleInfo, setCycleInfo] = useState<{ week: number; session: number; total: number } | null>(null);
+  // Competition / PR-test countdown. Set on the AI Coach plan screen; surfaced here
+  // so the athlete actually sees how close the meet is on every single session.
+  const [comp, setComp] = useState<{ date: string; type: string | null } | null>(null);
   const [coachsCall, setCoachsCall] = useState<string | undefined>(route.params?.nextSessionJson?.coachsCall);
   const [errors, setErrors] = useState<{ sleep?: string; bodyweight?: string }>({});
 
@@ -125,6 +147,7 @@ export const StartSessionScreen: React.FC = () => {
       setPlannedExercises(parsePlanExercises(result.plan));
     }
     setCoachsCall(result.nextSessionJson?.coachsCall);
+    setComp(result.competitionDate ? { date: result.competitionDate, type: result.competitionType } : null);
     if (result.trainingWeek && result.sessionInWeek && result.sessionsPerCycle) {
       setCycleInfo({ week: result.trainingWeek, session: result.sessionInWeek, total: result.sessionsPerCycle });
     }
@@ -357,6 +380,7 @@ export const StartSessionScreen: React.FC = () => {
               </Text>
             </View>
           )}
+          {step === 2 && comp && <CompCountdown date={comp.date} type={comp.type} />}
         </View>
         <View style={styles.stepRow}>
           <View style={[styles.stepDot, step >= 1 && styles.stepDotActive]} />
@@ -570,6 +594,24 @@ const styles = StyleSheet.create({
     borderColor: palette.brand[500],
   },
   cycleBadgeText: { fontSize: 12, fontWeight: '700', color: palette.brand[400] },
+
+  compBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: alpha(palette.warning[500], 0.133),
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: palette.warning[700],
+  },
+  compBadgeCritical: {
+    backgroundColor: alpha(palette.error[500], 0.153),
+    borderColor: palette.error[600],
+  },
+  compBadgeText: { fontSize: 11, fontWeight: '700', color: palette.warning[400] },
+  compBadgeTextCritical: { color: palette.error[400] },
 
   cardSpacing: { marginBottom: 16 },
   cardLabel: { fontSize: 11, fontWeight: '700', color: palette.gray[400], letterSpacing: 1, marginBottom: 16 },
