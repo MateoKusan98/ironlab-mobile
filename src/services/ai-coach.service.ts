@@ -172,8 +172,9 @@ export interface AICoachProfileData {
 }
 
 export interface RecoveryWeekStatus {
-  mode: 'recovery' | 'vacation';
-  until: string; // YYYY-MM-DD — the day hard training resumes
+  // 'taper' is the one mode that is NOT a deload — volume down, intensity held.
+  mode: 'recovery' | 'vacation' | 'taper';
+  until: string; // YYYY-MM-DD — the day hard training resumes (taper: the peak day)
   resumeWeek: number | null; // phase week that replays on return (null in comp prep)
 }
 
@@ -311,18 +312,22 @@ export const aiCoachService = {
   },
 
   /**
-   * "Life fell apart" reset. 'recovery' turns the rest of this week into light deload
-   * sessions and replays the interrupted phase week from Monday; 'vacation' pauses the
-   * plan for `days` days (no logging expected, no make-up debt) and replays on return.
+   * "Life fell apart" reset, or a peak-preserving unload. 'recovery' turns the rest of
+   * this week into light deload sessions and replays the interrupted phase week from
+   * Monday; 'vacation' pauses the plan for `days` days (no logging expected, no make-up
+   * debt) and replays on return; 'taper' cuts volume for a few days while HOLDING load
+   * so the peak week lands at the end of the window instead of being trained tired.
+   * Omit `days` to let each mode apply its own default.
    */
-  triggerRecoveryWeek: async (mode: 'recovery' | 'vacation', days?: number): Promise<{
+  triggerRecoveryWeek: async (mode: 'recovery' | 'vacation' | 'taper', days?: number): Promise<{
     until: string;
     resumePhase: string;
     resumeWeek: number | null;
-    mode: 'recovery' | 'vacation';
+    mode: 'recovery' | 'vacation' | 'taper';
     compCountdownContinues: boolean;
+    fatigueWarning: string | null;
   }> => {
-    const { data } = await api.post<{ data: { until: string; resumePhase: string; resumeWeek: number | null; mode: 'recovery' | 'vacation'; compCountdownContinues: boolean } }>(
+    const { data } = await api.post<{ data: { until: string; resumePhase: string; resumeWeek: number | null; mode: 'recovery' | 'vacation' | 'taper'; compCountdownContinues: boolean; fatigueWarning: string | null } }>(
       '/ai-coach/recovery-week',
       { mode, ...(days ? { days } : {}) },
     );

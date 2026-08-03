@@ -76,9 +76,9 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
 }
 
 function Btn({
-  label, onPress, color, outline, loading, small,
+  label, onPress, color, outline, loading, small, disabled,
 }: {
-  label: string; onPress: () => void; color?: string; outline?: boolean; loading?: boolean; small?: boolean;
+  label: string; onPress: () => void; color?: string; outline?: boolean; loading?: boolean; small?: boolean; disabled?: boolean;
 }) {
   const bg = color ?? palette.brand[600];
   return (
@@ -87,9 +87,10 @@ function Btn({
         styles.btn,
         small && styles.btnSmall,
         outline ? { backgroundColor: 'transparent', borderWidth: 1, borderColor: bg } : { backgroundColor: bg },
+        (disabled || loading) && { opacity: 0.4 },
       ]}
       onPress={onPress}
-      disabled={loading}
+      disabled={loading || disabled}
     >
       {loading
         ? <ActivityIndicator size="small" color={palette.white} />
@@ -775,11 +776,14 @@ export const AdminAILabScreen: React.FC = () => {
             />
             <View style={styles.btnRow}>
               <Btn
-                label={`Force ${editFatigue ?? 'none'}`}
+                label={editFatigue ? `Force ${editFatigue}` : 'Pick a level'}
                 loading={busy === 'fatigue'}
-                // null here means "clear override" server-side — with no chip selected the
-                // label promises "Force none", so send the literal 'none' override to match.
-                onPress={() => run('fatigue', () => adminAiService.setFatigue(uid, editFatigue ?? 'none'), `Fatigue forced to ${editFatigue ?? 'none'}`)}
+                // Requires an explicit chip. Defaulting to 'none' here made a stray tap
+                // pin the athlete to a permanent NONE override — which short-circuits
+                // computeFatigueSignal entirely, so no deload can ever be raised again.
+                // "Clear override" (below) is the button for going back to real data.
+                disabled={!editFatigue}
+                onPress={() => editFatigue && run('fatigue', () => adminAiService.setFatigue(uid, editFatigue), `Fatigue forced to ${editFatigue}`)}
               />
               <Btn
                 label="Clear override"

@@ -797,7 +797,7 @@ export const AICoachPlanScreen: React.FC = () => {
     }
   };
 
-  const handleTriggerRecovery = async (mode: 'recovery' | 'vacation') => {
+  const handleTriggerRecovery = async (mode: 'recovery' | 'vacation' | 'taper') => {
     setRecoveryBusy(true);
     try {
       const res = await aiCoachService.triggerRecoveryWeek(mode);
@@ -807,7 +807,15 @@ export const AICoachPlanScreen: React.FC = () => {
       if (mode === 'vacation') {
         Alert.alert(t('aiCoach.recovery.vacationOnTitle'), t('aiCoach.recovery.vacationOnMsg', { date: dateStr }));
       } else {
-        // Swap today's stale (heavy) plan for the light recovery session right away.
+        if (mode === 'taper') {
+          // The server warns when the signal is too deep for a taper to fix — say so
+          // before regenerating, since the peak session may still come back clamped.
+          Alert.alert(
+            res.fatigueWarning ? t('aiCoach.recovery.taperWarningTitle') : t('aiCoach.recovery.taperOnTitle'),
+            res.fatigueWarning ?? t('aiCoach.recovery.taperOnMsg', { date: dateStr }),
+          );
+        }
+        // Swap today's stale plan for one that matches the new window right away.
         setPlanReady(false);
         setGenerating(true);
         try {

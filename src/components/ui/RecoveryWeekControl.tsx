@@ -18,16 +18,19 @@ import { aiCoachService, RecoveryWeekStatus } from '../../services/ai-coach.serv
 
 import { Card } from '../../components/ui';
 import { apiErrorMessage } from '../../utils/apiError';
-// ─── Recovery / Vacation Modal ────────────────────────────────────────────────
+
+type WindowMode = 'recovery' | 'vacation' | 'taper';
+
+// ─── Recovery / Vacation / Taper Modal ────────────────────────────────────────
 
 export const RecoveryModal: React.FC<{
   visible: boolean;
   busy: boolean;
-  onConfirm: (mode: 'recovery' | 'vacation') => void;
+  onConfirm: (mode: WindowMode) => void;
   onClose: () => void;
 }> = ({ visible, busy, onConfirm, onClose }) => {
   const { t } = useTranslation();
-  const [choice, setChoice] = useState<'recovery' | 'vacation' | null>(null);
+  const [choice, setChoice] = useState<WindowMode | null>(null);
 
   useEffect(() => {
     if (visible) setChoice(null);
@@ -73,6 +76,20 @@ export const RecoveryModal: React.FC<{
             </View>
             <Text style={m.optionDesc}>{t('aiCoach.recovery.vacationDesc')}</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[m.optionCard, choice === 'taper' && m.optionCardActive]}
+            onPress={() => setChoice('taper')}
+          >
+            <View style={m.optionTop}>
+              <Text style={m.optionEmoji}>🎯</Text>
+              <Text style={[m.optionTitle, choice === 'taper' && m.optionTitleActive]}>
+                {t('aiCoach.recovery.taperTitle')}
+              </Text>
+              {choice === 'taper' && <Text style={m.optionCheck}>✓</Text>}
+            </View>
+            <Text style={m.optionDesc}>{t('aiCoach.recovery.taperDesc')}</Text>
+          </TouchableOpacity>
         </ScrollView>
 
         <View style={m.footer}>
@@ -101,23 +118,34 @@ export const RecoveryBanner: React.FC<{
   const { t } = useTranslation();
   const dateStr = new Date(`${status.until}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const isVacation = status.mode === 'vacation';
-  const weekSuffix = status.resumeWeek != null && !isVacation
+  const isTaper = status.mode === 'taper';
+  // Only recovery labels a resuming week — a vacation has no week to name, and a
+  // taper's "until" date IS the peak day, already spelled out in its own subtitle.
+  const weekSuffix = status.resumeWeek != null && !isVacation && !isTaper
     ? t('aiCoach.recovery.resumeWeekSuffix', { week: status.resumeWeek })
     : '';
 
+  const emoji = isVacation ? '🏖️' : isTaper ? '🎯' : '🛟';
+  const title = isVacation ? t('aiCoach.recovery.bannerVacation')
+    : isTaper ? t('aiCoach.recovery.bannerTaper')
+    : t('aiCoach.recovery.bannerRecovery');
+  const sub = isVacation ? t('aiCoach.recovery.bannerVacationSub', { date: dateStr })
+    : isTaper ? t('aiCoach.recovery.bannerTaperSub', { date: dateStr })
+    : t('aiCoach.recovery.bannerRecoverySub', { date: dateStr, week: weekSuffix });
+
   return (
-    <TouchableOpacity style={[b.banner, rounded && b.bannerRounded]} onPress={onEnd}>
+    <TouchableOpacity
+      style={[b.banner, rounded && b.bannerRounded, isTaper && b.bannerTaper]}
+      onPress={onEnd}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}. ${sub}`}
+      accessibilityHint={t('aiCoach.recovery.end')}
+    >
       <View style={b.left}>
-        <Text style={b.emoji}>{isVacation ? '🏖️' : '🛟'}</Text>
+        <Text style={b.emoji}>{emoji}</Text>
         <View style={{ flex: 1 }}>
-          <Text style={b.title}>
-            {isVacation ? t('aiCoach.recovery.bannerVacation') : t('aiCoach.recovery.bannerRecovery')}
-          </Text>
-          <Text style={b.sub}>
-            {isVacation
-              ? t('aiCoach.recovery.bannerVacationSub', { date: dateStr })
-              : t('aiCoach.recovery.bannerRecoverySub', { date: dateStr, week: weekSuffix })}
-          </Text>
+          <Text style={[b.title, isTaper && b.titleTaper]}>{title}</Text>
+          <Text style={b.sub}>{sub}</Text>
         </View>
       </View>
       <Text style={b.end}>{t('aiCoach.recovery.end')}</Text>
@@ -149,7 +177,7 @@ export const RecoveryWeekCard: React.FC = () => {
     }, []),
   );
 
-  const handleTrigger = async (mode: 'recovery' | 'vacation') => {
+  const handleTrigger = async (mode: WindowMode) => {
     setBusy(true);
     try {
       const res = await aiCoachService.triggerRecoveryWeek(mode);
@@ -158,6 +186,14 @@ export const RecoveryWeekCard: React.FC = () => {
       const dateStr = new Date(`${res.until}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
       if (mode === 'vacation') {
         Alert.alert(t('aiCoach.recovery.vacationOnTitle'), t('aiCoach.recovery.vacationOnMsg', { date: dateStr }));
+      } else if (mode === 'taper') {
+        // The server warns when the fatigue signal is too deep for a taper to fix —
+        // surface that verbatim instead of the cheerful confirmation.
+        Alert.alert(
+          res.fatigueWarning ? t('aiCoach.recovery.taperWarningTitle') : t('aiCoach.recovery.taperOnTitle'),
+          res.fatigueWarning ?? t('aiCoach.recovery.taperOnMsg', { date: dateStr }),
+        );
+        aiCoachService.generatePlan().catch(() => {});
       } else {
         Alert.alert(t('aiCoach.recovery.recoveryOnTitle'), t('aiCoach.recovery.recoveryOnMsg', { date: dateStr }));
         aiCoachService.generatePlan().catch(() => {});
@@ -258,6 +294,10 @@ const b = StyleSheet.create({
     borderRadius: 16, borderWidth: 1, borderColor: palette.teal[700],
     paddingVertical: 14, marginBottom: 10,
   },
+  // A taper is not a rest window — tint it with the brand accent so it doesn't read
+  // as "you're resting" at a glance.
+  bannerTaper: { backgroundColor: palette.brand[950], borderColor: palette.brand[700] },
+  titleTaper: { color: palette.brand[300] },
   left: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   emoji: { fontSize: 18 },
   title: { fontSize: 13, fontWeight: '700', color: palette.teal[300] },
