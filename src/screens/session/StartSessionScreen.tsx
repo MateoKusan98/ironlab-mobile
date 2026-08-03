@@ -21,7 +21,7 @@ import { useSettingsStore } from '../../stores/settings.store';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette, alpha } from '../../theme';
 import { sessionService } from '../../services/session.service';
-import { aiCoachService } from '../../services/ai-coach.service';
+import { aiCoachService, FatigueRecommendation } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, ChartBar } from 'phosphor-react-native';
@@ -123,7 +123,8 @@ export const StartSessionScreen: React.FC = () => {
   const [generating, setGenerating] = useState(false);
   const [planReady, setPlanReady] = useState(false);
   // Reactive HIGH-fatigue alarm awaiting the athlete's call. Non-null = modal shown.
-  const [fatigueGate, setFatigueGate] = useState<{ reasons: string[]; level: 'elevated' | 'high' } | null>(null);
+  const [fatigueGate, setFatigueGate] = useState<{ reasons: string[]; level: 'elevated' | 'high'; recommendation: FatigueRecommendation | null } | null>(null);
+  const [taperBusy, setTaperBusy] = useState(false);
   const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[]>(() => {
     if (route.params?.nextSessionJson?.exercises?.length) {
       return route.params.nextSessionJson.exercises;
@@ -260,6 +261,27 @@ export const StartSessionScreen: React.FC = () => {
     }
   };
 
+  // "Taper into it" — the peak-preserving answer when a max attempt is close. Opens the
+  // taper window server-side FIRST, then generates: the session that comes back is
+  // already the taper (volume down, intensity held), and the attempt is deferred to the
+  // end of the window rather than spent tired. Never sends 'accept' — that means deload,
+  // which would clear the fatigue and leave the athlete flat for the attempt.
+  const acceptTaper = async () => {
+    setTaperBusy(true);
+    try {
+      const res = await aiCoachService.triggerRecoveryWeek('taper');
+      setTaperBusy(false);
+      if (res.fatigueWarning) Alert.alert(t('session.fatigueGate.taperSetTitle', { defaultValue: 'Taper set' }), res.fatigueWarning);
+      await proceedGeneration();
+    } catch (err: unknown) {
+      setTaperBusy(false);
+      // Already in a window / already deloading — the alarm still deserves an answer,
+      // so fall through to the normal fatigue-aware generation rather than dead-ending.
+      Alert.alert(t('common.error'), apiErrorMessage(err, 'Could not start the taper'));
+      await proceedGeneration();
+    }
+  };
+
   const handleSeeWorkout = async () => {
     if (!validate()) return;
     setPlanLoading(true);
@@ -277,7 +299,7 @@ export const StartSessionScreen: React.FC = () => {
         const gate = await aiCoachService.fatigueCheck().catch(() => null);
         if (gate?.requiresAck && gate.reasons.length && (gate.level === 'high' || gate.level === 'elevated')) {
           setPlanLoading(false);
-          setFatigueGate({ reasons: gate.reasons, level: gate.level });
+          setFatigueGate({ reasons: gate.reasons, level: gate.level, recommendation: gate.recommendation });
           return;
         }
       }
@@ -363,6 +385,9 @@ export const StartSessionScreen: React.FC = () => {
       </SafeAreaView>
     );
   }
+
+  // A peak is close: the gate swaps its deload/trim wording for the taper offer.
+  const isTaperGate = fatigueGate?.recommendation?.action === 'taper';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -520,6 +545,8 @@ export const StartSessionScreen: React.FC = () => {
 
       </KeyboardAwareScreen>
 
+      {/* A max attempt is close enough that the deload/trim answer is the wrong one —
+          the gate offers the taper instead (volume down, intensity held, attempt deferred). */}
       {/* Readiness gate — reactive fatigue alarm awaiting the athlete's call.
           HIGH: accept = full recovery deload. ELEVATED: accept = apply the volume
           trim (plain generation — the fatigue context trims it); dismiss = "I feel
@@ -530,14 +557,18 @@ export const StartSessionScreen: React.FC = () => {
           <View style={styles.gateCard}>
             <View style={styles.gateIcon}><Fire size={28} color={fatigueGate?.level === 'high' ? palette.brand[500] : palette.warning[400]} weight="fill" /></View>
             <Text style={styles.gateTitle}>
-              {fatigueGate?.level === 'high'
-                ? t('session.fatigueGate.title')
-                : t('session.fatigueGate.elevatedTitle', { defaultValue: 'Fatigue is building' })}
+              {isTaperGate
+                ? fatigueGate!.recommendation!.headline
+                : fatigueGate?.level === 'high'
+                  ? t('session.fatigueGate.title')
+                  : t('session.fatigueGate.elevatedTitle', { defaultValue: 'Fatigue is building' })}
             </Text>
             <Text style={styles.gateSubtitle}>
-              {fatigueGate?.level === 'high'
-                ? t('session.fatigueGate.subtitle')
-                : t('session.fatigueGate.elevatedSubtitle', { defaultValue: 'Your coach wants to trim a few sets today to protect recovery. Your call:' })}
+              {isTaperGate
+                ? fatigueGate!.recommendation!.detail
+                : fatigueGate?.level === 'high'
+                  ? t('session.fatigueGate.subtitle')
+                  : t('session.fatigueGate.elevatedSubtitle', { defaultValue: 'Your coach wants to trim a few sets today to protect recovery. Your call:' })}
             </Text>
             <View style={styles.gateReasons}>
               {(fatigueGate?.reasons ?? []).map((r, i) => (
@@ -548,25 +579,34 @@ export const StartSessionScreen: React.FC = () => {
               ))}
             </View>
             <Text style={styles.gateQuestion}>
-              {fatigueGate?.level === 'high'
-                ? t('session.fatigueGate.question')
-                : t('session.fatigueGate.elevatedQuestion', { defaultValue: 'Trim today’s session, or run it in full?' })}
+              {isTaperGate
+                ? t('session.fatigueGate.taperQuestion', { defaultValue: 'Taper into the attempt, or run today as planned?' })
+                : fatigueGate?.level === 'high'
+                  ? t('session.fatigueGate.question')
+                  : t('session.fatigueGate.elevatedQuestion', { defaultValue: 'Trim today’s session, or run it in full?' })}
             </Text>
             <TouchableOpacity
               style={styles.gateAcceptBtn}
-              onPress={() => proceedGeneration(fatigueGate?.level === 'high' ? 'accept' : undefined)}
+              disabled={taperBusy}
+              onPress={() => (isTaperGate ? acceptTaper() : proceedGeneration(fatigueGate?.level === 'high' ? 'accept' : undefined))}
             >
-              <Text style={styles.gateAcceptText}>
-                {fatigueGate?.level === 'high'
-                  ? t('session.fatigueGate.accept')
-                  : t('session.fatigueGate.elevatedAccept', { defaultValue: 'Trim it — protect recovery' })}
-              </Text>
+              {taperBusy ? <ActivityIndicator color={palette.white} /> : (
+                <Text style={styles.gateAcceptText}>
+                  {isTaperGate
+                    ? t('session.fatigueGate.taperAccept', { defaultValue: 'Taper — keep the peak' })
+                    : fatigueGate?.level === 'high'
+                      ? t('session.fatigueGate.accept')
+                      : t('session.fatigueGate.elevatedAccept', { defaultValue: 'Trim it — protect recovery' })}
+                </Text>
+              )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.gateDismissBtn} onPress={() => proceedGeneration('dismiss')}>
+            <TouchableOpacity style={styles.gateDismissBtn} disabled={taperBusy} onPress={() => proceedGeneration('dismiss')}>
               <Text style={styles.gateDismissText}>
-                {fatigueGate?.level === 'high'
-                  ? t('session.fatigueGate.dismiss')
-                  : t('session.fatigueGate.elevatedDismiss', { defaultValue: 'I feel fine — full session' })}
+                {isTaperGate
+                  ? t('session.fatigueGate.taperDismiss', { defaultValue: 'I feel fine — train as planned' })
+                  : fatigueGate?.level === 'high'
+                    ? t('session.fatigueGate.dismiss')
+                    : t('session.fatigueGate.elevatedDismiss', { defaultValue: 'I feel fine — full session' })}
               </Text>
             </TouchableOpacity>
           </View>

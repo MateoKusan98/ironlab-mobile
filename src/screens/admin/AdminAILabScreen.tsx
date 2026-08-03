@@ -660,6 +660,12 @@ export const AdminAILabScreen: React.FC = () => {
                 <Text style={styles.statSub}>Real Fatigue</Text>
               </View>
               <View style={styles.statCell}>
+                <Text style={[styles.statBig, { color: FATIGUE_COLORS[state.fatigueAthlete.level] ?? palette.gray[400] }]}>
+                  {state.fatigueAthlete.level.toUpperCase()}
+                </Text>
+                <Text style={styles.statSub}>Athlete Sees</Text>
+              </View>
+              <View style={styles.statCell}>
                 <Text style={styles.statBig}>{state.totalSessions}</Text>
                 <Text style={styles.statSub}>Sessions</Text>
               </View>
@@ -684,6 +690,21 @@ export const AdminAILabScreen: React.FC = () => {
             <Row label="Memory (archive)" value={`${state.memoryArchiveLength} chars`} />
             <Row label="Active notes" value={String(state.activeNotesCount)} />
             <Row label="Exercise intel" value={`${state.exerciseIntelCount} exercises`} />
+            {/* "Real" is the override-free computation; "Athlete Sees" is the readiness
+                gate's answer. They diverge only for a reason — name it. */}
+            {state.fatigueAthlete.level !== state.fatigueReal && (
+              <Row
+                label="Why they differ"
+                value={
+                  state.fatigueOverride ? `admin override → ${state.fatigueOverride}`
+                    : state.fatigueAthlete.dismissed ? 'athlete dismissed ("feeling fine")'
+                    : state.fatigueAthlete.scheduledDeload ? 'scheduled deload week'
+                    : 'unexplained — investigate'
+                }
+                accent={palette.warning[400]}
+              />
+            )}
+            <Row label="Readiness gate" value={state.fatigueAthlete.requiresAck ? 'will prompt athlete' : 'silent'} />
             {state.fatigueEvidence.length > 0 && (
               <View style={styles.evidenceBox}>
                 {state.fatigueEvidence.map((e, i) => (

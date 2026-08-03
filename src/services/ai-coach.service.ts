@@ -58,6 +58,16 @@ export interface FatigueStatus {
   canDismiss: boolean;
   /** This is a programmed deload week — planned recovery, not a reactive flag. */
   scheduledDeload: boolean;
+  /** What the coach wants done about it — 'taper' when a max attempt is close enough
+   *  that a deload would clear the fatigue but leave the athlete flat for it. */
+  recommendation: FatigueRecommendation | null;
+}
+
+export interface FatigueRecommendation {
+  action: 'taper' | 'deload' | 'trim';
+  peak: { kind: 'competition' | 'pr_test' | 'block_peak'; daysAway: number | null; label: string } | null;
+  headline: string;
+  detail: string;
 }
 
 export interface CoachNote {
@@ -402,6 +412,15 @@ export interface AdminUserState {
   fatigueOverride: string | null;
   fatigueReal: string;
   fatigueEvidence: string[];
+  /** Exactly what GET /ai-coach/fatigue-check returns for this user — i.e. the level
+   *  the athlete is shown on the plan banner + readiness gate, override applied. */
+  fatigueAthlete: {
+    level: string;
+    dismissed: boolean;
+    scheduledDeload: boolean;
+    requiresAck: boolean;
+    reasons: string[];
+  };
   memoryLength: number;
   memoryArchiveLength: number;
   activeNotesCount: number;

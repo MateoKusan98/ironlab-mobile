@@ -482,8 +482,9 @@ const FatigueModal: React.FC<{
   busy: boolean;
   onDismiss: () => void;
   onResume: () => void;
+  onTaper: () => void;
   onClose: () => void;
-}> = ({ visible, status, busy, onDismiss, onResume, onClose }) => {
+}> = ({ visible, status, busy, onDismiss, onResume, onTaper, onClose }) => {
   if (!status) return null;
   const m = FATIGUE_META[status.level];
   return (
@@ -516,15 +517,41 @@ const FatigueModal: React.FC<{
             <Text style={fat.intro}>No fatigue warnings right now — your recent RPE, energy, and strength trends look healthy. Keep logging honestly and I'll flag it the moment that changes.</Text>
           )}
 
+          {/* What to DO about it. The taper case is the one worth surfacing early: by
+              the time a tired max is under way the only outcomes left are a miss or a
+              tweak, and a deload at that point protects recovery by spending the peak. */}
+          {status.recommendation && (
+            <View style={[fat.recCard, status.recommendation.action === 'taper' && fat.recCardPeak]}>
+              <Text style={fat.recLabel}>
+                {status.recommendation.action === 'taper' ? '🎯 Coach\'s recommendation' : 'Coach\'s recommendation'}
+              </Text>
+              <Text style={fat.recHeadline}>{status.recommendation.headline}</Text>
+              <Text style={fat.recDetail}>{status.recommendation.detail}</Text>
+            </View>
+          )}
+
           {status.scheduledDeload && (
             <Text style={fat.deloadNote}>This is a scheduled deload week — planned recovery baked into your program, not a reactive alarm. Loads are light on purpose and can't be cleared.</Text>
           )}
         </ScrollView>
 
         <View style={fat.footer}>
+          {status.recommendation?.action === 'taper' && (
+            <TouchableOpacity style={fat.taperBtn} onPress={onTaper} disabled={busy}>
+              {busy ? <ActivityIndicator color={palette.white} /> : <Text style={fat.taperBtnText}>Start the taper — keep the peak</Text>}
+            </TouchableOpacity>
+          )}
+          {/* With a taper on offer the taper is the primary action, so "clear it" drops
+              to the secondary style — one primary button per screen. */}
           {status.canDismiss && (
-            <TouchableOpacity style={fat.clearBtn} onPress={onDismiss} disabled={busy}>
-              {busy ? <ActivityIndicator color={palette.white} /> : <Text style={fat.clearBtnText}>I feel fine — clear it</Text>}
+            <TouchableOpacity
+              style={status.recommendation?.action === 'taper' ? fat.resumeBtn : fat.clearBtn}
+              onPress={onDismiss}
+              disabled={busy}
+            >
+              {busy
+                ? <ActivityIndicator color={status.recommendation?.action === 'taper' ? palette.gray[300] : palette.white} />
+                : <Text style={status.recommendation?.action === 'taper' ? fat.resumeBtnText : fat.clearBtnText}>I feel fine — clear it</Text>}
             </TouchableOpacity>
           )}
           {status.dismissed && (
@@ -815,6 +842,9 @@ export const AICoachPlanScreen: React.FC = () => {
             res.fatigueWarning ?? t('aiCoach.recovery.taperOnMsg', { date: dateStr }),
           );
         }
+        // The window suppresses the alarm's recommendation server-side — pull the fresh
+        // status so the banner stops offering a taper that is now running.
+        aiCoachService.fatigueCheck().then(setFatigue).catch(() => {});
         // Swap today's stale plan for one that matches the new window right away.
         setPlanReady(false);
         setGenerating(true);
@@ -937,6 +967,7 @@ export const AICoachPlanScreen: React.FC = () => {
         busy={fatigueBusy}
         onDismiss={handleDismissFatigue}
         onResume={handleResumeFatigue}
+        onTaper={() => { setFatigueModalVisible(false); handleTriggerRecovery('taper'); }}
         onClose={() => setFatigueModalVisible(false)}
       />
       <NotesModal
@@ -1350,7 +1381,23 @@ const fat = StyleSheet.create({
   reasonText: { flex: 1, fontSize: 13, color: palette.gray[300], lineHeight: 19 },
   deloadNote: { fontSize: 13, color: palette.gray[500], lineHeight: 19, marginTop: 16, fontStyle: 'italic' },
 
+  // Recommended remedy (trim / deload / taper). The taper variant is accented — it is
+  // time-sensitive in a way the others are not.
+  recCard: {
+    marginTop: 20, borderRadius: 14, borderWidth: 1, borderColor: palette.gray[800],
+    backgroundColor: palette.stone[900], padding: 14,
+  },
+  recCardPeak: { borderColor: palette.brand[700], backgroundColor: palette.brand[950] },
+  recLabel: {
+    fontSize: 11, fontWeight: '700', color: palette.gray[500],
+    letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8,
+  },
+  recHeadline: { fontSize: 15, fontWeight: '700', color: palette.white, lineHeight: 21, marginBottom: 6 },
+  recDetail: { fontSize: 13, color: palette.gray[300], lineHeight: 20 },
+
   footer: { padding: 16, borderTopWidth: 1, borderTopColor: palette.gray[800] },
+  taperBtn: { backgroundColor: palette.brand[600], borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginBottom: 10 },
+  taperBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
   clearBtn: { backgroundColor: palette.brand[600], borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   clearBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
   resumeBtn: {
