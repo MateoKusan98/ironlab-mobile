@@ -70,6 +70,46 @@ export interface FatigueRecommendation {
   detail: string;
 }
 
+/** Mirrors backend pr-forecast.ts. See that module for what each verdict promises. */
+export type PrVerdict = 'primed' | 'on_track' | 'hold' | 'not_today' | 'deferred' | 'insufficient_data';
+
+export interface PrDriver {
+  key: string;
+  direction: 'positive' | 'negative' | 'neutral';
+  detail: string;
+}
+
+export interface PrLiftForecast {
+  lift: 'squat' | 'bench' | 'deadlift';
+  label: string;
+  verdict: PrVerdict;
+  /** Best logged single — the number a true PR has to beat. */
+  record: number | null;
+  /** What the current block's sets project a top single at. */
+  projectedTop: number | null;
+  marginPct: number | null;
+  /** The cheaper record: a triple that would also stand. */
+  triple: { record: number | null; projected: number | null } | null;
+  confidence: 'high' | 'medium' | 'low';
+  drivers: PrDriver[];
+  headline: string;
+  detail: string;
+  /** ISO date a deferred attempt lands on (taper windows only). */
+  attemptWindow: string | null;
+  /** Whether a single or triple is actually programmed — only those can set a record. */
+  attemptScheduled: boolean;
+  sessionsInBlock: number;
+}
+
+export interface PrForecast {
+  lifts: PrLiftForecast[];
+  /** The lift closest to a record — what the single-card UI shows. */
+  best: PrLiftForecast | null;
+  /** Set when the feature is deliberately silent (hypertrophy athletes never max). */
+  suppressed: 'hypertrophy' | null;
+  generatedAt: string;
+}
+
 export interface CoachNote {
   id: string;
   category: string;
@@ -223,6 +263,15 @@ export const aiCoachService = {
    */
   fatigueCheck: async (): Promise<FatigueStatus> => {
     const { data } = await api.get<{ data: FatigueStatus }>('/ai-coach/fatigue-check');
+    return data.data;
+  },
+
+  /**
+   * "Is a PR on?" — deterministic, LLM-free and unmetered, so it can be called on
+   * every screen entry. Read-only: nothing here changes a prescribed load.
+   */
+  prForecast: async (): Promise<PrForecast> => {
+    const { data } = await api.get<{ data: PrForecast }>('/ai-coach/pr-forecast');
     return data.data;
   },
 
@@ -420,6 +469,16 @@ export interface AdminUserState {
     scheduledDeload: boolean;
     requiresAck: boolean;
     reasons: string[];
+  };
+  /** Exactly what GET /ai-coach/pr-forecast returns for this user. */
+  prForecast: PrForecast;
+  /** How often past forecasts matched what the bar did. */
+  prForecastAccuracy: {
+    tested: number;
+    correct: number;
+    accuracyPct: number | null;
+    open: number;
+    unattempted: number;
   };
   memoryLength: number;
   memoryArchiveLength: number;

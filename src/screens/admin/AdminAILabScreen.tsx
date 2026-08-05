@@ -705,6 +705,29 @@ export const AdminAILabScreen: React.FC = () => {
               />
             )}
             <Row label="Readiness gate" value={state.fatigueAthlete.requiresAck ? 'will prompt athlete' : 'silent'} />
+            {/* PR forecast — the athlete's own endpoint, not a recomputation, so this
+                can never disagree with the card they were shown. The accuracy row is
+                the whole point of the calibration log: a forecast nobody scores is a
+                horoscope. */}
+            <Row
+              label="PR forecast"
+              value={
+                state.prForecast?.suppressed ? 'suppressed (hypertrophy)'
+                  : state.prForecast?.best
+                    ? `${state.prForecast.best.label} — ${state.prForecast.best.verdict}` +
+                      (state.prForecast.best.marginPct != null ? ` (${state.prForecast.best.marginPct > 0 ? '+' : ''}${state.prForecast.best.marginPct}%)` : '')
+                    : 'no data'
+              }
+              accent={state.prForecast?.best?.verdict === 'primed' ? palette.success[500] : undefined}
+            />
+            <Row
+              label="Forecast accuracy"
+              value={
+                state.prForecastAccuracy?.tested
+                  ? `${state.prForecastAccuracy.accuracyPct}% (${state.prForecastAccuracy.correct}/${state.prForecastAccuracy.tested} tested, ${state.prForecastAccuracy.open} open)`
+                  : `not yet scored (${state.prForecastAccuracy?.open ?? 0} open)`
+              }
+            />
             {state.fatigueEvidence.length > 0 && (
               <View style={styles.evidenceBox}>
                 {state.fatigueEvidence.map((e, i) => (

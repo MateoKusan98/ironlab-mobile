@@ -23,3 +23,4 @@ export * from './Stepper';
 export * from './Slider';
 export * from './KeyboardAwareScreen';
 export * from './FitnessQuiz';
+export * from './PRForecastCard';

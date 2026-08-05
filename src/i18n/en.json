@@ -27,7 +27,8 @@
     "hrs": "hrs",
     "sets": "sets",
     "reps": "reps",
-    "min": "min"
+    "min": "min",
+    "details": "Details"
   },
   "auth": {
     "welcome": "Welcome to IronLab",
@@ -330,7 +331,13 @@
     "startSessionFirst": "Start a workout and M-7EO will build your session based on how you feel today.",
     "startWorkoutBtn": "Start Today's Workout →",
     "generateFirstPlan": "Generate your first plan — M-7EO will build your session based on your profile.",
-    "generatePlanBtn": "Generate Plan →"
+    "generatePlanBtn": "Generate Plan →",
+    "prForecast": {
+      "title": "PR forecast",
+      "intro": "Read off your logged sets — what the bar has actually been doing this block, not how a day felt. It never changes your programmed weights; it tells you whether the attempt is worth taking.",
+      "empty": "Not enough logged work in this block yet. Keep training and this fills in on its own.",
+      "hint": "Opens the full breakdown for every lift"
+    }
   },
   "profile": {
     "title": "Profile",

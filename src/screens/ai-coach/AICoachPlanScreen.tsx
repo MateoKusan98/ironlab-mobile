@@ -18,12 +18,13 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette } from '../../theme';
-import { aiCoachService, RecoveryWeekStatus, FatigueStatus, FatigueLevel, CoachNote } from '../../services/ai-coach.service';
+import { aiCoachService, RecoveryWeekStatus, FatigueStatus, FatigueLevel, CoachNote, PrForecast } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserRole } from '@shared';
 import { MagnifyingGlass, Trophy, ChartBar } from 'phosphor-react-native';
 import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
 import { RecoveryModal, RecoveryBanner } from '../../components/ui/RecoveryWeekControl';
+import { PRForecastCard } from '../../components/ui/PRForecastCard';
 
 import { apiErrorMessage, apiErrorStatus } from '../../utils/apiError';
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'AICoachPlan'>;
@@ -664,6 +665,7 @@ export const AICoachPlanScreen: React.FC = () => {
   const [showRegenInput, setShowRegenInput] = useState(false);
   const [regenNote, setRegenNote] = useState('');
   const [fatigue, setFatigue] = useState<FatigueStatus | null>(null);
+  const [prForecast, setPrForecast] = useState<PrForecast | null>(null);
   const [fatigueModalVisible, setFatigueModalVisible] = useState(false);
   const [fatigueBusy, setFatigueBusy] = useState(false);
   const [notes, setNotes] = useState<CoachNote[]>([]);
@@ -714,6 +716,7 @@ export const AICoachPlanScreen: React.FC = () => {
       .finally(() => setLoading(false));
 
     aiCoachService.fatigueCheck().then(setFatigue).catch(() => {});
+    aiCoachService.prForecast().then(setPrForecast).catch(() => {});
     aiCoachService.getNotes().then(setNotes).catch(() => {});
   }, []);
 
@@ -726,6 +729,9 @@ export const AICoachPlanScreen: React.FC = () => {
         .then(({ plan: p, generatedAt: ga }) => { if (!cancelled) { setPlan(p); setGeneratedAt(ga); } })
         .catch(() => {});
       aiCoachService.fatigueCheck().then((f) => { if (!cancelled) setFatigue(f); }).catch(() => {});
+      // Refetched on focus alongside fatigue: a session logged elsewhere can settle an
+      // open forecast, and a stale "PR ON" card is the one error worth never shipping.
+      aiCoachService.prForecast().then((f) => { if (!cancelled) setPrForecast(f); }).catch(() => {});
       return () => { cancelled = true; };
     }, []),
   );
@@ -1041,6 +1047,12 @@ export const AICoachPlanScreen: React.FC = () => {
       {fatigue && (
         <FatigueBanner status={fatigue} onPress={() => setFatigueModalVisible(true)} />
       )}
+
+      {/* PR forecast. Sits directly under the fatigue banner because the two answer
+          the same question from opposite ends — "should I back off?" and "is it on?" —
+          and reading them apart is how an athlete talks themselves into a tired max. */}
+      <PRForecastCard forecast={prForecast} />
+
 
       {/* Injury banner — shown whenever there are active injuries */}
       {activeInjuries.length > 0 && (

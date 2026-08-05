@@ -21,12 +21,12 @@ import { useSettingsStore } from '../../stores/settings.store';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette, alpha } from '../../theme';
 import { sessionService } from '../../services/session.service';
-import { aiCoachService, FatigueRecommendation } from '../../services/ai-coach.service';
+import { aiCoachService, FatigueRecommendation, PrForecast } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, ChartBar } from 'phosphor-react-native';
 
-import { Card } from '../../components/ui';
+import { Card, PRForecastCard } from '../../components/ui';
 import { apiErrorMessage } from '../../utils/apiError';
 // Tracks which generated workout a readiness check was already submitted for.
 // Keyed per-user; value pins the plan's `generatedAt` so the readiness step is
@@ -135,6 +135,9 @@ export const StartSessionScreen: React.FC = () => {
     return [];
   });
   const [cycleInfo, setCycleInfo] = useState<{ week: number; session: number; total: number } | null>(null);
+  // "Is a record on today?" Free and LLM-free, so it's fetched on entry to step 2
+  // rather than gated behind a tap.
+  const [prForecast, setPrForecast] = useState<PrForecast | null>(null);
   // Competition / PR-test countdown. Set on the AI Coach plan screen; surfaced here
   // so the athlete actually sees how close the meet is on every single session.
   const [comp, setComp] = useState<{ date: string; type: string | null } | null>(null);
@@ -191,6 +194,21 @@ export const StartSessionScreen: React.FC = () => {
     init();
     return () => { cancelled = true; };
   }, []);
+
+  // Fetched on arrival at step 2 rather than in init: the forecast reads the PENDING
+  // session to know whether a single or triple is programmed, so asking before
+  // generation would report "no attempt scheduled" against the previous workout.
+  // Covers both routes into step 2 (a fresh generation and the already-checked
+  // short-circuit). Failure is silent — a missing forecast hides the card, and the
+  // session must never be blocked by an advisory read.
+  useEffect(() => {
+    if (step !== 2) return;
+    let cancelled = false;
+    aiCoachService.prForecast()
+      .then((f) => { if (!cancelled) setPrForecast(f); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [step]);
 
   const validate = (): boolean => {
     const newErrors: { sleep?: string; bodyweight?: string } = {};
@@ -496,6 +514,11 @@ export const StartSessionScreen: React.FC = () => {
           </>
         ) : (
           <>
+            {/* Is a record on today? Sits ABOVE the workout: it is the one thing that
+                changes how an athlete walks into the session, and it's the last screen
+                before the bar. Advisory — it never alters the prescribed loads below. */}
+            <PRForecastCard forecast={prForecast} />
+
             {/* Coach's Plan Preview */}
             {plannedExercises.length > 0 ? (
               <View style={styles.planCard}>
