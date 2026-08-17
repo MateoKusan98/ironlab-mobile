@@ -130,16 +130,46 @@ const InjuryModal: React.FC<{
   injuries: { id: string; exerciseName: string | null; description: string }[];
   currentHandling: string | null;
   onSave: (handling: 'replace' | 'remove' | 'reduce') => void;
+  onClearInjury: (id: string) => Promise<void>;
   onClose: () => void;
-}> = ({ visible, injuries, currentHandling, onSave, onClose }) => {
+}> = ({ visible, injuries, currentHandling, onSave, onClearInjury, onClose }) => {
   const { t } = useTranslation();
   const [choice, setChoice] = useState<'replace' | 'remove' | 'reduce' | null>(
     (currentHandling as 'replace' | 'remove' | 'reduce') ?? null,
   );
+  const [clearingId, setClearingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) setChoice((currentHandling as 'replace' | 'remove' | 'reduce') ?? null);
   }, [visible, currentHandling]);
+
+  // The three options below all decide how to program AROUND an injury. None of them
+  // can say "this flag is wrong" — injuries are DETECTED from session notes and RPE
+  // patterns, so a false positive was permanent and silently shrank every future
+  // session. Clearing deactivates the underlying coach note (same endpoint the notes
+  // screen uses), so the athlete can retract a detection the coach got wrong.
+  const confirmClear = (injury: { id: string; exerciseName: string | null; description: string }) => {
+    const label = injury.exerciseName ? `${injury.exerciseName} — ${injury.description}` : injury.description;
+    Alert.alert(
+      'Remove this injury?',
+      `"${label}"\n\nM-7EO will stop programming around it and your next session will be built as normal. You can always tell it about a real injury again in chat.`,
+      [
+        { text: 'Keep it', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            setClearingId(injury.id);
+            try {
+              await onClearInjury(injury.id);
+            } finally {
+              setClearingId(null);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -166,8 +196,25 @@ const InjuryModal: React.FC<{
                 )}
                 <Text style={inj.injuryDesc}>{inj_.description}</Text>
               </View>
+              <TouchableOpacity
+                onPress={() => confirmClear(inj_)}
+                disabled={clearingId === inj_.id}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={inj.injuryClearBtn}
+                accessibilityRole="button"
+                accessibilityLabel={`Remove injury: ${inj_.exerciseName ? `${inj_.exerciseName}, ` : ''}${inj_.description}`}
+                accessibilityHint="Clears this injury flag so sessions are no longer built around it"
+                accessibilityState={{ disabled: clearingId === inj_.id }}
+              >
+                {clearingId === inj_.id
+                  ? <ActivityIndicator size="small" color={palette.gray[500]} />
+                  : <Text style={inj.injuryClearText}>✕</Text>}
+              </TouchableOpacity>
             </View>
           ))}
+          <Text style={inj.injuryHint}>
+            Wrong flag? Tap ✕ to remove it — M-7EO detects injuries from your notes and can get one wrong.
+          </Text>
 
           <Text style={[inj.sectionLabel, { marginTop: 24 }]}>How should M-7EO handle these?</Text>
 
@@ -830,6 +877,25 @@ export const AICoachPlanScreen: React.FC = () => {
     }
   };
 
+  /**
+   * Retract a wrongly-detected injury. Injuries are coach NOTES (category INJURY), so
+   * clearing one is the same soft-delete the notes screen uses — it stays in the DB,
+   * just inactive, and stops constraining plan generation. The plan is NOT regenerated
+   * here: the athlete may be clearing several at once, and the next session picks the
+   * change up anyway. Closes the modal once the last one is gone, since there is then
+   * nothing left for the handling options to apply to.
+   */
+  const handleClearInjury = async (id: string) => {
+    try {
+      await aiCoachService.deleteNote(id);
+      const remaining = activeInjuries.filter((i) => i.id !== id);
+      setActiveInjuries(remaining);
+      if (!remaining.length) setInjuryModalVisible(false);
+    } catch {
+      Alert.alert('Error', 'Could not remove that injury. Check your connection and try again.');
+    }
+  };
+
   const handleTriggerRecovery = async (mode: 'recovery' | 'vacation' | 'taper') => {
     setRecoveryBusy(true);
     try {
@@ -951,6 +1017,7 @@ export const AICoachPlanScreen: React.FC = () => {
         injuries={activeInjuries}
         currentHandling={injuryHandling}
         onSave={handleSaveInjuryPreference}
+        onClearInjury={handleClearInjury}
         onClose={() => setInjuryModalVisible(false)}
       />
       <CompDateModal
@@ -1326,6 +1393,9 @@ const inj = StyleSheet.create({
   injuryDot: { fontSize: 14, color: palette.warning[400], marginTop: 1 },
   injuryExercise: { fontSize: 13, fontWeight: '700', color: palette.warning[400], marginBottom: 2 },
   injuryDesc: { fontSize: 13, color: palette.gray[300], lineHeight: 18 },
+  injuryClearBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center', marginTop: -2 },
+  injuryClearText: { fontSize: 15, color: palette.gray[500], fontWeight: '600' },
+  injuryHint: { fontSize: 12, color: palette.gray[600], lineHeight: 17, marginTop: 2 },
 
   optionCard: {
     borderRadius: 12, borderWidth: 1, borderColor: palette.gray[700],
