@@ -27,42 +27,44 @@ const STATUS: Record<MuscleStatus, { label: string; color: string; tint: string 
   too_much:   { label: 'HIGH',    color: palette.error[500],   tint: theme.surfaceTint.error },
 };
 
-/** Where the athlete's weekly figure sits inside the productive band, clamped to the bar. */
+/** Where the weekly figure sits on a track that runs 0 → a little past the ceiling. */
 function fill(row: MuscleVolumeRow): number {
-  const span = Math.max(1, row.mrv);
+  const span = Math.max(1, row.mrv * 1.15);
   return Math.max(0.02, Math.min(1, row.weekly / span));
 }
 
 const Row: React.FC<{ row: MuscleVolumeRow }> = ({ row }) => {
-  // Not a priority lift-wise → render neutral rather than red/amber, whatever the number.
-  const s = row.supports.length ? STATUS[row.status] : STATUS.optimal;
-  // The productive band drawn on the track, so "low" and "high" are visibly relative to
-  // something rather than asserted.
-  const mevAt = Math.min(1, row.mev / Math.max(1, row.mrv)) * 100;
+  const tracked = row.supports.length > 0;
+  const s = tracked ? STATUS[row.status] : STATUS.optimal;
+  const span = Math.max(1, row.mrv * 1.15);
+  // The productive band drawn ON the track, so "low" and "high" are visibly relative to
+  // something rather than asserted by a coloured pill.
+  const bandLeft = (row.mev / span) * 100;
+  const bandWidth = ((row.mrv - row.mev) / span) * 100;
 
   return (
     <View style={styles.row}>
-      <Text style={[styles.muscle, !row.supports.length && styles.muscleMuted]} numberOfLines={1}>
-        {row.label}
-      </Text>
-
-      <View style={styles.trackWrap}>
-        <View style={styles.track}>
-          <View style={[styles.band, { left: `${mevAt}%`, right: 0 }]} />
-          <View style={[styles.fill, { width: `${fill(row) * 100}%`, backgroundColor: s.color }]} />
-        </View>
-        <Text style={styles.range}>{row.mev}–{row.mrv}</Text>
+      <View style={styles.rowTop}>
+        <Text style={[styles.muscle, !tracked && styles.muted]} numberOfLines={1}>{row.label}</Text>
+        <Text style={[styles.weekly, { color: tracked ? s.color : palette.zinc[600] }]}>{row.weekly}</Text>
+        <Text style={styles.perWeek}>/wk</Text>
+        {tracked ? (
+          <View style={[styles.pill, { backgroundColor: s.tint }]}>
+            <Text style={[styles.pillText, { color: s.color }]}>{s.label}</Text>
+          </View>
+        ) : (
+          <Text style={styles.naText}>n/a</Text>
+        )}
       </View>
 
-      <View style={styles.numbers}>
-        <Text style={[styles.weekly, { color: s.color }]}>{row.weekly}</Text>
-        <Text style={styles.thisWeek}>{row.thisWeek} now</Text>
+      <View style={styles.track}>
+        <View style={[styles.band, { left: `${bandLeft}%`, width: `${bandWidth}%` }]} />
+        <View style={[styles.fill, { width: `${fill(row) * 100}%`, backgroundColor: tracked ? s.color : palette.zinc[600] }]} />
       </View>
 
-      <View style={[styles.pill, { backgroundColor: row.supports.length ? s.tint : 'transparent' }]}>
-        <Text style={[styles.pillText, { color: row.supports.length ? s.color : palette.zinc[600] }]}>
-          {row.supports.length ? s.label : 'N/A'}
-        </Text>
+      <View style={styles.rowFoot}>
+        <Text style={styles.range}>target {row.mev}–{row.mrv}</Text>
+        {row.thisWeek > 0 && <Text style={styles.range}>{row.thisWeek} this week</Text>}
       </View>
     </View>
   );
@@ -87,6 +89,7 @@ export const MuscleVolumeCard: React.FC = () => {
   // A muscle that builds none of the three lifts is not a problem for this athlete — a
   // powerlifter's calves and side delts are always "low" and always fine. Showing them as
   // problems buries the ones that matter under noise the coach itself ignores.
+  const thisWeekTotal = Math.round(data.rows.reduce((n, r) => n + r.thisWeek, 0));
   const problems = data.rows.filter((r) => r.status !== 'optimal' && r.supports.length > 0);
   const shown = expanded ? data.rows : (problems.length ? problems : data.rows.slice(0, 4));
 
@@ -96,9 +99,13 @@ export const MuscleVolumeCard: React.FC = () => {
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>Weekly volume by muscle</Text>
           <Text style={styles.subtitle}>
-            effective sets · {data.weeksMeasured}-week average
-            {problems.length ? ` · ${problems.length} outside range` : ' · all in range'}
-            {data.rows.some((r) => !r.supports.length) ? ' · N/A = not a powerlifting driver' : ''}
+            {problems.length
+              ? `${problems.length} outside target range`
+              : 'everything inside target range'}
+          </Text>
+          <Text style={styles.subtitleDim}>
+            effective sets per week, averaged over your last {data.weeksMeasured} full weeks
+            {thisWeekTotal > 0 ? ` · ${thisWeekTotal} logged so far this week` : ' · nothing logged yet this week'}
           </Text>
         </View>
       </View>
@@ -128,40 +135,45 @@ export const MuscleVolumeCard: React.FC = () => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: palette.zinc[900],
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 8,
     marginTop: 16,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: alpha(palette.zinc[700], 0.5),
   },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  title: { color: palette.zinc[200], fontSize: 15, fontWeight: '700' },
-  subtitle: { color: palette.zinc[500], fontSize: 11, marginTop: 2 },
+  header: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 18 },
+  title: { color: palette.zinc[200], fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
+  subtitle: { color: palette.zinc[400], fontSize: 12, marginTop: 3, fontWeight: '600' },
+  subtitleDim: { color: palette.zinc[600], fontSize: 11, marginTop: 4, lineHeight: 15 },
 
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7 },
-  muscle: { color: palette.zinc[300], fontSize: 12, width: 78 },
-  muscleMuted: { color: palette.zinc[600] },
+  row: { marginBottom: 18 },
+  rowTop: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 7 },
+  muscle: { color: palette.zinc[300], fontSize: 13, fontWeight: '600', flex: 1 },
+  muted: { color: palette.zinc[600] },
+  weekly: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
+  perWeek: { color: palette.zinc[600], fontSize: 10, marginLeft: 2, marginRight: 10 },
 
-  trackWrap: { flex: 1, marginRight: 10 },
   track: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: alpha(palette.zinc[700], 0.6),
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: alpha(palette.zinc[700], 0.55),
     overflow: 'hidden',
     justifyContent: 'center',
   },
-  band: { position: 'absolute', top: 0, bottom: 0, backgroundColor: alpha(palette.success[500], 0.16) },
-  fill: { height: 6, borderRadius: 3 },
-  range: { color: palette.zinc[600], fontSize: 9, marginTop: 3 },
+  band: { position: 'absolute', top: 0, bottom: 0, backgroundColor: alpha(palette.success[500], 0.22) },
+  fill: { height: 7, borderRadius: 4 },
 
-  numbers: { width: 46, alignItems: 'flex-end', marginRight: 8 },
-  weekly: { fontSize: 13, fontWeight: '700' },
-  thisWeek: { color: palette.zinc[600], fontSize: 9 },
+  rowFoot: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 },
+  range: { color: palette.zinc[600], fontSize: 10 },
 
-  pill: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, width: 62, alignItems: 'center' },
-  pillText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.4 },
+  pill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7, minWidth: 58, alignItems: 'center' },
+  pillText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
+  naText: { color: palette.zinc[700], fontSize: 10, minWidth: 58, textAlign: 'center' },
 
-  toggle: { marginTop: 10, alignSelf: 'flex-start' },
-  toggleText: { color: palette.brand[400], fontSize: 12, fontWeight: '600' },
-  unclassified: { color: palette.zinc[600], fontSize: 10, marginTop: 8, fontStyle: 'italic' },
+  toggle: { marginTop: 2, marginBottom: 10, alignSelf: 'flex-start' },
+  toggleText: { color: palette.brand[400], fontSize: 13, fontWeight: '600' },
+  unclassified: { color: palette.zinc[600], fontSize: 10, marginBottom: 10, fontStyle: 'italic' },
 });
