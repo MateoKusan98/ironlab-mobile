@@ -18,6 +18,7 @@ import { ScreenHeader } from '../../components/ui/ScreenHeader';
 import { Bell, PersonSimpleRun, Lightning, Robot, CalendarBlank, ChartBar, ArrowRight, Camera, Flask, Trophy } from 'phosphor-react-native';
 import { UserRole } from '@shared';
 import { RecoveryWeekCard } from '../../components/ui/RecoveryWeekControl';
+import { MuscleVolumeCard } from '../../components/ui/MuscleVolumeCard';
 
 // const CATEGORIES = [
 //   { id: '1', label: 'HIIT', Icon: Fire, color: theme.categoryTint.green, iconColor: palette.brand[500] },
@@ -105,6 +106,11 @@ export const WorkoutScreen: React.FC = () => {
 
         {/* Section: Track Progress */}
         <Text style={styles.sectionTitle}>Track Progress</Text>
+
+        {/* What the coach has actually been programming, per muscle. Renders itself away
+            when there is no measured history, so a new athlete never sees an audit of
+            work they have not done yet. */}
+        {user?.isAICoachSetupComplete && <MuscleVolumeCard />}
 
         {/* History & Stats row */}
         <View style={styles.quickRow}>

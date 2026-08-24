@@ -70,6 +70,29 @@ export interface FatigueRecommendation {
   detail: string;
 }
 
+/** Mirrors backend muscle-volume.ts. */
+export type MuscleStatus = 'not_enough' | 'optimal' | 'too_much';
+
+export interface MuscleVolumeRow {
+  muscle: string;
+  label: string;
+  /** Effective sets per week, averaged over completed non-recovery weeks. */
+  weekly: number;
+  /** Effective sets logged so far in the current week. */
+  thisWeek: number;
+  mev: number;
+  mrv: number;
+  status: MuscleStatus;
+}
+
+export interface MuscleVolumeSummary {
+  rows: MuscleVolumeRow[];
+  weeksMeasured: number;
+  currentWeekStart: string;
+  /** Movements the classifier could not place — shown so gaps are visible, not hidden. */
+  unclassified: string[];
+}
+
 /** Mirrors backend pr-forecast.ts. See that module for what each verdict promises. */
 export type PrVerdict = 'primed' | 'on_track' | 'hold' | 'not_today' | 'deferred' | 'insufficient_data';
 
@@ -272,6 +295,15 @@ export const aiCoachService = {
    */
   prForecast: async (): Promise<PrForecast> => {
     const { data } = await api.get<{ data: PrForecast }>('/ai-coach/pr-forecast');
+    return data.data;
+  },
+
+  /**
+   * Weekly effective sets per muscle vs the productive range. Free, LLM-free and
+   * read-only — a view of the athlete's own logged work, nothing here moves a load.
+   */
+  muscleVolume: async (): Promise<MuscleVolumeSummary> => {
+    const { data } = await api.get<{ data: MuscleVolumeSummary }>('/ai-coach/muscle-volume');
     return data.data;
   },
 

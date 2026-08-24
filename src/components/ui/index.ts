@@ -24,3 +24,4 @@ export * from './Slider';
 export * from './KeyboardAwareScreen';
 export * from './FitnessQuiz';
 export * from './PRForecastCard';
+export { MuscleVolumeCard } from './MuscleVolumeCard';
