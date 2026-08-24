@@ -34,14 +34,17 @@ function fill(row: MuscleVolumeRow): number {
 }
 
 const Row: React.FC<{ row: MuscleVolumeRow }> = ({ row }) => {
-  const s = STATUS[row.status];
+  // Not a priority lift-wise → render neutral rather than red/amber, whatever the number.
+  const s = row.supports.length ? STATUS[row.status] : STATUS.optimal;
   // The productive band drawn on the track, so "low" and "high" are visibly relative to
   // something rather than asserted.
   const mevAt = Math.min(1, row.mev / Math.max(1, row.mrv)) * 100;
 
   return (
     <View style={styles.row}>
-      <Text style={styles.muscle} numberOfLines={1}>{row.label}</Text>
+      <Text style={[styles.muscle, !row.supports.length && styles.muscleMuted]} numberOfLines={1}>
+        {row.label}
+      </Text>
 
       <View style={styles.trackWrap}>
         <View style={styles.track}>
@@ -56,8 +59,10 @@ const Row: React.FC<{ row: MuscleVolumeRow }> = ({ row }) => {
         <Text style={styles.thisWeek}>{row.thisWeek} now</Text>
       </View>
 
-      <View style={[styles.pill, { backgroundColor: s.tint }]}>
-        <Text style={[styles.pillText, { color: s.color }]}>{s.label}</Text>
+      <View style={[styles.pill, { backgroundColor: row.supports.length ? s.tint : 'transparent' }]}>
+        <Text style={[styles.pillText, { color: row.supports.length ? s.color : palette.zinc[600] }]}>
+          {row.supports.length ? s.label : 'N/A'}
+        </Text>
       </View>
     </View>
   );
@@ -79,7 +84,10 @@ export const MuscleVolumeCard: React.FC = () => {
   // coverage to audit, and an empty grid reads as "you are failing at everything".
   if (!data || !data.weeksMeasured) return null;
 
-  const problems = data.rows.filter((r) => r.status !== 'optimal');
+  // A muscle that builds none of the three lifts is not a problem for this athlete — a
+  // powerlifter's calves and side delts are always "low" and always fine. Showing them as
+  // problems buries the ones that matter under noise the coach itself ignores.
+  const problems = data.rows.filter((r) => r.status !== 'optimal' && r.supports.length > 0);
   const shown = expanded ? data.rows : (problems.length ? problems : data.rows.slice(0, 4));
 
   return (
@@ -90,6 +98,7 @@ export const MuscleVolumeCard: React.FC = () => {
           <Text style={styles.subtitle}>
             effective sets · {data.weeksMeasured}-week average
             {problems.length ? ` · ${problems.length} outside range` : ' · all in range'}
+            {data.rows.some((r) => !r.supports.length) ? ' · N/A = not a powerlifting driver' : ''}
           </Text>
         </View>
       </View>
@@ -131,6 +140,7 @@ const styles = StyleSheet.create({
 
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7 },
   muscle: { color: palette.zinc[300], fontSize: 12, width: 78 },
+  muscleMuted: { color: palette.zinc[600] },
 
   trackWrap: { flex: 1, marginRight: 10 },
   track: {

@@ -83,6 +83,8 @@ export interface MuscleVolumeRow {
   mev: number;
   mrv: number;
   status: MuscleStatus;
+  /** Competition lifts this muscle builds. Empty = not a powerlifting priority. */
+  supports: Array<'squat' | 'bench' | 'deadlift'>;
 }
 
 export interface MuscleVolumeSummary {
