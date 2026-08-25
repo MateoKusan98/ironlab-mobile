@@ -47,7 +47,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
     setIsLoading(true);
     try {
-      const response = await authService.login({ email, password });
+      const response = await authService.login({ email: email.trim(), password });
       await setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
     } catch (error: unknown) {
       const message = apiErrorMessage(error, 'Invalid email or password.');
@@ -88,6 +88,14 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             placeholder="••••••••••••••••"
             value={password}
             onChangeText={setPassword}
+            // Required explicitly: RN defaults to autoCapitalize="sentences", and
+            // while secureTextEntry hides that, tapping the eye below turns it off
+            // and the keyboard then capitalises the first character — a silent
+            // "invalid credentials" for anyone who reveals their password to check it.
+            autoCapitalize="none"
+            autoCorrect={false}
+            spellCheck={false}
+            textContentType="password"
             secureTextEntry={!showPassword}
             leftIcon={<Lock size={18} color={palette.gray[500]} />}
             rightIcon={

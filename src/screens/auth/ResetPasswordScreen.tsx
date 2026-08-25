@@ -105,6 +105,9 @@ export const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
             placeholder="••••••••••••••••"
             value={password}
             onChangeText={setPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
+            spellCheck={false}
             secureTextEntry={!showPassword}
             leftIcon={<Lock size={18} color={palette.gray[500]} />}
             rightIcon={
@@ -122,6 +125,9 @@ export const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
             placeholder="••••••••••••••••"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
+            spellCheck={false}
             secureTextEntry={!showPassword}
             leftIcon={<Lock size={18} color={palette.gray[500]} />}
           />

@@ -20,6 +20,16 @@ const STALL_MS = 12000;
 const MAX_NETWORK_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 400;
 
+// A 401 from these endpoints means "those credentials are wrong", not "your access
+// token expired" — there is nothing to refresh, so they must skip the refresh branch
+// entirely and surface the error straight to the caller.
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/social'];
+
+function isAuthEndpoint(url?: string): boolean {
+  if (!url) return false;
+  return AUTH_ENDPOINTS.some((path) => url.includes(path));
+}
+
 function isRetryableNetworkError(error: AxiosError): boolean {
   if (error.code === 'ERR_CANCELED') return false; // deliberate cancel — leave it
   // A response means the server was reached and answered — not a transient
@@ -95,7 +105,11 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isAuthEndpoint(originalRequest?.url)
+    ) {
       // Impersonation sessions have no refresh token by design — when the
       // short-lived access token lapses, exit back to the admin session
       // instead of attempting a refresh or logging out entirely.
@@ -122,6 +136,14 @@ api.interceptors.response.use(
 
       const refreshToken = useAuthStore.getState().refreshToken;
       if (!refreshToken) {
+        // Bail out BEFORE the try/finally below, so nothing here can rely on that
+        // finally to clear isRefreshing — it must be reset by hand. Leaving it set
+        // latches the flag forever: every later 401 (a failed login included) gets
+        // parked on failedQueue and never settles, so the caller's promise hangs
+        // and its spinner runs forever. Drain the queue too, or anything already
+        // parked stays stuck.
+        isRefreshing = false;
+        processQueue(error, null);
         logApiError(error);
         useAuthStore.getState().logout();
         return Promise.reject(error);
@@ -142,9 +164,13 @@ api.interceptors.response.use(
       }, STALL_MS);
 
       try {
-        const { data } = await axios.post(`${API_URL}/auth/refresh`, {
-          refreshToken,
-        });
+        const { data } = await axios.post(
+          `${API_URL}/auth/refresh`,
+          { refreshToken },
+          // Without a timeout a stalled network leg never settles, and the
+          // finally below never runs — the same permanent-latch failure.
+          { timeout: STALL_MS },
+        );
 
         const newAccessToken = data.data.accessToken as string;
         const newRefreshToken = data.data.refreshToken as string;
