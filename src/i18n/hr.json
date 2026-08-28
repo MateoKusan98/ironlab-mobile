@@ -27,7 +27,8 @@
     "hrs": "sati",
     "sets": "serije",
     "reps": "ponavljanja",
-    "min": "min"
+    "min": "min",
+    "continue": "Nastavi →"
   },
   "auth": {
     "welcome": "Dobrodošli u IronLab",
@@ -566,6 +567,34 @@
     "focusPowerbuilding": "Powerbuilding",
     "focusStrength": "Snaga"
   },
+  "aiCoachSettings": {
+    "title": "Postavke AI trenera",
+    "menuSub": "Idi ravno na bilo koji odgovor — pretraži ili otvori sekciju",
+    "appliesNext": "Promjene vrijede od sljedećeg generiranog treninga.",
+    "searchPlaceholder": "Pretraži postavke — dani, uteg, učestalost…",
+    "noResults": "Ništa ne odgovara upitu “{{query}}”.",
+    "answeredOf": "{{answered}} od {{total}} postavljeno",
+    "moreCount": "+{{count}} više",
+    "edited": "Promijenjeno",
+    "discard": "Odbaci",
+    "keepEditing": "Nastavi uređivati",
+    "saveChanges": "Spremi promjene ({{count}})",
+    "unsavedTitle": "Nespremljene promjene",
+    "unsavedMsg": "Imaš promjene koje nisu spremljene. Svejedno izaći?",
+    "requiredTitle": "Ovo ne može ostati prazno",
+    "requiredMsg": "Tvoj trener treba odgovor za:\n• {{fields}}",
+    "loadFailed": "Nije moguće učitati postavke trenera.",
+    "retry": "Pokušaj ponovno",
+    "fullSetupTitle": "Ponovno prođi cijelo postavljanje",
+    "fullSetupSub": "Prođi kroz svako pitanje, kao prvi put",
+    "focusTickHypertrophy": "Hipertrofija",
+    "focusTickHypertrophyLeaning": "Pretežno hipertrofija",
+    "focusTickPowerbuilding": "Powerbuilding",
+    "focusTickStrengthLeaning": "Pretežno snaga",
+    "focusTickStrength": "Snaga",
+    "badNumberTitle": "Provjeri ove brojeve",
+    "badNumberMsg": "Ovdje treba broj unutar raspona:\n• {{fields}}"
+  },
   "prs": {
     "title": "Osobni rekordi",
     "noPRs": "Još nema rekorda",
@@ -1039,5 +1068,10 @@
     "currentVersion": "Imaš v{{version}}",
     "requiredVersion": "Potrebna v{{version}}",
     "updateNow": "Ažuriraj sada"
+  },
+  "sessionDebrief": {
+    "title": "ANALIZA TRENERA",
+    "coachsRead": "TRENEROV OSVRT",
+    "writing": "Analiziram tvoj trening…"
   }
 }

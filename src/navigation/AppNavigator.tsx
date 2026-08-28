@@ -26,6 +26,7 @@ import { BrowseMealsScreen } from '../screens/nutrition/BrowseMealsScreen';
 import { AICoachWelcomeScreen } from '../screens/ai-coach/AICoachWelcomeScreen';
 import { AICoachSetupScreen } from '../screens/ai-coach/AICoachSetupScreen';
 import { AICoachExtendedSetupScreen } from '../screens/ai-coach/AICoachExtendedSetupScreen';
+import { AICoachSettingsScreen } from '../screens/ai-coach/AICoachSettingsScreen';
 import { AICoachChatScreen } from '../screens/ai-coach/AICoachChatScreen';
 import { AICoachPlanScreen } from '../screens/ai-coach/AICoachPlanScreen';
 import { PathTreeScreen } from '../screens/ai-coach/PathTreeScreen';
@@ -113,6 +114,7 @@ export type RootStackParamList = {
   AICoachWelcome: undefined;
   AICoachSetup: undefined;
   AICoachExtendedSetup: { preferences?: import('../services/ai-coach.service').CoachPreferences; editMode?: boolean; express?: boolean; experienceLevel?: 'novice' | 'beginner' | 'intermediate' | 'advanced' };
+  AICoachSettings: undefined;
   AICoachChat: { preferences?: import('../services/ai-coach.service').CoachPreferences };
   AICoachPlan: undefined;
   PathTree: undefined;
@@ -211,6 +213,7 @@ export const AppNavigator: React.FC = () => {
                         <Stack.Screen name="AICoachWelcome" component={AICoachWelcomeScreen} />
                         <Stack.Screen name="AICoachSetup" component={AICoachSetupScreen} />
                         <Stack.Screen name="AICoachExtendedSetup" component={AICoachExtendedSetupScreen} />
+                        <Stack.Screen name="AICoachSettings" component={AICoachSettingsScreen} />
                         <Stack.Screen name="AICoachChat" component={AICoachChatScreen} />
                         <Stack.Screen name="AICoachPlan" component={AICoachPlanScreen} />
                         <Stack.Screen name="PathTree" component={PathTreeScreen} />

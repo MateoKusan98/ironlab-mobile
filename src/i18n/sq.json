@@ -27,7 +27,8 @@
     "hrs": "orë",
     "sets": "seri",
     "reps": "përsëritje",
-    "min": "min"
+    "min": "min",
+    "continue": "Vazhdo →"
   },
   "auth": {
     "welcome": "Mirë se vini në IronLab",
@@ -1010,5 +1011,10 @@
     "badgeUnlocked": "SHPËRBLIMI U SHKYÇ",
     "nextBadge": "SHPËRBLIMI I ARDHSHËM  →",
     "letsGo": "EJANI! 💪"
+  },
+  "sessionDebrief": {
+    "title": "ANALIZA E TRAJNERIT",
+    "coachsRead": "VLERËSIMI I TRAJNERIT",
+    "writing": "Po analizoj stërvitjen tënde…"
   }
 }

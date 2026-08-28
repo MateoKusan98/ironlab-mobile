@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -22,13 +22,59 @@ import { useTranslation } from 'react-i18next';
 import { useExerciseName } from '../../hooks/useExerciseName';
 import { sessionService, WorkoutSession } from '../../services/session.service';
 import { projectSessionPoints } from '../../services/badges.service';
-import { aiCoachService } from '../../services/ai-coach.service';
+import { aiCoachService, SessionDebrief } from '../../services/ai-coach.service';
 import { useBadgeCelebration } from '../../contexts/BadgeCelebrationContext';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, Check, Sparkle, Copy, ShareNetwork } from 'phosphor-react-native';
 import { LANGUAGES } from '../../i18n';
 
-import { Card } from '../../components/ui';
+import { Card, SessionDebriefCard } from '../../components/ui';
 type SummaryRouteProp = RouteProp<RootStackParamList, 'SessionSummary'>;
+
+// ── Post-workout debrief ────────────────────────────────────────────────────
+// The backend builds it in two beats: the measurements land within a second of the
+// session being saved, the coach's read a few seconds later with the next session.
+// So we poll rather than await — and we render the first beat immediately instead of
+// making someone who has just finished a two-hour workout watch a spinner.
+const DEBRIEF_POLL_MS = 1500;
+/** How long we wait for the coach's read before letting the athlete go. */
+const DEBRIEF_NOTE_TIMEOUT_MS = 25000;
+/** …and how long for anything at all, after which the pipeline has clearly failed. */
+const DEBRIEF_FIRST_TIMEOUT_MS = 12000;
+
+/**
+ * Polls until the coach's read arrives, the deadline passes, or the caller navigates
+ * away. Calls `onUpdate` for every state it sees, so the facts render as soon as they
+ * exist rather than at the end. Resolves to whether anything was found.
+ */
+async function pollDebrief(
+  sessionId: string,
+  onUpdate: (d: SessionDebrief) => void,
+  cancelled: () => boolean,
+): Promise<boolean> {
+  const startedAt = Date.now();
+  let seen = false;
+  while (!cancelled()) {
+    const elapsed = Date.now() - startedAt;
+    // Nothing at all after the first deadline means the pipeline failed; there is no
+    // point holding the athlete for the full note timeout on a card that will never
+    // come.
+    if (elapsed > (seen ? DEBRIEF_NOTE_TIMEOUT_MS : DEBRIEF_FIRST_TIMEOUT_MS)) break;
+
+    try {
+      const d = await aiCoachService.getSessionDebrief(sessionId);
+      if (cancelled()) return seen;
+      if (d?.facts?.length) {
+        seen = true;
+        onUpdate(d);
+        if (d.coachNote) return true;
+      }
+    } catch {
+      // A failed poll is not a failed workout. Keep trying until the deadline.
+    }
+    await new Promise<void>((r) => { setTimeout(r, DEBRIEF_POLL_MS); });
+  }
+  return seen;
+}
 
 const MOOD_VALUES = ['tired', 'neutral', 'good', 'great', 'elite'] as const;
 const MOOD_ICONS: Record<string, React.ReactElement> = {
@@ -54,6 +100,15 @@ export const SessionSummaryScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [debrief, setDebrief] = useState<SessionDebrief | null>(null);
+  // The note may still land after the wait; `generating` alone cannot tell the card
+  // "still coming" from "it failed", and a spinner that never resolves is worse than
+  // no spinner.
+  const [notePending, setNotePending] = useState(false);
+  // Polling outlives a navigation away, so it needs an explicit stop signal — a
+  // setState on an unmounted screen is a warning today and a leak in a loop.
+  const leftScreen = useRef(false);
+  useEffect(() => () => { leftScreen.current = true; }, []);
   // Final duration sent to the backend — editable in case the clock ran long
   // (e.g. the workout was left open). Seeded from the active screen's value.
   const [duration, setDuration] = useState(durationMinutes);
@@ -169,6 +224,7 @@ export const SessionSummaryScreen: React.FC = () => {
     }
     setSaving(false);
     setGenerating(true);
+    setNotePending(true);
     // Run badge refresh and AI call in parallel so the popup is queued and
     // rendered before navigation starts (avoids iOS dropping modals that appear
     // mid-transition).
@@ -176,6 +232,22 @@ export const SessionSummaryScreen: React.FC = () => {
       refreshBadges(),
       aiCoachService.postSession(sessionId),
     ]);
+
+    // postSession returns as soon as the pipeline is queued server-side (it is
+    // deliberately fire-and-forget so a completed workout can never fail on it), so
+    // the debrief is polled for rather than awaited.
+    const found = await pollDebrief(sessionId, setDebrief, () => leftScreen.current);
+    if (leftScreen.current) return;
+    setGenerating(false);
+    setNotePending(false);
+    // Nothing to show — behave exactly as this screen did before the debrief existed.
+    // The athlete finished their workout; they do not owe us a wait for a card that
+    // is not coming.
+    if (!found) navigation.reset({ index: 0, routes: [{ name: 'ClientApp' }] });
+  };
+
+  const handleContinue = () => {
+    leftScreen.current = true;
     navigation.reset({ index: 0, routes: [{ name: 'ClientApp' }] });
   };
 
@@ -459,13 +531,28 @@ export const SessionSummaryScreen: React.FC = () => {
           )}
         </Card>
 
-        {/* Save */}
+        {/* The coach's read of the session that was just saved. Appears in place,
+            below the summary the athlete is already looking at, rather than as a
+            modal over it. */}
+        {debrief && (
+          <SessionDebriefCard
+            debrief={debrief}
+            notePending={notePending && !debrief.coachNote}
+            style={{ marginBottom: 12 }}
+          />
+        )}
+
+        {/* Save — becomes Continue once the debrief is on screen. The athlete is
+            never held by a note that is still being written; leaving early just
+            means they read it from the session in their history instead. */}
         <TouchableOpacity
-          style={[styles.saveBtn, (saving || generating) && styles.saveBtnDisabled]}
-          onPress={handleSave}
-          disabled={saving || generating}
+          style={[styles.saveBtn, (saving || (generating && !debrief)) && styles.saveBtnDisabled]}
+          onPress={debrief ? handleContinue : handleSave}
+          disabled={saving || (generating && !debrief)}
+          accessibilityRole="button"
+          accessibilityLabel={debrief ? t('common.continue') : t('sessionSummary.done')}
         >
-          {saving || generating ? (
+          {saving || (generating && !debrief) ? (
             <View style={styles.saveBtnInner}>
               <ActivityIndicator color={palette.white} size="small" style={{ marginRight: 10 }} />
               <Text style={styles.saveBtnText}>
@@ -473,7 +560,9 @@ export const SessionSummaryScreen: React.FC = () => {
               </Text>
             </View>
           ) : (
-            <Text style={styles.saveBtnText}>{t('sessionSummary.done')}</Text>
+            <Text style={styles.saveBtnText}>
+              {debrief ? t('common.continue') : t('sessionSummary.done')}
+            </Text>
           )}
         </TouchableOpacity>
 

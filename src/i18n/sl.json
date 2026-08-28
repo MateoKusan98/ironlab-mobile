@@ -27,7 +27,8 @@
     "hrs": "ur",
     "sets": "serije",
     "reps": "ponovitve",
-    "min": "min"
+    "min": "min",
+    "continue": "Naprej →"
   },
   "auth": {
     "welcome": "Dobrodošli v IronLab",
@@ -1020,5 +1021,10 @@
     "badgeUnlocked": "ZNAČKA ODKLENJENA",
     "nextBadge": "NASLEDNJA ZNAČKA  →",
     "letsGo": "POJDIMO! 💪"
+  },
+  "sessionDebrief": {
+    "title": "TRENERJEVA ANALIZA",
+    "coachsRead": "TRENERJEV POGLED",
+    "writing": "Pregledujem tvoj trening…"
   }
 }

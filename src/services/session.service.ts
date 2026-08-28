@@ -1,4 +1,5 @@
 import { api } from './api';
+import { SessionDebrief } from './ai-coach.service';
 
 import { RepPR } from '@shared';
 export interface PRResult {
@@ -27,6 +28,7 @@ export interface SessionSet {
   isCompleted: boolean;
   isPR: boolean;
   techniqueNotes: string | null;
+  techniqueRating: number | null;
   loggedAt: string;
   prs?: PRResult[];
 }
@@ -49,6 +51,12 @@ export interface WorkoutSession {
   cardioCaloriesBurned: number | null;
   cardioDistanceKm: number | null;
   cardioAvgHeartRate: number | null;
+  /**
+   * The coach's post-workout debrief, attached by the AI pipeline after the session
+   * was completed. Null on sessions logged before the debrief existed, on cardio,
+   * and whenever the generation failed.
+   */
+  coachDebrief: SessionDebrief | null;
   sets: SessionSet[];
 }
 
@@ -84,6 +92,7 @@ export interface AddSetInput {
   rpe?: number;
   isCompleted?: boolean;
   techniqueNotes?: string;
+  techniqueRating?: number;
 }
 
 export interface ExerciseSummary {

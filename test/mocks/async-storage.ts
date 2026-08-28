@@ -9,6 +9,8 @@ const AsyncStorageMock = {
   getItem: jest.fn(async (key: string) => store.get(key) ?? null),
   setItem: jest.fn(async (key: string, value: string) => { store.set(key, value); }),
   removeItem: jest.fn(async (key: string) => { store.delete(key); }),
+  getAllKeys: jest.fn(async () => [...store.keys()]),
+  multiRemove: jest.fn(async (keys: string[]) => { keys.forEach((k) => store.delete(k)); }),
   clear: jest.fn(async () => { store.clear(); }),
   /** Test-only: reset between cases. */
   __reset: () => {
@@ -16,6 +18,8 @@ const AsyncStorageMock = {
     AsyncStorageMock.getItem.mockClear();
     AsyncStorageMock.setItem.mockClear();
     AsyncStorageMock.removeItem.mockClear();
+    AsyncStorageMock.getAllKeys.mockClear();
+    AsyncStorageMock.multiRemove.mockClear();
   },
   __store: store,
 };

@@ -34,47 +34,27 @@ import { CueReminderModal } from './components/CueReminderModal';
 import { RestTimerBanner } from './components/RestTimerBanner';
 import { AddExerciseModal } from './components/AddExerciseModal';
 import { SubstituteExerciseModal } from './components/SubstituteExerciseModal';
+import {
+  Exercise,
+  LocalSet,
+  buildFromPlan,
+  clearDraft,
+  loadDraft,
+  nextSetUid,
+  pruneOtherDrafts,
+  reconcileDraft,
+  saveDraft,
+  unresolvedDeletions,
+} from './workoutState';
 type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
 
-interface Exercise {
-  name: string;
-  order: number;
-  sets: LocalSet[];
-  isExpanded: boolean;
-  techniqueRating?: number;
-  exerciseNotes?: string;
-  // Coaching cue from the generated plan (e.g. "keep elbows tucked"). Surfaced
-  // during the workout so the user knows what to watch — and can answer the
-  // Technique self-report meaningfully instead of guessing.
-  cue?: string;
-}
+// Long enough that typing a set doesn't write on every keystroke, short enough
+// that backgrounding the app right after an edit still captures it.
+const DRAFT_SAVE_DEBOUNCE_MS = 400;
 
-// Stable, monotonically-increasing client-side id for a set row. Unlike
-// setNumber (a display position that shifts when sets are added/removed) this
-// never changes for the life of a row, so async saves and removals always
-// target the right set even after the list has been reordered.
-let setUidCounter = 0;
-const nextSetUid = () => `set-${++setUidCounter}`;
-
-interface LocalSet {
-  id?: string;
-  // Stable client-side identity (see nextSetUid). Used for React keys and to
-  // patch the correct set after an async save, independent of its index.
-  uid: string;
-  setNumber: number;
-  reps: string;
-  weight: string;
-  rpe: string;
-  // What the plan prescribed for this set — sent to the API so the coach can
-  // compare prescribed-vs-actual RPE and drive progression. Undefined for sets
-  // added manually mid-workout (no prescription).
-  targetReps?: number;
-  targetWeight?: number;
-  targetRpe?: number;
-  isCompleted: boolean;
-  isSaving?: boolean;
-  prs?: import('../../services/session.service').PRResult[];
-}
+// The technique note is free text, so wait for a real pause in typing before
+// spending a request on it.
+const REVIEW_SAVE_DEBOUNCE_MS = 1200;
 
 const COMMON_EXERCISES = [
   // Big compounds
@@ -235,6 +215,12 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [resumeLoading, setResumeLoading] = useState(true);
+  // Sets deleted this session. Persisted with the draft so a delete that failed
+  // offline can be retried instead of the row coming back on the next resume.
+  const removedSetIdsRef = useRef<Set<string>>(new Set());
+  // Last self-report successfully sent per exercise, so an idle re-render doesn't
+  // re-PATCH the same rating and note over and over.
+  const sentReviewsRef = useRef<Map<string, string>>(new Map());
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [substituteIdx, setSubstituteIdx] = useState<number | null>(null);
   const [rpeGuideVisible, setRpeGuideVisible] = useState(false);
@@ -264,103 +250,145 @@ export const ActiveWorkoutScreen: React.FC = () => {
     deleteCue,
   } = useExerciseCues(sessionId, currentExerciseName, !resumeLoading);
 
-  // Always fetch the session to restore the clock and any logged sets.
-  // Falls back to plannedExercises if the session has no sets yet (e.g. resumed before logging anything).
+  // Restore the session on mount. Three sources, in order of authority:
+  //   1. the local draft — the athlete's own arrangement of the session
+  //   2. the server's sets — the truth about anything already saved
+  //   3. the plan we were launched with — the fallback when there's no draft
+  // Without (1) the screen used to rebuild from (2) + (3) alone, which quietly
+  // undid every edit that wasn't a completed set: removed exercises came back,
+  // added and swapped ones disappeared, technique notes and typed-but-unticked
+  // reps were lost.
   useEffect(() => {
-    sessionService.getSession(sessionId).then((session) => {
-      if (session.startedAt) {
-        syncStart(new Date(session.startedAt).getTime());
-      }
+    let cancelled = false;
 
-      if (session.sets?.length) {
-        // Build a lookup of logged sets by exercise name
-        const loggedByName = new Map<string, { order: number; sets: typeof session.sets }>();
-        for (const s of session.sets) {
-          const entry = loggedByName.get(s.exerciseName) ?? { order: s.exerciseOrder, sets: [] };
-          entry.sets.push(s);
-          loggedByName.set(s.exerciseName, entry);
+    (async () => {
+      try {
+        const [session, draft] = await Promise.all([
+          sessionService.getSession(sessionId),
+          loadDraft(sessionId),
+        ]);
+        if (cancelled) return;
+
+        if (session.startedAt) {
+          syncStart(new Date(session.startedAt).getTime());
         }
 
-        const mapLoggedSets = (sets: typeof session.sets): LocalSet[] =>
-          sets.sort((a, b) => a.setNumber - b.setNumber).map((s, i) => ({
-            id: s.id,
-            uid: nextSetUid(),
-            // Renumber to a contiguous 1..N on load so a set removed in a prior
-            // session doesn't leave a gap that confuses the display or a later add.
-            setNumber: i + 1,
-            reps: s.repsCompleted != null ? String(s.repsCompleted) : '',
-            weight: s.weightUsed != null ? String(s.weightUsed) : '',
-            rpe: s.rpe != null ? String(s.rpe) : '',
-            targetReps: s.targetReps ?? undefined,
-            targetWeight: s.targetWeight ?? undefined,
-            targetRpe: s.targetRpe ?? undefined,
-            isCompleted: s.isCompleted,
-            prs: s.prs,
-          }));
+        const serverSets = session.sets ?? [];
 
-        if (plannedExercises?.length) {
-          // Merge plan + logged sets so exercises with no logged sets are preserved
-          const loaded: Exercise[] = plannedExercises.map((pe, order) => {
-            const logged = loggedByName.get(pe.name);
-            const loggedSets = logged ? mapLoggedSets(logged.sets) : [];
-            const remaining: LocalSet[] = loggedSets.length < pe.sets
-              ? Array.from({ length: pe.sets - loggedSets.length }, (_, i) => ({
-                  uid: nextSetUid(),
-                  setNumber: loggedSets.length + i + 1,
-                  reps: String(pe.reps),
-                  weight: String(pe.weight),
-                  rpe: '',
-                  targetReps: pe.reps,
-                  targetWeight: pe.weight,
-                  targetRpe: pe.rpe,
-                  isCompleted: false,
-                }))
-              : [];
-            return { name: pe.name, order, isExpanded: true, cue: pe.cue, sets: [...loggedSets, ...remaining] };
-          });
-          // Append any exercises added mid-workout that aren't in the plan
-          for (const [name, { order, sets }] of loggedByName) {
-            if (!plannedExercises.some((pe) => pe.name === name)) {
-              loaded.push({ name, order, isExpanded: true, sets: mapLoggedSets(sets) });
-            }
+        if (draft) {
+          removedSetIdsRef.current = new Set(draft.removedSetIds ?? []);
+          // A delete that failed while offline left the row on the server. Retry it
+          // now rather than resurrecting a set the athlete threw away.
+          for (const id of unresolvedDeletions(draft, serverSets)) {
+            sessionService.deleteSet(id).catch(() => {});
           }
-          loaded.sort((a, b) => a.order - b.order);
-          setExercises(loaded);
+          setExercises(reconcileDraft(draft, serverSets));
         } else {
-          // No plan available — restore from logged sets only
-          const loaded: Exercise[] = Array.from(loggedByName.entries())
-            .sort((a, b) => a[1].order - b[1].order)
-            .map(([name, { order, sets }]) => ({
-              name,
-              order,
-              isExpanded: true,
-              sets: mapLoggedSets(sets),
-            }));
-          setExercises(loaded);
+          setExercises(buildFromPlan(plannedExercises, serverSets));
         }
-      } else if (plannedExercises?.length) {
-        // No sets logged yet — restore from planned exercises (e.g. user resumed before logging any set)
-        setExercises(plannedExercises.map((pe, order) => ({
-          name: pe.name,
-          order,
-          isExpanded: true,
-          cue: pe.cue,
-          sets: Array.from({ length: pe.sets }, (_, i) => ({
-            uid: nextSetUid(),
-            setNumber: i + 1,
-            reps: String(pe.reps),
-            weight: String(pe.weight),
-            rpe: '',
-            targetReps: pe.reps,
-            targetWeight: pe.weight,
-            targetRpe: pe.rpe,
-            isCompleted: false,
-          })),
-        })));
+      } catch {
+        // Offline or the fetch failed: fall back to whatever we have locally so the
+        // athlete can keep logging rather than staring at an empty screen.
+        const draft = await loadDraft(sessionId);
+        if (cancelled) return;
+        if (draft) {
+          removedSetIdsRef.current = new Set(draft.removedSetIds ?? []);
+          setExercises(reconcileDraft(draft, []));
+        } else if (plannedExercises?.length) {
+          setExercises(buildFromPlan(plannedExercises, []));
+        }
+      } finally {
+        if (!cancelled) setResumeLoading(false);
       }
-      setResumeLoading(false);
-    }).catch(() => setResumeLoading(false));
+    })();
+
+    // Drafts only mean anything while their session is live; drop the rest.
+    pruneOtherDrafts(sessionId);
+
+    return () => { cancelled = true; };
   }, [sessionId]);
+
+  // Persist the athlete's arrangement as they edit it. Debounced because this
+  // fires on every keystroke in a reps/weight/notes field.
+  useEffect(() => {
+    if (resumeLoading) return;
+    const timer = setTimeout(() => {
+      saveDraft(sessionId, exercises, [...removedSetIdsRef.current]);
+    }, DRAFT_SAVE_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [exercises, resumeLoading, sessionId]);
+
+  /**
+   * Push the "HOW DID IT GO?" self-report to the server.
+   *
+   * The rating and the note describe the exercise, but the only row the API gives
+   * us to hang them on is a set — so they ride on the exercise's first saved set,
+   * which is exactly where the coach's memory and the technique badge look for
+   * them. Until now nothing sent them at all: they lived in component state and
+   * died with the screen.
+   *
+   * Driven by an effect rather than the input handlers because an exercise with
+   * nothing logged yet has no row to write to — this way the report is sent as
+   * soon as its first set saves, however long after it was typed.
+   */
+  useEffect(() => {
+    if (resumeLoading) return;
+    const timer = setTimeout(() => {
+      for (const ex of exercises) {
+        const anchorId = ex.sets.find((set) => set.id)?.id;
+        if (!anchorId) continue;
+        if (ex.techniqueRating == null && !ex.exerciseNotes?.trim()) continue;
+
+        // Send the note even when it's been emptied — otherwise the backend's
+        // "keep what's there" merge would make a cleared note un-clearable.
+        const notes = ex.exerciseNotes?.trim() ?? '';
+        const payload = `${anchorId}|${ex.techniqueRating ?? ''}|${notes}`;
+        if (sentReviewsRef.current.get(ex.name) === payload) continue;
+        sentReviewsRef.current.set(ex.name, payload);
+
+        sessionService
+          .updateSet(anchorId, {
+            techniqueNotes: notes,
+            techniqueRating: ex.techniqueRating,
+          })
+          .catch(() => {
+            // Let the next change retry. The draft still holds it either way —
+            // no need to interrupt the workout over a note.
+            sentReviewsRef.current.delete(ex.name);
+          });
+      }
+    }, REVIEW_SAVE_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [exercises, resumeLoading]);
+
+  // Throw away the athlete's edits and go back to the plan as generated. Logged
+  // sets survive — only the structure (additions, removals, substitutions) resets.
+  const resetToPlan = () => {
+    Alert.alert(
+      'Reset to today\'s plan?',
+      'Exercises you added, removed or swapped go back to the coach\'s plan. Sets you\'ve already logged are kept.',
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            setResumeLoading(true);
+            await clearDraft(sessionId);
+            removedSetIdsRef.current = new Set();
+            sentReviewsRef.current = new Map();
+            try {
+              const session = await sessionService.getSession(sessionId);
+              setExercises(buildFromPlan(plannedExercises, session.sets ?? []));
+            } catch {
+              setExercises(buildFromPlan(plannedExercises, []));
+            }
+            setResumeLoading(false);
+          },
+        },
+      ],
+    );
+  };
 
   const savePersonalCue = async (exIdx: number) => {
     const ok = await saveCue(exercises[exIdx].name, newCueText);
@@ -572,6 +600,9 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
   const substituteExercise = (exIdx: number, newName: string) => {
     setExercises((prev) => prev.map((ex, i) => i === exIdx ? { ...ex, name: newName } : ex));
+    // The self-report described the movement being replaced, so let the new one
+    // re-send its own rather than inheriting a cached "already sent".
+    sentReviewsRef.current.delete(exercises[exIdx]?.name ?? '');
     setSubstituteIdx(null);
   };
 
@@ -583,8 +614,12 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
     const doRemove = () => {
       // Delete the persisted row if this set was already saved; ignore failures
-      // so the local UI still updates (it'll reconcile on next resume).
-      if (set.id) sessionService.deleteSet(set.id).catch(() => {});
+      // so the local UI still updates. Remember the id either way — that's what
+      // stops a failed delete from resurrecting the set on the next resume.
+      if (set.id) {
+        removedSetIdsRef.current.add(set.id);
+        sessionService.deleteSet(set.id).catch(() => {});
+      }
       // If we're deleting the set that kicked off the current rest countdown,
       // stop the rest — there's no set left to rest from.
       if (set.isCompleted) stopRest();
@@ -625,7 +660,11 @@ export const ActiveWorkoutScreen: React.FC = () => {
         style: 'destructive',
         onPress: () => {
           const toDelete = exercises[exIdx].sets.filter((s) => s.id);
-          toDelete.forEach((s) => sessionService.deleteSet(s.id!).catch(() => {}));
+          toDelete.forEach((s) => {
+            removedSetIdsRef.current.add(s.id!);
+            sessionService.deleteSet(s.id!).catch(() => {});
+          });
+          sentReviewsRef.current.delete(exercises[exIdx].name);
           setExercises((prev) => prev.filter((_, i) => i !== exIdx));
         },
       },
@@ -647,6 +686,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
           style: 'destructive',
           onPress: async () => {
             stopRest();
+            await clearDraft(sessionId);
             try {
               await sessionService.cancelSession(sessionId);
             } catch {
@@ -675,8 +715,10 @@ export const ActiveWorkoutScreen: React.FC = () => {
       Alert.alert('No sets logged', 'Complete at least one set before finishing.');
       return;
     }
-    // The workout is over — drop any lingering rest beep/countdown.
+    // The workout is over — drop any lingering rest beep/countdown, and the draft
+    // with it: from here on the session lives on the server.
     stopRest();
+    clearDraft(sessionId);
     const durationMinutes = Math.floor(elapsedSeconds / 60);
     const allPRs = exercises.flatMap((ex) =>
       ex.sets.flatMap((s) =>
@@ -689,6 +731,14 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
   const completedSets = exercises.reduce((acc, ex) => acc + ex.sets.filter((s) => s.isCompleted).length, 0);
   const totalSets = exercises.reduce((acc, ex) => acc + ex.sets.length, 0);
+
+  // Has the athlete restructured the session away from the plan? Only the exercise
+  // list matters — that's all resetToPlan puts back — so an added, removed or
+  // swapped movement shows the reset, while editing loads and reps doesn't.
+  const divergedFromPlan =
+    !!plannedExercises?.length &&
+    (exercises.length !== plannedExercises.length ||
+      exercises.some((ex, i) => ex.name !== plannedExercises[i].name));
 
   if (resumeLoading) {
     return (
@@ -1037,6 +1087,20 @@ export const ActiveWorkoutScreen: React.FC = () => {
           <TouchableOpacity style={styles.addExerciseBtn} onPress={() => setShowAddExercise(true)}>
             <Text style={styles.addExerciseBtnText}>{t('activeWorkout.addExercise')}</Text>
           </TouchableOpacity>
+
+          {/* Escape hatch back to the generated plan. Only offered once the athlete
+              has actually changed something — the session used to reset itself on
+              every visit, which is the behaviour this replaces. */}
+          {divergedFromPlan && (
+            <TouchableOpacity
+              style={styles.resetPlanBtn}
+              onPress={resetToPlan}
+              accessibilityRole="button"
+              accessibilityLabel="Reset workout to today's plan"
+            >
+              <Text style={styles.resetPlanBtnText}>↺ Reset to today's plan</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -1301,6 +1365,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   addExerciseBtnText: { fontSize: 15, fontWeight: '700', color: palette.brand[400] },
+
+  resetPlanBtn: { paddingVertical: 14, alignItems: 'center', marginTop: 4 },
+  resetPlanBtnText: { fontSize: 13, fontWeight: '600', color: palette.gray[500] },
 
   // Modal
 

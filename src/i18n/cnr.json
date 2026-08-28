@@ -27,7 +27,8 @@
     "hrs": "sati",
     "sets": "serije",
     "reps": "ponavljanja",
-    "min": "min"
+    "min": "min",
+    "continue": "Nastavi →"
   },
   "auth": {
     "welcome": "Dobrodošli u IronLab",
@@ -1010,5 +1011,10 @@
     "badgeUnlocked": "BEDŽ OTKLJUČAN",
     "nextBadge": "SLJEDEĆI BEDŽ  →",
     "letsGo": "IDEMO! 💪"
+  },
+  "sessionDebrief": {
+    "title": "ANALIZA TRENERA",
+    "coachsRead": "OSVRT TRENERA",
+    "writing": "Analiziram tvoj trening…"
   }
 }

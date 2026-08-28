@@ -14,6 +14,7 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette } from '../../theme';
 import { sessionService, WorkoutSession, SessionSet } from '../../services/session.service';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy } from 'phosphor-react-native';
+import { SessionDebriefCard } from '../../components/ui';
 
 const MOOD_ICON: Record<string, React.ReactElement> = {
   tired:   <Moon size={20} weight="fill" color={palette.coolGray[500]} />,
@@ -98,6 +99,14 @@ export const SessionDetailScreen: React.FC = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
+
+        {/* The coach's read of this session. Lives here as well as on the summary
+            screen because the note is written seconds AFTER the workout is saved —
+            an athlete who tapped Continue before it landed would otherwise never
+            see it. */}
+        {session.coachDebrief && (
+          <SessionDebriefCard debrief={session.coachDebrief} style={{ marginBottom: 12 }} />
+        )}
 
         {/* Readiness row */}
         {(session.energyLevel != null || session.mood || session.bodyweight != null || session.sleepHours != null) && (

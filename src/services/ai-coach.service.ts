@@ -35,6 +35,30 @@ export interface NextSession {
   coachsCall?: string;
 }
 
+/**
+ * Post-workout debrief. `facts` are deterministic measurements of the session the
+ * athlete just finished; `coachNote` is the model's read of them, which lands a few
+ * seconds later on the same request that generates the next session.
+ *
+ * Fact copy is authored server-side, like the PR forecast's reasons — the wording
+ * moves in lockstep with the thresholds that produced it, and a translated copy here
+ * is how the two drift apart. Only the card's chrome is translated.
+ */
+export interface DebriefFact {
+  key: 'work' | 'compliance' | 'effort' | 'pr' | 'form' | 'margin';
+  tone: 'good' | 'neutral' | 'watch';
+  label: string;
+  text: string;
+}
+
+export interface SessionDebrief {
+  sessionId: string;
+  facts: DebriefFact[];
+  /** Null while the coach's read is still being written, and if it never arrives. */
+  coachNote: string | null;
+  generatedAt: string;
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -340,6 +364,16 @@ export const aiCoachService = {
   /** Fire-and-forget: runs full intelligence analysis then generates next plan */
   postSession: async (sessionId: string): Promise<void> => {
     await api.post(`/ai-coach/post-session/${sessionId}`);
+  },
+
+  /**
+   * The debrief for a completed session, or null while the post-session pipeline is
+   * still building it. Cheap (one row read, no LLM, no quota), which is what makes it
+   * safe for the summary screen to poll.
+   */
+  getSessionDebrief: async (sessionId: string): Promise<SessionDebrief | null> => {
+    const { data } = await api.get<{ data: SessionDebrief | null }>(`/ai-coach/session-debrief/${sessionId}`);
+    return data.data;
   },
 
   // `language` is the English name of the target language (e.g. "Bosnian"),

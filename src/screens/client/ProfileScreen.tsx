@@ -570,12 +570,12 @@ export const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation.navigate('AICoachExtendedSetup', { editMode: true })}
+            onPress={() => navigation.navigate('AICoachSettings')}
           >
             <Robot size={20} weight="fill" color={palette.brand[400]} />
             <View style={styles.exportTextWrap}>
               <Text style={styles.menuText}>{t('profile.aiCoachSettings')}</Text>
-              <Text style={styles.exportSub}>Goal, maxes, exercises, constraints & more</Text>
+              <Text style={styles.exportSub}>{t('aiCoachSettings.menuSub')}</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity

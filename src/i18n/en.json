@@ -28,7 +28,8 @@
     "sets": "sets",
     "reps": "reps",
     "min": "min",
-    "details": "Details"
+    "details": "Details",
+    "continue": "Continue →"
   },
   "auth": {
     "welcome": "Welcome to IronLab",
@@ -688,6 +689,34 @@
     "expressStartTitle": "Let's keep it simple",
     "expressStartSub": "Just a couple of things and we'll build your first program. We'll learn the rest as you train."
   },
+  "aiCoachSettings": {
+    "title": "AI Coach Settings",
+    "menuSub": "Jump straight to any answer — search or open a section",
+    "appliesNext": "Changes apply to your next generated session.",
+    "searchPlaceholder": "Search settings — days, plate, frequency…",
+    "noResults": "Nothing matches “{{query}}”.",
+    "answeredOf": "{{answered}} of {{total}} set",
+    "moreCount": "+{{count}} more",
+    "edited": "Edited",
+    "discard": "Discard",
+    "keepEditing": "Keep editing",
+    "saveChanges": "Save changes ({{count}})",
+    "unsavedTitle": "Unsaved changes",
+    "unsavedMsg": "You have edits that haven't been saved. Leave anyway?",
+    "requiredTitle": "This one can't be left blank",
+    "requiredMsg": "Your coach needs an answer for:\n• {{fields}}",
+    "loadFailed": "Couldn't load your coach settings.",
+    "retry": "Try again",
+    "fullSetupTitle": "Run the full setup again",
+    "fullSetupSub": "Step through every question, like the first time",
+    "focusTickHypertrophy": "Hypertrophy",
+    "focusTickHypertrophyLeaning": "Mostly hypertrophy",
+    "focusTickPowerbuilding": "Powerbuilding",
+    "focusTickStrengthLeaning": "Mostly strength",
+    "focusTickStrength": "Strength",
+    "badNumberTitle": "Check these numbers",
+    "badNumberMsg": "These need a number in range:\n• {{fields}}"
+  },
   "prs": {
     "title": "Personal Records",
     "noPRs": "No PRs yet",
@@ -1317,5 +1346,10 @@
     "currentVersion": "You have v{{version}}",
     "requiredVersion": "Requires v{{version}}",
     "updateNow": "Update now"
+  },
+  "sessionDebrief": {
+    "title": "COACH'S DEBRIEF",
+    "coachsRead": "COACH'S READ",
+    "writing": "Reading your session…"
   }
 }
