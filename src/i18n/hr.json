@@ -69,7 +69,8 @@
     "passwordVeryStrong": "Veoma jaka 🛡️",
     "registrationError": "Greška pri registraciji",
     "fillAllFields": "Molimo popuni sva polja.",
-    "createAccountError": "Nije uspjelo kreiranje računa. Pokušaj ponovo."
+    "createAccountError": "Nije uspjelo kreiranje računa. Pokušaj ponovo.",
+    "togglePassword": "Prikaži ili sakrij lozinku"
   },
   "nav": {
     "home": "Početna",
@@ -165,7 +166,10 @@
     "confirmCancel": "Sigurno želiš otkazati trening? Svi podaci bit će izgubljeni.",
     "techniqueNotes": "Bol, napomene o tehnici, bilješke...",
     "pr": "RR",
-    "coachFocus": "FOKUS NA"
+    "coachFocus": "FOKUS NA",
+    "minimize": "Smanji trening",
+    "minimizeHint": "Dvaput dodirni i drži za otkazivanje treninga",
+    "uncompleteSet": "Označi seriju nezavršenom"
   },
   "sessionSummary": {
     "greatWork": "Odličan rad!",
@@ -287,7 +291,11 @@
     "aiCoachSettingsSub": "Kontroliraj koje podatke M-7EO koristi pri generiranju planova i savjeta.",
     "foodTrackingSub": "AI čita tvoje dnevnike prehrane za upozorenja o utjecaju na trening",
     "trainingDaysSub": "Odaberi broj sesija tjedno, zatim prilagodi koji dani ti odgovaraju.",
-    "trainingDaysHint": "Tapni dan ispod za ručno podešavanje rasporeda."
+    "trainingDaysHint": "Tapni dan ispod za ručno podešavanje rasporeda.",
+    "decreaseCompoundRest": "Manje odmora između složenih serija",
+    "increaseCompoundRest": "Više odmora između složenih serija",
+    "decreaseIsolationRest": "Manje odmora između izolacijskih serija",
+    "increaseIsolationRest": "Više odmora između izolacijskih serija"
   },
   "workouts": {
     "category": "Kategorija treninga",
@@ -759,7 +767,8 @@
     "parseError": "Nije moguće parsirati sastojke. Provjeri unos i pokušaj ponovo.",
     "noResults": "Nisu pronađeni sastojci.",
     "permissionDenied": "Dozvola odbijena",
-    "cameraPermission": "Potreban nam je pristup galeriji za učitavanje slika."
+    "cameraPermission": "Potreban nam je pristup galeriji za učitavanje slika.",
+    "removeIngredient": "Ukloni sastojak"
   },
   "browseMeals": {
     "title": "Pretraži obroke",
@@ -1003,7 +1012,8 @@
     "appAssistant": "IronLab asistent",
     "commonQuestions": "Uobičajena pitanja",
     "welcomeMessage": "Zdravo, ja sam M-730 — vodit ću te kroz IronLab. Bilo što ne radi, funkcija koju ne možeš pronaći, ekran na kojem si se izgubio — tu sam!",
-    "connectionError": "Žao mi je, nije moguće se spojiti. Provjeri vezu i pokušaj ponovo."
+    "connectionError": "Žao mi je, nije moguće se spojiti. Provjeri vezu i pokušaj ponovo.",
+    "title": "Podrška"
   },
   "cardio": {
     "title": "Unesi kardio",
@@ -1073,5 +1083,58 @@
     "title": "ANALIZA TRENERA",
     "coachsRead": "TRENEROV OSVRT",
     "writing": "Analiziram tvoj trening…"
+  },
+  "a11y": {
+    "close": "Zatvori",
+    "back": "Natrag",
+    "previous": "Prethodno",
+    "next": "Sljedeće",
+    "clearSearch": "Očisti pretragu",
+    "dismiss": "Odbaci",
+    "decreaseTrainingDays": "Jedan dan treninga manje",
+    "increaseTrainingDays": "Jedan dan treninga više",
+    "decreaseHeight": "Smanji visinu",
+    "increaseHeight": "Povećaj visinu",
+    "decreaseWeight": "Smanji težinu",
+    "increaseWeight": "Povećaj težinu",
+    "decreaseAge": "Smanji dob",
+    "increaseAge": "Povećaj dob",
+    "decreaseMeals": "Manje obroka dnevno",
+    "increaseMeals": "Više obroka dnevno",
+    "decreaseWorkouts": "Manje treninga tjedno",
+    "increaseWorkouts": "Više treninga tjedno",
+    "decreaseTarget": "Smanji cilj",
+    "increaseTarget": "Povećaj cilj",
+    "completeSet": "Označi seriju završenom",
+    "exitWorkout": "Izađi iz treninga",
+    "pauseWorkout": "Pauziraj trening",
+    "copySummary": "Kopiraj sažetak treninga",
+    "openCoachSettings": "Otvori postavke trenera",
+    "recordVoiceNote": "Snimi glasovnu poruku",
+    "attachFile": "Priloži datoteku",
+    "sendMessage": "Pošalji poruku",
+    "retakePhoto": "Ponovi fotografiju",
+    "pickFromGallery": "Odaberi iz galerije",
+    "removeMedia": "Ukloni prilog",
+    "addMedia": "Dodaj fotografiju ili video",
+    "deleteMeal": "Obriši obrok",
+    "saveMeal": "Spremi obrok",
+    "unsaveMeal": "Ukloni spremljeni obrok",
+    "scanMeal": "Skeniraj obrok",
+    "shareMeal": "Podijeli obrok",
+    "openProfile": "Otvori profil",
+    "openPost": "Otvori objavu",
+    "likePost": "Sviđa mi se",
+    "commentOnPost": "Komentiraj objavu",
+    "newPost": "Nova objava",
+    "sendPost": "Objavi",
+    "refresh": "Osvježi",
+    "removeUser": "Ukloni korisnika",
+    "openConversation": "Otvori razgovor",
+    "reviewFormCheck": "Pregledaj provjeru forme",
+    "startBodyScan": "Pokreni skeniranje tijela",
+    "viewScan": "Pogledaj skeniranje",
+    "previousMonth": "Prethodni mjesec",
+    "nextMonth": "Sljedeći mjesec"
   }
 }

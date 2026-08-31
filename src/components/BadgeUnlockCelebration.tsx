@@ -212,7 +212,7 @@ export const BadgeUnlockCelebration: React.FC<Props> = ({ newBadgeKeys, onDismis
           )}
 
           {/* CTA */}
-          <TouchableOpacity style={styles.btn} onPress={handleNext} activeOpacity={0.8}>
+          <TouchableOpacity accessibilityRole="button" style={styles.btn} onPress={handleNext} activeOpacity={0.8}>
             <Text style={styles.btnText}>
               {index < newBadgeKeys.length - 1 ? t('badges.nextBadge') : t('badges.letsGo')}
             </Text>

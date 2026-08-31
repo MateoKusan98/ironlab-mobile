@@ -159,7 +159,11 @@ export const ConversationScreen: React.FC<Props> = ({ route }) => {
           <TouchableOpacity
             style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]}
             onPress={handleSend}
+            hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
             disabled={!text.trim() || sending}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.sendMessage', { defaultValue: 'Send message' })}
+            accessibilityState={{ disabled: !text.trim() || sending, busy: sending }}
           >
             {sending ? (
               <ActivityIndicator size="small" color={palette.white} />

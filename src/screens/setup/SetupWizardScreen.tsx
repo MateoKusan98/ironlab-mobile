@@ -274,13 +274,18 @@ export const SetupWizardScreen: React.FC = () => {
 
   const renderTopNav = (progress: number) => (
     <View style={[styles.stepTopNav, { paddingTop: insets.top + 12 }]}>
-      <TouchableOpacity onPress={prevStep}>
+      <TouchableOpacity
+        onPress={prevStep}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityRole="button"
+        accessibilityLabel={t('a11y.previous', { defaultValue: 'Previous' })}
+      >
         <Text style={styles.navText}>‹</Text>
       </TouchableOpacity>
       <View style={styles.progressBarWrapper}>
         <ProgressBar progress={progress} color={palette.brand[500]} height={6} />
       </View>
-      <TouchableOpacity onPress={nextStep}>
+      <TouchableOpacity accessibilityRole="button" onPress={nextStep}>
         <Text style={styles.navTextSkip}>{t('common.skip')}</Text>
       </TouchableOpacity>
     </View>
@@ -391,7 +396,7 @@ export const SetupWizardScreen: React.FC = () => {
             />
           </View>
 
-          <TouchableOpacity style={styles.skipWrapper} onPress={nextStep}>
+          <TouchableOpacity accessibilityRole="button" style={styles.skipWrapper} onPress={nextStep}>
             <Text style={styles.skipIcon}>✕</Text>
             <Text style={styles.skipLinkText}>{t('setup.skipStep')}</Text>
           </TouchableOpacity>
@@ -482,7 +487,7 @@ export const SetupWizardScreen: React.FC = () => {
         <Text style={[styles.subtitle, { marginBottom: 32 }]}>{t('setup.genderRegulatory')}</Text>
 
         {['Male', 'Female', 'Other'].map((g) => (
-          <TouchableOpacity key={g} style={[styles.radioOption, gender === g && styles.radioOptionSelected]} onPress={() => setGender(g)}>
+          <TouchableOpacity accessibilityRole="button" key={g} style={[styles.radioOption, gender === g && styles.radioOptionSelected]} onPress={() => setGender(g)}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={styles.radioIcon}>{g === 'Male' ? '♂️' : g === 'Female' ? '♀️' : '⚥'}</Text>
@@ -520,8 +525,8 @@ export const SetupWizardScreen: React.FC = () => {
       <View style={styles.stepContent}>
         <Text style={styles.titleBig}>{t('setup.whatsWeight')}</Text>
         <View style={styles.unitToggle}>
-          <TouchableOpacity style={[styles.unitBtn, unit === 'lbs' && styles.unitBtnActive]} onPress={() => setUnit('lbs')}><Text style={[styles.unitText, unit === 'lbs' && styles.unitTextActive]}>lbs</Text></TouchableOpacity>
-          <TouchableOpacity style={[styles.unitBtn, unit === 'kg' && styles.unitBtnActive]} onPress={() => setUnit('kg')}><Text style={[styles.unitText, unit === 'kg' && styles.unitTextActive]}>kg</Text></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" style={[styles.unitBtn, unit === 'lbs' && styles.unitBtnActive]} onPress={() => setUnit('lbs')}><Text style={[styles.unitText, unit === 'lbs' && styles.unitTextActive]}>lbs</Text></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" style={[styles.unitBtn, unit === 'kg' && styles.unitBtnActive]} onPress={() => setUnit('kg')}><Text style={[styles.unitText, unit === 'kg' && styles.unitTextActive]}>kg</Text></TouchableOpacity>
         </View>
         <View style={styles.valueDisplay}>
           <Text style={styles.valueLarge}>{weight}</Text>
@@ -539,8 +544,8 @@ export const SetupWizardScreen: React.FC = () => {
       <View style={styles.stepContent}>
         <Text style={styles.titleBig}>{t('setup.whatsHeight')}</Text>
         <View style={styles.unitToggle}>
-          <TouchableOpacity style={[styles.unitBtn, heightUnit === 'cm' && styles.unitBtnActive]} onPress={() => setHeightUnit('cm')}><Text style={[styles.unitText, heightUnit === 'cm' && styles.unitTextActive]}>cm</Text></TouchableOpacity>
-          <TouchableOpacity style={[styles.unitBtn, heightUnit === 'inch' && styles.unitBtnActive]} onPress={() => setHeightUnit('inch')}><Text style={[styles.unitText, heightUnit === 'inch' && styles.unitTextActive]}>inch</Text></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" style={[styles.unitBtn, heightUnit === 'cm' && styles.unitBtnActive]} onPress={() => setHeightUnit('cm')}><Text style={[styles.unitText, heightUnit === 'cm' && styles.unitTextActive]}>cm</Text></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" style={[styles.unitBtn, heightUnit === 'inch' && styles.unitBtnActive]} onPress={() => setHeightUnit('inch')}><Text style={[styles.unitText, heightUnit === 'inch' && styles.unitTextActive]}>inch</Text></TouchableOpacity>
         </View>
         <View style={{ marginVertical: 20 }}>
           <WheelPicker data={generateRange(100, 250)} defaultValue={height} onValueChange={(v) => setHeight(v as number)} itemHeight={80} />
@@ -567,7 +572,7 @@ export const SetupWizardScreen: React.FC = () => {
             <View style={styles.sliderWrapper}>
                <View style={styles.sliderBarBackground}>
                  {[0,1,2,3,4].map((i) => (
-                   <TouchableOpacity key={i} style={[styles.sliderSegment, { backgroundColor: fitnessLevel >= i ? (i === 0 ? palette.error[500] : i === 1 ? palette.brand[500] : i === 2 ? palette.warning[400] : palette.lime[500]) : palette.gray[800] }]} onPress={() => setFitnessLevel(i)}>
+                   <TouchableOpacity key={i} accessibilityRole="adjustable" accessibilityLabel={t('setup.fitnessLevel', { defaultValue: 'Fitness level' })} accessibilityState={{ selected: fitnessLevel === i }} accessibilityValue={{ min: 0, max: 4, now: i }} style={[styles.sliderSegment, { backgroundColor: fitnessLevel >= i ? (i === 0 ? palette.error[500] : i === 1 ? palette.brand[500] : i === 2 ? palette.warning[400] : palette.lime[500]) : palette.gray[800] }]} onPress={() => setFitnessLevel(i)}>
                       {fitnessLevel === i && <View style={styles.sliderThumbLocal}><Text style={{ color: palette.white, fontWeight: 'bold' }}>||</Text></View>}
                    </TouchableOpacity>
                  ))}

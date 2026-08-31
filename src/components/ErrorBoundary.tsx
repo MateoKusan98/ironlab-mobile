@@ -59,7 +59,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             defaultValue: 'The app hit an unexpected error. Your data is safe — tap below to try again.',
           })}
         </Text>
-        <TouchableOpacity style={styles.button} onPress={this.handleRetry} activeOpacity={0.85}>
+        <TouchableOpacity accessibilityRole="button" style={styles.button} onPress={this.handleRetry} activeOpacity={0.85}>
           <Text style={styles.buttonText}>
             {t('errors.boundaryRetry', { defaultValue: 'Try again' })}
           </Text>

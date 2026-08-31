@@ -31,7 +31,8 @@ const navigation = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const open = () => render(<AICoachSettingsScreen navigation={navigation as any} />);
+const open = (params?: { focusSection?: string }) =>
+  render(<AICoachSettingsScreen navigation={navigation as any} route={{ params } as any} />);
 
 describe('AICoachSettingsScreen', () => {
   it('lands on the section list, not on question one of ten', async () => {

@@ -16,13 +16,18 @@ export interface ExerciseCues {
   savingCue: boolean;
   /** Returns false when the save failed, so the caller can surface the error. */
   saveCue: (exerciseName: string, text: string) => Promise<boolean>;
-  /** Optimistic delete; returns false (and restores) when the server rejects it. */
+  /**
+   * Optimistic delete; returns false (and restores) when the server rejects it.
+   * Refuses form-check cues outright — they are derived, not stored.
+   */
   deleteCue: (cue: ExerciseCue) => Promise<boolean>;
 }
 
 /**
- * The athlete's personal exercise cues ("keep elbows tucked") and the reminder
- * that pops them up at the right moment.
+ * The athlete's exercise cues and the reminder that pops them up at the right
+ * moment: both the ones they wrote themselves ("keep elbows tucked") and the
+ * corrections their last AI form check on that movement raised, which the server
+ * derives and returns in the same list.
  *
  * Cues are kept in a map keyed by normalized exercise name rather than merged onto
  * the exercise list, so adding/deleting a cue and matching it to the current
@@ -123,6 +128,11 @@ export function useExerciseCues(
   }, [savingCue, persistReminded]);
 
   const deleteCue = useCallback(async (cue: ExerciseCue): Promise<boolean> => {
+    // A form-check cue is derived from the verdict record, not a row: there is
+    // nothing to delete, and the server would 404. It leaves on its own when the
+    // verdict ages out or the athlete re-films the lift clean.
+    if (cue.source === 'form-check') return false;
+
     // Snapshot from the closure, not from inside the updater: the updater runs at
     // render time, so anything it assigns is still unset when the await resumes.
     const prev = cuesByKey;

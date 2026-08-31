@@ -24,7 +24,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useFoodLogs } from '../../hooks/useNutrition';
 import { useExerciseName } from '../../hooks/useExerciseName';
 import { theme, palette, alpha } from '../../theme';
-import { aiCoachService, NextSession } from '../../services/ai-coach.service';
+import { aiCoachService, BarLoading, NextSession } from '../../services/ai-coach.service';
 import { sessionService, TodaySummary } from '../../services/session.service';
 import { proposalsService, AIProposal } from '../../services/proposals.service';
 import { devTimeService, DevTimeStatus } from '../../services/dev-time.service';
@@ -151,6 +151,10 @@ export const HomeScreen: React.FC = () => {
     skipAheadDay: string | null;
     completedToday: boolean | null;
     regenerating: boolean | null;
+    // The athlete's bar and plates, for drawing a prescribed load as the stack that
+    // makes it. Carried into the workout screen on the resume path, which never
+    // passes through StartSession.
+    barLoading: BarLoading | null;
   } | null>(null);
   const [catchUpDismissed, setCatchUpDismissed] = useState(false);
   // Schedule-shift confirm sheet: 'early' = train on a rest day (pull next session
@@ -176,7 +180,7 @@ export const HomeScreen: React.FC = () => {
         proposalsService.getPending().catch(() => null),
         sessionService.getTodaySummary(today).catch(() => null),
       ]);
-      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation, nextScheduledDay: plan.nextScheduledDay, skipAheadDay: plan.skipAheadDay, completedToday: plan.completedToday, regenerating: plan.regenerating } : null);
+      setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation, nextScheduledDay: plan.nextScheduledDay, skipAheadDay: plan.skipAheadDay, completedToday: plan.completedToday, regenerating: plan.regenerating, barLoading: plan.barLoading } : null);
       setActiveSessionId(active?.id ?? null);
       setProposal(pending);
       setTodaySummary(summary);
@@ -400,6 +404,7 @@ export const HomeScreen: React.FC = () => {
       navigation.navigate('ActiveWorkout', {
         sessionId: activeSessionId,
         plannedExercises: nextSession?.exercises ?? undefined,
+        barLoading: planData?.barLoading ?? null,
       });
       return;
     }
@@ -423,17 +428,29 @@ export const HomeScreen: React.FC = () => {
         subtitle={safeLocaleDateString(new Date(), locale, { weekday: 'long', month: 'long', day: 'numeric' })}
         right={
           <View style={styles.headerBtnRow}>
-            <TouchableOpacity onPress={() => navigation.navigate('WorkoutHistory')} style={styles.headerBtn}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('WorkoutHistory')}
+              style={styles.headerBtn}
+              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('nav.history')}
+            >
               <CalendarBlank size={20} weight="bold" color={palette.gray[300]} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('SupportChat')} style={styles.headerBtn}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SupportChat')}
+              style={styles.headerBtn}
+              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('support.title', { defaultValue: 'Support' })}
+            >
               <Question size={20} weight="bold" color={palette.gray[300]} />
             </TouchableOpacity>
           </View>
         }
       />
       {devTime && (
-        <TouchableOpacity style={styles.devTimeBanner} onLongPress={handleDevTimeReset} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.devTimeBanner} onLongPress={handleDevTimeReset} activeOpacity={0.7}>
           <Text style={styles.devTimeBannerText}>
             DEV · {new Date(devTime.currentDate).toDateString()} · Long-press to reset
           </Text>
@@ -464,6 +481,7 @@ export const HomeScreen: React.FC = () => {
             <Text style={styles.proposalReasoning}>{proposal.reasoning}</Text>
             <View style={styles.proposalActions}>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.proposalBtn, styles.proposalBtnDecline]}
                 onPress={handleDecline}
                 disabled={proposalLoading}
@@ -471,6 +489,7 @@ export const HomeScreen: React.FC = () => {
                 <Text style={styles.proposalBtnDeclineText}>{t('home.notForMe')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.proposalBtn, styles.proposalBtnAccept]}
                 onPress={handleAccept}
                 disabled={proposalLoading}
@@ -502,6 +521,7 @@ export const HomeScreen: React.FC = () => {
             </Text>
             <View style={styles.catchUpActions}>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.catchUpBtn, catchUpRec === 'skip' ? styles.catchUpBtnGhost : styles.catchUpBtnPrimary]}
                 onPress={startMakeUpWorkout}
               >
@@ -510,6 +530,7 @@ export const HomeScreen: React.FC = () => {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.catchUpBtn, catchUpRec === 'skip' ? styles.catchUpBtnPrimary : styles.catchUpBtnGhost]}
                 onPress={() => setCatchUpDismissed(true)}
               >
@@ -549,7 +570,7 @@ export const HomeScreen: React.FC = () => {
           ) : planLoading ? (
             <ActivityIndicator color={palette.brand[500]} style={{ marginVertical: 16 }} />
           ) : !hasTrainingSchedule ? (
-            <TouchableOpacity style={styles.setupPrompt} onPress={openAICoach}>
+            <TouchableOpacity accessibilityRole="button" style={styles.setupPrompt} onPress={openAICoach}>
               <Text style={styles.setupPromptText}>{t('home.noSchedule')}</Text>
               <Text style={styles.setupPromptSub}>{t('home.generateFirst')}</Text>
             </TouchableOpacity>
@@ -583,6 +604,7 @@ export const HomeScreen: React.FC = () => {
                   {renderSessionPreview(true)}
                   {nextScheduledDay && (
                     <TouchableOpacity
+                      accessibilityRole="button"
                       style={styles.shiftLink}
                       onPress={() => setShiftSheet({ kind: 'early', day: nextScheduledDay })}
                     >
@@ -599,11 +621,12 @@ export const HomeScreen: React.FC = () => {
                 <Text style={styles.sessionReadyText}>{t('home.sessionReady')}</Text>
               </View>
               {renderSessionPreview()}
-              <TouchableOpacity style={styles.startBtn} onPress={startTodayWorkout}>
+              <TouchableOpacity accessibilityRole="button" style={styles.startBtn} onPress={startTodayWorkout}>
                 <Text style={styles.startBtnText}>{t('home.startWorkout')}</Text>
               </TouchableOpacity>
               {skipAheadDay && skipAheadDay !== todayDayName && (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   style={styles.shiftLink}
                   onPress={() => setShiftSheet({ kind: 'skip', day: skipAheadDay })}
                 >
@@ -612,7 +635,7 @@ export const HomeScreen: React.FC = () => {
               )}
             </>
           ) : (
-            <TouchableOpacity style={styles.setupPrompt} onPress={openAICoach}>
+            <TouchableOpacity accessibilityRole="button" style={styles.setupPrompt} onPress={openAICoach}>
               <Text style={styles.setupPromptText}>{t('home.noPlan')}</Text>
               <Text style={styles.setupPromptSub}>{t('home.generateFirst')}</Text>
             </TouchableOpacity>
@@ -722,15 +745,15 @@ export const HomeScreen: React.FC = () => {
 
         {/* Quick nav */}
         <View style={styles.quickRow}>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('WorkoutHistory')}>
+          <TouchableOpacity accessibilityRole="button" style={styles.quickCard} onPress={() => navigation.navigate('WorkoutHistory')}>
             <CalendarBlank size={26} weight="bold" color={palette.brand[400]} />
             <Text style={styles.quickLabel}>{t('nav.history')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={openAICoach}>
+          <TouchableOpacity accessibilityRole="button" style={styles.quickCard} onPress={openAICoach}>
             <Robot size={26} weight="bold" color={palette.brand[400]} />
             <Text style={styles.quickLabel}>{t('home.aiCoach')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('StartSession', { freeSession: true })}>
+          <TouchableOpacity accessibilityRole="button" style={styles.quickCard} onPress={() => navigation.navigate('StartSession', { freeSession: true })}>
             <Barbell size={26} weight="bold" color={palette.brand[400]} />
             <Text style={styles.quickLabel}>{t('home.logWorkout')}</Text>
           </TouchableOpacity>
@@ -753,10 +776,10 @@ export const HomeScreen: React.FC = () => {
               <>
                 <Text style={styles.creatineQuestion}>{t('creatine.setupTitle')}</Text>
                 <Text style={styles.creatineSubtitle}>{t('creatine.setupSubtitle')}</Text>
-                <TouchableOpacity style={styles.creatineYesBtn} onPress={handleCreatineSetupYes}>
+                <TouchableOpacity accessibilityRole="button" style={styles.creatineYesBtn} onPress={handleCreatineSetupYes}>
                   <Text style={styles.creatineYesBtnText}>{t('creatine.setupYes')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.creatineNoBtn} onPress={handleCreatineSetupNo}>
+                <TouchableOpacity accessibilityRole="button" style={styles.creatineNoBtn} onPress={handleCreatineSetupNo}>
                   <Text style={styles.creatineNoBtnText}>{t('creatine.setupNo')}</Text>
                 </TouchableOpacity>
               </>
@@ -764,10 +787,10 @@ export const HomeScreen: React.FC = () => {
               <>
                 <Text style={styles.creatineQuestion}>{t('creatine.question')}</Text>
                 <Text style={styles.creatineSubtitle}>{t('creatine.subtitle')}</Text>
-                <TouchableOpacity style={styles.creatineYesBtn} onPress={handleCreatineTaken}>
+                <TouchableOpacity accessibilityRole="button" style={styles.creatineYesBtn} onPress={handleCreatineTaken}>
                   <Text style={styles.creatineYesBtnText}>{t('creatine.yes')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.creatineNoBtn} onPress={handleCreatineNotYet}>
+                <TouchableOpacity accessibilityRole="button" style={styles.creatineNoBtn} onPress={handleCreatineNotYet}>
                   <Text style={styles.creatineNoBtnText}>{t('creatine.notYet')}</Text>
                 </TouchableOpacity>
               </>
@@ -790,10 +813,10 @@ export const HomeScreen: React.FC = () => {
               <>
                 <Text style={styles.creatineQuestion}>{t('home.trainEarly.title', { defaultValue: "Today's a rest day" })}</Text>
                 <Text style={styles.creatineSubtitle}>{t('home.trainEarly.body', { defaultValue: "This pulls {{day}}'s session forward. Train now?", day: cap(shiftSheet.day) })}</Text>
-                <TouchableOpacity style={styles.creatineYesBtn} onPress={confirmTrainEarly}>
+                <TouchableOpacity accessibilityRole="button" style={styles.creatineYesBtn} onPress={confirmTrainEarly}>
                   <Text style={styles.creatineYesBtnText}>{t('home.trainEarly.confirm', { defaultValue: 'Train now' })}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.creatineNoBtn} onPress={() => closeShiftSheet()}>
+                <TouchableOpacity accessibilityRole="button" style={styles.creatineNoBtn} onPress={() => closeShiftSheet()}>
                   <Text style={styles.creatineNoBtnText}>{t('common.cancel', { defaultValue: 'Cancel' })}</Text>
                 </TouchableOpacity>
               </>
@@ -801,10 +824,10 @@ export const HomeScreen: React.FC = () => {
               <>
                 <Text style={styles.creatineQuestion}>{t('home.skipAhead.title', { defaultValue: "Skip today's session?" })}</Text>
                 <Text style={styles.creatineSubtitle}>{t('home.skipAhead.body', { defaultValue: "You'll do {{day}}'s workout instead.", day: cap(shiftSheet.day) })}</Text>
-                <TouchableOpacity style={styles.creatineYesBtn} onPress={confirmSkipAhead}>
+                <TouchableOpacity accessibilityRole="button" style={styles.creatineYesBtn} onPress={confirmSkipAhead}>
                   <Text style={styles.creatineYesBtnText}>{t('home.skipAhead.confirm', { defaultValue: 'Do {{day}} instead', day: cap(shiftSheet.day) })}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.creatineNoBtn} onPress={() => closeShiftSheet()}>
+                <TouchableOpacity accessibilityRole="button" style={styles.creatineNoBtn} onPress={() => closeShiftSheet()}>
                   <Text style={styles.creatineNoBtnText}>{t('common.cancel', { defaultValue: 'Cancel' })}</Text>
                 </TouchableOpacity>
               </>

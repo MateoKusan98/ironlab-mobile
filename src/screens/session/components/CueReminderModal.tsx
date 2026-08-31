@@ -14,9 +14,13 @@ export interface CueReminderModalProps {
 }
 
 /**
- * Surfaces the technique cues the athlete saved for an exercise, at the moment
- * that exercise becomes the one they're about to do — a cue written three weeks
- * ago is worthless if it only appears in a settings screen.
+ * Surfaces the technique cues for an exercise at the moment that exercise becomes
+ * the one they're about to do — a cue written three weeks ago is worthless if it
+ * only appears in a settings screen, and so is a form-check verdict the athlete
+ * read once on the results screen.
+ *
+ * Form-check cues are labelled, because "the coach said this about your bar path"
+ * carries different weight than a note the athlete jotted to themselves.
  */
 export const CueReminderModal: React.FC<CueReminderModalProps> = ({
   reminder,
@@ -30,13 +34,20 @@ export const CueReminderModal: React.FC<CueReminderModalProps> = ({
       visible={reminder !== null}
       onClose={onDismiss}
       title={`💡 ${t('activeWorkout.cueReminderTitle', { defaultValue: 'Remember for' })} ${reminder ? exName(reminder.name) : ''}`}
-      subtitle={t('activeWorkout.cueReminderSubtitle', { defaultValue: 'Cues you saved last time:' })}
+      subtitle={t('activeWorkout.cueReminderSubtitle', { defaultValue: 'What to remember this time:' })}
       confirmLabel={t('activeWorkout.cueReminderGotIt', { defaultValue: "Got it — let's go" })}
     >
       {(reminder?.cues ?? []).map((c) => (
         <View key={c.id} style={styles.row}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.text}>{c.text}</Text>
+          <Text style={styles.bullet}>{c.source === 'form-check' ? '🎥' : '•'}</Text>
+          <View style={styles.body}>
+            <Text style={styles.text}>{c.text}</Text>
+            {c.source === 'form-check' ? (
+              <Text style={styles.origin}>
+                {t('activeWorkout.cueFromFormCheck', { defaultValue: 'From your form check' })}
+              </Text>
+            ) : null}
+          </View>
         </View>
       ))}
     </InfoSheet>
@@ -46,5 +57,7 @@ export const CueReminderModal: React.FC<CueReminderModalProps> = ({
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 8, paddingVertical: 6 },
   bullet: { fontSize: 15, color: palette.brand[400], lineHeight: 22 },
-  text: { flex: 1, fontSize: 15, color: theme.colors.text, lineHeight: 22 },
+  body: { flex: 1 },
+  text: { fontSize: 15, color: theme.colors.text, lineHeight: 22 },
+  origin: { fontSize: 12, color: palette.gray[500], marginTop: 2 },
 });

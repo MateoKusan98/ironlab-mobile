@@ -21,7 +21,7 @@ export const ImpersonationBanner: React.FC = () => {
       <Text style={styles.label} numberOfLines={1}>
         {t('impersonation.viewingAs', { name: user?.name ?? '' })}
       </Text>
-      <TouchableOpacity style={styles.exitBtn} onPress={() => stopImpersonation()}>
+      <TouchableOpacity accessibilityRole="button" style={styles.exitBtn} onPress={() => stopImpersonation()}>
         <Text style={styles.exitText}>{t('impersonation.exit')}</Text>
       </TouchableOpacity>
     </View>

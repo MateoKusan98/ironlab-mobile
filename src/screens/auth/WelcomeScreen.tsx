@@ -45,6 +45,7 @@ export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 
         <View style={styles.actionBlock}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.socialBtn, (!isGoogleReady || isLoading) && styles.btnDisabled]}
             onPress={signInWithGoogle}
             activeOpacity={0.75}
@@ -54,6 +55,7 @@ export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.socialBtn, styles.emailBtn]}
             onPress={() => navigation.navigate('Login')}
             activeOpacity={0.75}>

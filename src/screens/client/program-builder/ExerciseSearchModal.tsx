@@ -44,7 +44,7 @@ export const ExerciseSearchModal: React.FC<ExerciseSearchModalProps> = ({ visibl
   });
 
   const renderExercise = ({ item }: { item: ExerciseCatalogItem }) => (
-    <TouchableOpacity style={styles.exerciseItem} onPress={() => onSelect(item)}>
+    <TouchableOpacity accessibilityRole="button" style={styles.exerciseItem} onPress={() => onSelect(item)}>
       <View style={styles.exerciseInfo}>
         <Text style={styles.exerciseName}>{item.name}</Text>
         <Text style={styles.exerciseMeta}>
@@ -61,7 +61,7 @@ export const ExerciseSearchModal: React.FC<ExerciseSearchModalProps> = ({ visibl
         <View style={styles.modalContent}>
           <View style={styles.header}>
             <Text style={styles.title}>{t('programBuilder.addExercise')}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onClose} style={styles.closeBtn}>
               <Text style={styles.closeText}>{t('programBuilder.close')}</Text>
             </TouchableOpacity>
           </View>
@@ -84,6 +84,7 @@ export const ExerciseSearchModal: React.FC<ExerciseSearchModalProps> = ({ visibl
               keyExtractor={(item) => item || 'all'}
               renderItem={({ item }) => (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   style={[styles.muscleChip, selectedMuscle === item && styles.muscleChipActive]}
                   onPress={() => setSelectedMuscle(item)}
                 >

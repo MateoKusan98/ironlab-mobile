@@ -47,7 +47,12 @@ export const QuizScreen: React.FC = () => {
   }, [limit]);
 
   const close = (
-    <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={10}>
+    <TouchableOpacity
+      onPress={() => navigation.goBack()}
+      hitSlop={10}
+      accessibilityRole="button"
+      accessibilityLabel="Close"
+    >
       <X size={24} weight="bold" color={theme.colors.text} />
     </TouchableOpacity>
   );
@@ -92,6 +97,7 @@ export const QuizScreen: React.FC = () => {
               const active = i === levelIdx;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={l.label}
                   style={[styles.levelChip, active && styles.levelChipActive]}
                   onPress={() => setLevelIdx(i)}

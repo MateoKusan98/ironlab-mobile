@@ -20,6 +20,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette, alpha } from '../../theme';
 import { sessionService } from '../../services/session.service';
+import { aiCoachService, InSessionAdjustment } from '../../services/ai-coach.service';
 import { exerciseCueKey, ExerciseCue } from '../../services/exerciseCue.service';
 import { useSettingsStore } from '../../stores/settings.store';
 import { classifyExercise } from '../../utils/exerciseType';
@@ -27,11 +28,15 @@ import { useExerciseName } from '../../hooks/useExerciseName';
 import { useWorkoutTimer } from '../../hooks/useWorkoutTimer';
 import { useRestTimer } from '../../hooks/useRestTimer';
 import { useExerciseCues } from '../../hooks/useExerciseCues';
+import { useTechniqueNudge } from '../../hooks/useTechniqueNudge';
 import { Barbell, Trophy } from 'phosphor-react-native';
+import { PlateStack } from '../../components/ui/PlateStack';
 
 import { RpeGuideModal } from './components/RpeGuideModal';
 import { CueReminderModal } from './components/CueReminderModal';
+import { TechniqueNudgeModal } from './components/TechniqueNudgeModal';
 import { RestTimerBanner } from './components/RestTimerBanner';
+import { LoadAdjustCard } from './components/LoadAdjustCard';
 import { AddExerciseModal } from './components/AddExerciseModal';
 import { SubstituteExerciseModal } from './components/SubstituteExerciseModal';
 import {
@@ -51,6 +56,11 @@ type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
 // Long enough that typing a set doesn't write on every keystroke, short enough
 // that backgrounding the app right after an edit still captures it.
 const DRAFT_SAVE_DEBOUNCE_MS = 400;
+
+// How far over the prescribed RPE a set has to land before we ask the coach whether the
+// remaining sets should come down. Mirrors MIN_RPE_OVERSHOOT on the backend, which owns
+// the decision — this is only here to keep an ordinary set from costing a request.
+const ADJUST_RPE_OVERSHOOT = 1;
 
 // The technique note is free text, so wait for a real pause in typing before
 // spending a request on it.
@@ -211,7 +221,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const { exName } = useExerciseName();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<ActiveWorkoutRouteProp>();
-  const { sessionId, plannedExercises } = route.params;
+  const { sessionId, plannedExercises, barLoading } = route.params;
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [resumeLoading, setResumeLoading] = useState(true);
@@ -229,6 +239,11 @@ export const ActiveWorkoutScreen: React.FC = () => {
   // Which exercise (by index) has its inline "add a cue" form open.
   const [addCueFor, setAddCueFor] = useState<number | null>(null);
   const [newCueText, setNewCueText] = useState('');
+  // The live in-session load cut, and the exercise it belongs to. At most one is on
+  // screen at a time — a workout is not the place for a queue of decisions.
+  const [adjustment, setAdjustment] = useState<{ exIdx: number; data: InSessionAdjustment } | null>(null);
+  // Sets we've already asked about. A set is one observation and gets one question.
+  const adjustAskedRef = useRef<Set<string>>(new Set());
   // Remembers which (exercise, field, value) prefill prompts we've already shown,
   // so blurring the same field repeatedly doesn't re-ask for the same value.
   const prefillAskedRef = useRef<Set<string>>(new Set());
@@ -249,6 +264,12 @@ export const ActiveWorkoutScreen: React.FC = () => {
     saveCue,
     deleteCue,
   } = useExerciseCues(sessionId, currentExerciseName, !resumeLoading);
+
+  // "Film this one once" for a most-trained lift the coach has never seen. Held back
+  // until the cue reminder is done so the athlete never gets two sheets at once.
+  const { nudge: techniqueNudge, dismiss: dismissTechniqueNudge } = useTechniqueNudge(
+    sessionId, currentExerciseName, !resumeLoading && !cueReminder,
+  );
 
   // Restore the session on mount. Three sources, in order of authority:
   //   1. the local draft — the athlete's own arrangement of the session
@@ -518,6 +539,54 @@ export const ActiveWorkoutScreen: React.FC = () => {
     );
   };
 
+  /**
+   * IN-SESSION AUTOREGULATION. A set came back harder than the plan asked for, and there
+   * are more of them queued up — ask whether the rest should come down.
+   *
+   * Fires only on a real overshoot and only once per set, so an ordinary workout costs
+   * zero requests. The backend owns the decision and every gate in it (and can only ever
+   * answer with a LIGHTER weight); this side just asks the question and renders the
+   * answer.
+   *
+   * Wrapped and silent on failure. A load suggestion is a side feature, and a completed
+   * set must never fail because one could not be generated.
+   */
+  const maybeSuggestAdjustment = async (exIdx: number, ex: Exercise, set: LocalSet) => {
+    if (set.targetRpe == null || !set.rpe) return;
+    const rated = parseFloat(set.rpe);
+    if (!Number.isFinite(rated) || rated - set.targetRpe < ADJUST_RPE_OVERSHOOT) return;
+
+    const key = `${ex.name}:${set.uid}`;
+    if (adjustAskedRef.current.has(key)) return;
+    adjustAskedRef.current.add(key);
+
+    try {
+      const data = await aiCoachService.getInSessionAdjustment(sessionId, ex.name);
+      if (data) setAdjustment({ exIdx, data });
+    } catch {
+      // Silent by design — see above.
+    }
+  };
+
+  /**
+   * Take the cut. Rewrites the WEIGHT INPUT of every set of this exercise the athlete has
+   * not done yet, and the plate stack along with it, while leaving targetWeight (the
+   * prescription, and what the API is told) untouched — the debrief should still see that
+   * this session went under what was asked for, because it did.
+   */
+  const applyAdjustment = () => {
+    if (!adjustment) return;
+    const { exIdx, data } = adjustment;
+    setExercises((prev) => prev.map((ex, i) => i !== exIdx ? ex : {
+      ...ex,
+      sets: ex.sets.map((s) => s.isCompleted
+        ? s
+        : { ...s, weight: String(data.suggestedWeight), adjustedWeight: data.suggestedWeight }),
+    }));
+    setAdjustment(null);
+    Vibration.vibrate(30);
+  };
+
   const completeSet = async (exIdx: number, setIdx: number) => {
     const ex = exercises[exIdx];
     const set = ex.sets[setIdx];
@@ -563,6 +632,10 @@ export const ActiveWorkoutScreen: React.FC = () => {
         }
         patchSetByUid(exIdx, set.uid, { id: saved.id, prs: saved.prs, isSaving: false });
       }
+      // After the set is safely on the server, never before: the suggestion reads the set
+      // log server-side, and asking about a set that failed to save would recompute
+      // against the previous one.
+      maybeSuggestAdjustment(exIdx, ex, set);
     } catch {
       patchSetByUid(exIdx, set.uid, { isCompleted: false, isSaving: false });
       Alert.alert('Error', 'Could not save set. Check connection.');
@@ -762,10 +835,15 @@ export const ActiveWorkoutScreen: React.FC = () => {
             onPress={handleMinimize}
             onLongPress={handleCancel}
             delayLongPress={600}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('activeWorkout.minimize', { defaultValue: 'Minimize workout' })}
+            accessibilityHint={t('activeWorkout.minimizeHint', { defaultValue: 'Double tap and hold to cancel the workout' })}
           >
             <Text style={styles.cancelBtnText}>←</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.timerBlock}
             activeOpacity={isPaused ? 0.6 : 1}
             onPress={isPaused ? resumeTimer : undefined}
@@ -779,7 +857,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
             <Text style={styles.progressLabel}>{t('activeWorkout.setsDone')}</Text>
             <Text style={styles.progressValue}>{completedSets}/{totalSets}</Text>
           </View>
-          <TouchableOpacity style={styles.finishBtn} onPress={handleFinish}>
+          <TouchableOpacity accessibilityRole="button" style={styles.finishBtn} onPress={handleFinish}>
             <Text style={styles.finishBtnText}>{t('activeWorkout.finish')}</Text>
           </TouchableOpacity>
         </View>
@@ -799,7 +877,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                 You were idle for a while, so we stopped the clock. The idle time isn't counted.
               </Text>
             </View>
-            <TouchableOpacity style={styles.resumeBtn} onPress={resumeTimer}>
+            <TouchableOpacity accessibilityRole="button" style={styles.resumeBtn} onPress={resumeTimer}>
               <Text style={styles.resumeBtnText}>Resume</Text>
             </TouchableOpacity>
           </View>
@@ -822,7 +900,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
           {exercises.map((ex, exIdx) => (
             <View key={`${ex.name}-${exIdx}`} style={styles.exerciseCard}>
               {/* Exercise Header */}
-              <TouchableOpacity style={styles.exerciseHeader} onPress={() => toggleExpand(exIdx)}>
+              <TouchableOpacity accessibilityRole="button" style={styles.exerciseHeader} onPress={() => toggleExpand(exIdx)}>
                 <View style={styles.exerciseLeft}>
                   <Text style={styles.exerciseName}>{exName(ex.name)}</Text>
                   <Text style={styles.exerciseMeta}>
@@ -864,25 +942,43 @@ export const ActiveWorkoutScreen: React.FC = () => {
                       user knows the technique focus for this exercise. */}
                   {ex.cue ? <Text style={styles.exerciseCue}>"{ex.cue}"</Text> : null}
 
-                  {/* Personal cues the athlete saved for this exercise, plus the
-                      inline form to add another for next time. */}
+                  {/* Cues for this exercise — the athlete's own notes plus the
+                      corrections their last form check on this movement raised —
+                      and the inline form to add another for next time. */}
                   {(() => {
                     const myCues = cuesByKey.get(exerciseCueKey(ex.name)) ?? [];
                     return (
                       <View style={styles.personalCuesBlock}>
-                        {myCues.map((c) => (
-                          <View key={c.id} style={styles.personalCueRow}>
-                            <Text style={styles.personalCueText}>💡 {c.text}</Text>
-                            <TouchableOpacity
-                              onPress={() => deletePersonalCue(c)}
-                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                              accessibilityRole="button"
-                              accessibilityLabel={t('activeWorkout.deleteCue', { defaultValue: 'Delete cue' })}
-                            >
-                              <Text style={styles.personalCueDelete}>✕</Text>
-                            </TouchableOpacity>
-                          </View>
-                        ))}
+                        {myCues.map((c) => {
+                          const fromFormCheck = c.source === 'form-check';
+                          return (
+                            <View key={c.id} style={styles.personalCueRow}>
+                              <View style={styles.personalCueBody}>
+                                <Text style={styles.personalCueText}>
+                                  {fromFormCheck ? '🎥' : '💡'} {c.text}
+                                </Text>
+                                {fromFormCheck ? (
+                                  <Text style={styles.personalCueOrigin}>
+                                    {t('activeWorkout.cueFromFormCheck', { defaultValue: 'From your form check' })}
+                                  </Text>
+                                ) : null}
+                              </View>
+                              {/* No delete on a form-check cue: it is derived from the
+                                  verdict record, so there is no row to remove. It goes
+                                  when the verdict ages out or the lift is re-filmed. */}
+                              {fromFormCheck ? null : (
+                                <TouchableOpacity
+                                  onPress={() => deletePersonalCue(c)}
+                                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={t('activeWorkout.deleteCue', { defaultValue: 'Delete cue' })}
+                                >
+                                  <Text style={styles.personalCueDelete}>✕</Text>
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                          );
+                        })}
                         {addCueFor === exIdx ? (
                           <View style={styles.addCueForm}>
                             <TextInput
@@ -935,6 +1031,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                     <Text style={[styles.colHeader, { flex: 1 }]}>{t('activeWorkout.weight')}</Text>
                     <Text style={[styles.colHeader, { flex: 1 }]}>{t('activeWorkout.repsLabel')}</Text>
                     <TouchableOpacity
+                      accessibilityRole="button"
                       style={{ width: 50, flexDirection: 'row', alignItems: 'center', gap: 2 }}
                       onPress={() => setRpeGuideVisible(true)}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -948,6 +1045,15 @@ export const ActiveWorkoutScreen: React.FC = () => {
                   {/* Sets */}
                   {ex.sets.map((set, setIdx) => {
                     const hasTruePR = !!set.prs?.some((p) => p.tier === 'pr');
+                    // Draw the bar once per prescribed load rather than under every
+                    // row: 3×5 @ 152.5 is one stack to build, while a top single
+                    // with a back-off is genuinely two.
+                    // An accepted in-session cut changes the bar the athlete has to
+                    // build, so the stack draws that; the prescription it replaced stays
+                    // recorded on targetWeight.
+                    const barWeight = set.adjustedWeight ?? set.targetWeight;
+                    const prevBarWeight = ex.sets[setIdx - 1]?.adjustedWeight ?? ex.sets[setIdx - 1]?.targetWeight;
+                    const showPlates = !!ex.barLoaded && !!barWeight && barWeight !== prevBarWeight;
                     return (
                     <View key={set.uid}>
                       <View style={[styles.setRow, set.isCompleted && styles.setRowDone, hasTruePR && styles.setRowPR]}>
@@ -1001,16 +1107,40 @@ export const ActiveWorkoutScreen: React.FC = () => {
                               <ActivityIndicator color={palette.white} size="small" />
                             </View>
                           ) : set.isCompleted ? (
-                            <TouchableOpacity style={styles.doneCheck} onPress={() => uncompleteSet(exIdx, setIdx)}>
+                            <TouchableOpacity
+                              style={styles.doneCheck}
+                              onPress={() => uncompleteSet(exIdx, setIdx)}
+                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              accessibilityRole="button"
+                              accessibilityLabel={t('activeWorkout.uncompleteSet', { defaultValue: 'Mark set not done' })}
+                              accessibilityState={{ checked: true }}
+                            >
                               <Text style={styles.doneCheckText}>✓</Text>
                             </TouchableOpacity>
                           ) : (
-                            <TouchableOpacity style={styles.logBtn} onPress={() => completeSet(exIdx, setIdx)}>
+                            <TouchableOpacity
+                              style={styles.logBtn}
+                              onPress={() => completeSet(exIdx, setIdx)}
+                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              accessibilityRole="button"
+                              accessibilityLabel={t('a11y.completeSet', { defaultValue: 'Mark set complete' })}
+                              accessibilityState={{ checked: false }}
+                            >
                               <Text style={styles.logBtnText}>✓</Text>
                             </TouchableOpacity>
                           )}
                         </View>
                       </View>
+
+                      {/* What to hang on the bar for this set's prescribed load.
+                          Presentational — it reads targetWeight, never writes one. */}
+                      {showPlates && (
+                        <PlateStack
+                          weightKg={barWeight!}
+                          bar={barLoading}
+                          perSideLabel={t('activeWorkout.perSide', { defaultValue: 'per side' })}
+                        />
+                      )}
 
                       {/* PR badges */}
                       {set.prs && set.prs.length > 0 && (
@@ -1030,8 +1160,18 @@ export const ActiveWorkoutScreen: React.FC = () => {
                     );
                   })}
 
+                  {/* The mid-session load cut, under the exercise it applies to. */}
+                  {adjustment?.exIdx === exIdx && (
+                    <LoadAdjustCard
+                      adjustment={adjustment.data}
+                      exerciseName={exName(ex.name)}
+                      onApply={applyAdjustment}
+                      onDismiss={() => setAdjustment(null)}
+                    />
+                  )}
+
                   {/* Add Set */}
-                  <TouchableOpacity style={styles.addSetBtn} onPress={() => addSet(exIdx)}>
+                  <TouchableOpacity accessibilityRole="button" style={styles.addSetBtn} onPress={() => addSet(exIdx)}>
                     <Text style={styles.addSetBtnText}>{t('activeWorkout.addSet')}</Text>
                   </TouchableOpacity>
 
@@ -1055,6 +1195,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                         <View style={styles.techDots}>
                           {[1, 2, 3, 4, 5].map((n) => (
                             <TouchableOpacity
+                              accessibilityRole="button"
                               key={n}
                               onPress={() => updateExerciseField(exIdx, 'techniqueRating', n)}
                               style={[styles.techDot, (ex.techniqueRating ?? 0) >= n && styles.techDotActive]}
@@ -1084,7 +1225,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
           ))}
 
           {/* Add Exercise Button */}
-          <TouchableOpacity style={styles.addExerciseBtn} onPress={() => setShowAddExercise(true)}>
+          <TouchableOpacity accessibilityRole="button" style={styles.addExerciseBtn} onPress={() => setShowAddExercise(true)}>
             <Text style={styles.addExerciseBtnText}>{t('activeWorkout.addExercise')}</Text>
           </TouchableOpacity>
 
@@ -1133,6 +1274,13 @@ export const ActiveWorkoutScreen: React.FC = () => {
       <RpeGuideModal visible={rpeGuideVisible} onClose={() => setRpeGuideVisible(false)} />
 
       <CueReminderModal reminder={cueReminder} onDismiss={dismissReminder} exName={exName} />
+
+      <TechniqueNudgeModal
+        nudge={techniqueNudge}
+        onDismiss={dismissTechniqueNudge}
+        onFilm={() => { dismissTechniqueNudge(); navigation.navigate('FormCheck'); }}
+        exName={exName}
+      />
 
     </SafeAreaView>
   );
@@ -1235,11 +1383,13 @@ const styles = StyleSheet.create({
   removeBtnText: { fontSize: 13, color: palette.gray[500] },
   chevron: { fontSize: 12, color: palette.gray[400], marginLeft: 4 },
 
-  // Personal cues (saved for next time) + inline add form
+  // Exercise cues (the athlete's own + form-check verdicts) + inline add form
   personalCuesBlock: { marginHorizontal: 12, marginTop: 6, marginBottom: 4, gap: 6 },
   personalCueRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // Top-aligned, not centred: a form-check cue carries an origin line under it,
+    // and the ✕ on a neighbouring manual cue should not drift to its middle.
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 8,
     backgroundColor: alpha(palette.warning[900], 0.133),
@@ -1247,7 +1397,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
-  personalCueText: { flex: 1, fontSize: 13, color: palette.warning[400] },
+  personalCueBody: { flex: 1 },
+  personalCueText: { fontSize: 13, color: palette.warning[400] },
+  personalCueOrigin: { fontSize: 11, color: palette.gray[500], marginTop: 2 },
   personalCueDelete: { fontSize: 12, color: palette.gray[500] },
   addCueBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
   addCueBtnText: { fontSize: 12, color: palette.brand[400], fontWeight: '600' },

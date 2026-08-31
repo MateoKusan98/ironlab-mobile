@@ -42,6 +42,7 @@ export const Switch: React.FC<SwitchProps> = ({
 
   return (
     <TouchableOpacity
+      accessibilityRole="button"
       style={[styles.container, disabled && styles.disabled]}
       activeOpacity={0.8}
       onPress={() => onValueChange(!checked)}

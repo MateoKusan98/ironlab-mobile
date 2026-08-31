@@ -195,6 +195,7 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
               const selected = cardioType === ct.value;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={ct.value}
                   style={[styles.typeCard, selected && styles.typeCardSelected]}
                   onPress={() => handleActivitySelect(ct.value)}
@@ -267,7 +268,7 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
               }
             </Text>
             {!caloriesIsAuto && cardioType && parseInt(duration) > 0 && (
-              <TouchableOpacity onPress={resetToEstimate}>
+              <TouchableOpacity accessibilityRole="button" onPress={resetToEstimate}>
                 <Text style={styles.resetLink}>{t('cardio.resetToEstimate')}</Text>
               </TouchableOpacity>
             )}
@@ -337,7 +338,7 @@ export const CardioLogScreen: React.FC<Props> = ({ navigation }) => {
       </KeyboardAvoidingView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
+        <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave} disabled={saving}>
           {saving ? (
             <ActivityIndicator color={palette.black} />
           ) : (

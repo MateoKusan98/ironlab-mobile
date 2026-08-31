@@ -34,7 +34,7 @@ export const InfoSheet: React.FC<InfoSheetProps> = ({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+      <TouchableOpacity accessibilityRole="button" style={styles.overlay} activeOpacity={1} onPress={onClose}>
         <Card
           background={palette.gray[900]}
           borderColor={palette.gray[700]}

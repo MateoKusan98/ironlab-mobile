@@ -106,7 +106,13 @@ export const ScanResultScreen: React.FC = () => {
 
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.closeBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.close', { defaultValue: 'Close' })}
+          >
             <Text style={styles.closeText}>✕</Text>
           </TouchableOpacity>
           <View style={styles.aiLogo}>
@@ -274,6 +280,7 @@ export const ScanResultScreen: React.FC = () => {
 
         {/* ── CTA ── */}
         <TouchableOpacity
+          accessibilityRole="button"
           style={styles.ctaBtn}
           onPress={() => navigation.navigate('ClientApp')}
         >

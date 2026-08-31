@@ -160,10 +160,19 @@ const PostCard = ({
   return (
     <Card radius={14} padding={14} style={styles.cardSpacing}>
       <View style={styles.cardHeader}>
-        <TouchableOpacity onPress={() => onUserPress(post.user.id, post.user.name)}>
+        <TouchableOpacity
+          onPress={() => onUserPress(post.user.id, post.user.name)}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.openProfile', { defaultValue: 'Open profile' }) + ': ' + post.user.name}
+        >
           <AvatarThumb name={post.user.name} avatar={post.user.avatar} size={38} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.headerMeta} onPress={() => onUserPress(post.user.id, post.user.name)}>
+        <TouchableOpacity
+          style={styles.headerMeta}
+          onPress={() => onUserPress(post.user.id, post.user.name)}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.openProfile', { defaultValue: 'Open profile' }) + ': ' + post.user.name}
+        >
           <View style={styles.nameRow}>
             <Text style={styles.userName}>{post.user.name}</Text>
             <PostTypeIcon type={post.type} />
@@ -171,7 +180,13 @@ const PostCard = ({
           <Text style={styles.timeAgo}>{formatRelativeTime(post.createdAt)}</Text>
         </TouchableOpacity>
         {post.userId === currentUserId && (
-          <TouchableOpacity onPress={handleOptions} style={styles.optionsBtn}>
+          <TouchableOpacity
+            onPress={handleOptions}
+            style={styles.optionsBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('community.postOptions', { defaultValue: 'Post options' })}
+          >
             <DotsThree size={20} color={theme.colors.textTertiary} weight="bold" />
           </TouchableOpacity>
         )}
@@ -198,7 +213,14 @@ const PostCard = ({
       ) : null}
 
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={handleLike}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.likePost', { defaultValue: 'Like post' })}
+          accessibilityState={{ selected: post.isLiked }}
+        >
           <Animated.View style={{ transform: [{ scale: likeAnim }] }}>
             <Heart
               size={22}
@@ -212,7 +234,13 @@ const PostCard = ({
             </Text>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => onCommentPress(post)}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => onCommentPress(post)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.commentOnPost', { defaultValue: 'Comment on post' })}
+        >
           <ChatCircle size={22} color={theme.colors.textSecondary} weight="regular" />
           {post.commentsCount > 0 && (
             <Text style={styles.actionCount}>{post.commentsCount}</Text>
@@ -327,6 +355,9 @@ export const CommunityFeedScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.createBtn}
           onPress={() => navigation.navigate('CreatePost')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.newPost', { defaultValue: 'New post' })}
         >
           <Plus size={22} color={theme.colors.primary} weight="bold" />
         </TouchableOpacity>
@@ -364,6 +395,7 @@ export const CommunityFeedScreen: React.FC = () => {
             <Text style={styles.emptyTitle}>{t('community.noPostsYet')}</Text>
             <Text style={styles.emptySubtitle}>{t('community.noPostsSubtitle')}</Text>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.emptyBtn}
               onPress={() => navigation.navigate('CreatePost')}
             >

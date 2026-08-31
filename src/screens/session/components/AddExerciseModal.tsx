@@ -84,12 +84,12 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
 
         <ScrollView>
           {custom && (
-            <TouchableOpacity style={styles.customRow} onPress={() => add(search.trim())}>
+            <TouchableOpacity accessibilityRole="button" style={styles.customRow} onPress={() => add(search.trim())}>
               <Text style={styles.customText}>+ Add &quot;{search.trim()}&quot;</Text>
             </TouchableOpacity>
           )}
           {filtered.map((name) => (
-            <TouchableOpacity key={name} style={styles.row} onPress={() => add(name)}>
+            <TouchableOpacity accessibilityRole="button" key={name} style={styles.row} onPress={() => add(name)}>
               <Text style={styles.rowText}>{name}</Text>
             </TouchableOpacity>
           ))}

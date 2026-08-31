@@ -146,7 +146,7 @@ export const AdminLogsScreen: React.FC = () => {
           onSubmitEditing={onSearch}
           returnKeyType="search"
         />
-        <TouchableOpacity style={styles.searchBtn} onPress={onSearch}>
+        <TouchableOpacity accessibilityRole="button" style={styles.searchBtn} onPress={onSearch}>
           <Text style={styles.searchBtnText}>Search</Text>
         </TouchableOpacity>
       </View>
@@ -157,6 +157,9 @@ export const AdminLogsScreen: React.FC = () => {
             key={lv}
             style={[styles.filterChip, level === lv && styles.filterChipActive]}
             onPress={() => setLevel(lv)}
+            accessibilityRole="tab"
+            accessibilityLabel={lv}
+            accessibilityState={{ selected: level === lv }}
           >
             <Text style={[styles.filterChipText, level === lv && styles.filterChipTextActive]}>{lv}</Text>
           </TouchableOpacity>

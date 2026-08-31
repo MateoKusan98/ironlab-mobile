@@ -27,6 +27,7 @@ export const Tabs: React.FC<TabsProps> = ({
 
         return (
           <TouchableOpacity
+            accessibilityRole="button"
             key={item.id}
             style={[
               styles.tab,

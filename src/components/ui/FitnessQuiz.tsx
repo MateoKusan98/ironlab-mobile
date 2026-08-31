@@ -312,6 +312,9 @@ export const FitnessQuiz: React.FC<FitnessQuizProps> = ({
                 activeOpacity={answered ? 1 : 0.7}
                 onPress={() => handleSelect(i)}
                 disabled={answered}
+                accessibilityRole="radio"
+                accessibilityLabel={opt}
+                accessibilityState={{ checked: selected === i, disabled: answered }}
               >
                 <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
                 {icon}

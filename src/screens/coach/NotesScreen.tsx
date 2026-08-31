@@ -46,7 +46,7 @@ export const NotesScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity accessibilityRole="button" onPress={() => navigation.goBack()}>
           <Text style={styles.back}>{t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.title}>{t('coach.noteFor', { name: params.clientName })}</Text>
@@ -63,6 +63,7 @@ export const NotesScreen: React.FC = () => {
           numberOfLines={3}
         />
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.sendBtn, createNote.isPending && styles.disabled]}
           onPress={handleSubmit}
           disabled={createNote.isPending}

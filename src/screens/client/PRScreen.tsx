@@ -74,6 +74,9 @@ export const PRScreen: React.FC = () => {
                 key={ex}
                 style={[styles.exerciseChip, activeExercise === ex && styles.exerciseChipActive]}
                 onPress={() => setSelectedExercise(ex)}
+                accessibilityRole="tab"
+                accessibilityLabel={exName(ex)}
+                accessibilityState={{ selected: activeExercise === ex }}
               >
                 <Text style={[styles.exerciseChipText, activeExercise === ex && styles.exerciseChipTextActive]}>
                   {exName(ex)}

@@ -217,13 +217,19 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
     <SafeAreaView style={s.container}>
       {/* Top bar */}
       <View style={s.topBar}>
-        <TouchableOpacity onPress={goBack} style={s.backBtn}>
+        <TouchableOpacity
+          onPress={goBack}
+          style={s.backBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.back', { defaultValue: 'Go back' })}
+        >
           <Text style={s.backIcon}>‹</Text>
         </TouchableOpacity>
         <View style={s.progressTrack}>
           <Animated.View style={[s.progressFill, { width: `${progress * 100}%` }]} />
         </View>
-        <TouchableOpacity onPress={handleFinish} style={s.skipBtn}>
+        <TouchableOpacity accessibilityRole="button" onPress={handleFinish} style={s.skipBtn}>
           <Text style={s.skipText}>{t('aiCoachExtendedSetup.skipAll')}</Text>
         </TouchableOpacity>
       </View>
@@ -258,7 +264,12 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
                   <Text style={s.suggestionTitle}>
                     {t('aiCoachExtendedSetup.detectedFrom', { count: suggestions.sessionCount })}
                   </Text>
-                  <TouchableOpacity onPress={() => setSuggestionsDismissed(true)}>
+                  <TouchableOpacity
+                    onPress={() => setSuggestionsDismissed(true)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('a11y.dismiss', { defaultValue: 'Dismiss' })}
+                  >
                     <Text style={s.suggestionDismiss}>✕</Text>
                   </TouchableOpacity>
                 </View>
@@ -294,7 +305,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
                     </Text>
                   )}
                 </View>
-                <TouchableOpacity style={s.suggestionApplyBtn} onPress={applyConstraintSuggestions}>
+                <TouchableOpacity accessibilityRole="button" style={s.suggestionApplyBtn} onPress={applyConstraintSuggestions}>
                   <Text style={s.suggestionApplyText}>{t('aiCoachExtendedSetup.applyFields')}</Text>
                 </TouchableOpacity>
               </View>
@@ -328,7 +339,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
           <Text style={s.footerStep}>{sectionIndex + 1} / {totalSections}</Text>
           <Text style={s.footerSectionName}>{section.title}</Text>
         </View>
-        <TouchableOpacity style={s.nextBtn} onPress={goNext} disabled={isSaving}>
+        <TouchableOpacity accessibilityRole="button" style={s.nextBtn} onPress={goNext} disabled={isSaving}>
           <Text style={s.nextBtnText}>
             {sectionIndex < totalSections - 1 ? t('aiCoachExtendedSetup.nextBtn') : isSaving ? t('aiCoachExtendedSetup.savingBtn') : editMode ? t('aiCoachExtendedSetup.saveChangesBtn') : t('aiCoachExtendedSetup.meetBtn')}
           </Text>

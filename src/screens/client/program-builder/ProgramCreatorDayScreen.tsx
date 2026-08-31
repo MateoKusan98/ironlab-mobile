@@ -121,13 +121,13 @@ export const ProgramCreatorDayScreen: React.FC = () => {
                                 ))}
                             </View>
 
-                            <TouchableOpacity style={styles.addSetBtn} onPress={() => handleAddSet(ex.id)}>
+                            <TouchableOpacity accessibilityRole="button" style={styles.addSetBtn} onPress={() => handleAddSet(ex.id)}>
                                 <Text style={styles.addSetText}>+ Add Set</Text>
                             </TouchableOpacity>
                         </View>
                     ))}
 
-                    <TouchableOpacity style={styles.addExerciseBtn} onPress={() => setShowSearch(true)}>
+                    <TouchableOpacity accessibilityRole="button" style={styles.addExerciseBtn} onPress={() => setShowSearch(true)}>
                         <Text style={styles.addExerciseText}>+ Add Exercise</Text>
                     </TouchableOpacity>
                 </>

@@ -28,6 +28,7 @@ export const DashboardScreen: React.FC = () => {
 
   const renderClient = ({ item }: { item: UserResponse }) => (
     <TouchableOpacity
+      accessibilityRole="button"
       style={styles.clientCard}
       onPress={() =>
         navigation.navigate('ClientDetail', {
@@ -60,6 +61,7 @@ export const DashboardScreen: React.FC = () => {
           {t('coach.clientCount', { count: clients?.length || 0 })}
         </Text>
         <TouchableOpacity
+          accessibilityRole="button"
           style={styles.formCheckBtn}
           onPress={() => navigation.navigate('FormCheckQueue')}
         >

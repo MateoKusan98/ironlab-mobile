@@ -112,7 +112,12 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
                 <View key={index} style={styles.blockCard}>
                     <View style={styles.blockCardHeader}>
                         <Text style={styles.blockCardTitle}>Block {index + 1}</Text>
-                        <TouchableOpacity onPress={() => handleDeleteBlock(index)}>
+                        <TouchableOpacity
+                            onPress={() => handleDeleteBlock(index)}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Delete block ${index + 1}`}
+                        >
                             <Text style={styles.deleteIcon}>✕</Text>
                         </TouchableOpacity>
                     </View>
@@ -126,11 +131,24 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
                         <View style={styles.counterWrap}>
                             <Text style={[styles.label, { textAlign: 'center' }]}>Weeks</Text>
                             <View style={styles.counterControls}>
-                                <TouchableOpacity style={styles.counterBtn} onPress={() => handleUpdateBlockWeeks(index, -1)}>
+                                <TouchableOpacity
+                                    style={styles.counterBtn}
+                                    onPress={() => handleUpdateBlockWeeks(index, -1)}
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`One fewer week in block ${index + 1}`}
+                                >
                                     <Text style={styles.counterBtnText}>-</Text>
                                 </TouchableOpacity>
                                 <Text style={styles.counterVal}>{block.weeks}</Text>
-                                <TouchableOpacity style={[styles.counterBtn, weeksRemaining === 0 && { opacity: 0.3 }]} onPress={() => handleUpdateBlockWeeks(index, 1)}>
+                                <TouchableOpacity
+                                    style={[styles.counterBtn, weeksRemaining === 0 && { opacity: 0.3 }]}
+                                    onPress={() => handleUpdateBlockWeeks(index, 1)}
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`One more week in block ${index + 1}`}
+                                    accessibilityState={{ disabled: weeksRemaining === 0 }}
+                                >
                                     <Text style={styles.counterBtnText}>+</Text>
                                 </TouchableOpacity>
                             </View>
@@ -139,14 +157,15 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
                 </View>
             ))}
 
-            <TouchableOpacity style={styles.addBlockBtn} onPress={handleAddBlock}>
+            <TouchableOpacity accessibilityRole="button" style={styles.addBlockBtn} onPress={handleAddBlock}>
                 <Text style={styles.addBlockText}>+ Add Block</Text>
             </TouchableOpacity>
 
         </ScrollView>
 
         <View style={styles.footer}>
-            <TouchableOpacity 
+            <TouchableOpacity
+                accessibilityRole="button" 
                 style={[styles.nextBtn, weeksRemaining !== 0 && { opacity: 0.5 }]} 
                 onPress={handleGenerateAndContinue}
             >

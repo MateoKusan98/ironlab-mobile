@@ -83,6 +83,7 @@ function Btn({
   const bg = color ?? palette.brand[600];
   return (
     <TouchableOpacity
+      accessibilityRole="button"
       style={[
         styles.btn,
         small && styles.btnSmall,
@@ -117,6 +118,9 @@ function ChipRow<T extends string>({
               active ? { backgroundColor: color + '33', borderColor: color } : { borderColor: palette.gray[700] },
             ]}
             onPress={() => onSelect(opt)}
+            accessibilityRole="tab"
+            accessibilityLabel={opt}
+            accessibilityState={{ selected: active }}
           >
             <Text style={[styles.chipText, active && { color }]}>{opt}</Text>
           </TouchableOpacity>
@@ -149,11 +153,20 @@ function DebugModal({
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top', 'bottom']}>
         <View style={debug.header}>
           <Text style={debug.title}>Debug Prompt</Text>
-          <TouchableOpacity onPress={onClose}><Text style={debug.close}>✕</Text></TouchableOpacity>
+          <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Close">
+            <Text style={debug.close}>✕</Text>
+          </TouchableOpacity>
         </View>
         <View style={debug.tabs}>
           {(['layers', 'system', 'user'] as const).map((t) => (
-            <TouchableOpacity key={t} style={[debug.tab, tab === t && debug.tabActive]} onPress={() => setTab(t)}>
+            <TouchableOpacity
+              key={t}
+              style={[debug.tab, tab === t && debug.tabActive]}
+              onPress={() => setTab(t)}
+              accessibilityRole="tab"
+              accessibilityLabel={t}
+              accessibilityState={{ selected: tab === t }}
+            >
               <Text style={[debug.tabText, tab === t && debug.tabTextActive]}>{t}</Text>
             </TouchableOpacity>
           ))}
@@ -362,9 +375,11 @@ function ProfileEditModal({
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top', 'bottom']}>
         <View style={edit.header}>
-          <TouchableOpacity onPress={onClose}><Text style={edit.close}>✕</Text></TouchableOpacity>
+          <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Close">
+            <Text style={edit.close}>✕</Text>
+          </TouchableOpacity>
           <Text style={edit.title}>Edit AI Profile</Text>
-          <TouchableOpacity onPress={save} disabled={saving || loading}>
+          <TouchableOpacity accessibilityRole="button" onPress={save} disabled={saving || loading}>
             {saving
               ? <ActivityIndicator size="small" color={palette.brand[400]} />
               : <Text style={[edit.save, (loading) && { opacity: 0.4 }]}>Save</Text>}
@@ -403,6 +418,9 @@ function ProfileEditModal({
                               key={opt}
                               style={[edit.chip, active && edit.chipActive]}
                               onPress={() => set(f.key, active ? '' : opt)}
+                              accessibilityRole="radio"
+                              accessibilityLabel={opt}
+                              accessibilityState={{ checked: active }}
                             >
                               <Text style={[edit.chipText, active && edit.chipTextActive]}>{opt}</Text>
                             </TouchableOpacity>
@@ -419,6 +437,9 @@ function ProfileEditModal({
                               key={d}
                               style={[edit.chip, active && edit.chipActive]}
                               onPress={() => toggleArrayValue(f.key, d)}
+                              accessibilityRole="checkbox"
+                              accessibilityLabel={d}
+                              accessibilityState={{ checked: active }}
                             >
                               <Text style={[edit.chipText, active && edit.chipTextActive]}>{d.slice(0, 3)}</Text>
                             </TouchableOpacity>
@@ -585,14 +606,20 @@ export const AdminAILabScreen: React.FC = () => {
         <View style={styles.backBtn} />
         <Text style={styles.title}>AI Lab</Text>
         {selectedUser && (
-          <TouchableOpacity onPress={() => loadState(selectedUser.id)} style={styles.refreshBtn}>
+          <TouchableOpacity
+            onPress={() => loadState(selectedUser.id)}
+            style={styles.refreshBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Refresh"
+          >
             <Text style={styles.refreshText}>↻</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* User picker */}
-      <TouchableOpacity style={styles.userPicker} onPress={() => setShowUserPicker(true)}>
+      <TouchableOpacity accessibilityRole="button" style={styles.userPicker} onPress={() => setShowUserPicker(true)}>
         <Text style={styles.userPickerLabel}>
           {selectedUser ? `${selectedUser.name} (${selectedUser.email})` : 'Select a user...'}
         </Text>
@@ -604,7 +631,9 @@ export const AdminAILabScreen: React.FC = () => {
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top', 'bottom']}>
           <View style={picker.header}>
             <Text style={picker.title}>Select User</Text>
-            <TouchableOpacity onPress={() => setShowUserPicker(false)}><Text style={picker.close}>✕</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowUserPicker(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Close">
+              <Text style={picker.close}>✕</Text>
+            </TouchableOpacity>
           </View>
           <View style={{ padding: 12 }}>
             <TextInput
@@ -618,7 +647,7 @@ export const AdminAILabScreen: React.FC = () => {
           </View>
           <ScrollView contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 40 }}>
             {filteredUsers.map((u) => (
-              <TouchableOpacity key={u.id} style={picker.item} onPress={() => selectUser(u)}>
+              <TouchableOpacity accessibilityRole="button" key={u.id} style={picker.item} onPress={() => selectUser(u)}>
                 <View style={{ flex: 1 }}>
                   <Text style={picker.name}>{u.name}</Text>
                   <Text style={picker.email}>{u.email} · {u.role} · {u.totalSessions} sessions</Text>
@@ -748,6 +777,9 @@ export const AdminAILabScreen: React.FC = () => {
                   key={w}
                   style={[styles.weekChip, editWeek === String(w) && styles.weekChipActive]}
                   onPress={() => setEditWeek(String(w))}
+                  accessibilityRole="tab"
+                  accessibilityLabel={`Week ${w}`}
+                  accessibilityState={{ selected: editWeek === String(w) }}
                 >
                   <Text style={[styles.weekChipText, editWeek === String(w) && styles.weekChipTextActive]}>{w}</Text>
                 </TouchableOpacity>
@@ -784,6 +816,7 @@ export const AdminAILabScreen: React.FC = () => {
                 const slot = (naturalSlot + i) % cycleN;
                 return (
                   <TouchableOpacity
+                    accessibilityRole="button"
                     key={i}
                     style={[styles.weekChip, editSlotOffset === String(i) && styles.weekChipActive]}
                     onPress={() => setEditSlotOffset(String(i))}

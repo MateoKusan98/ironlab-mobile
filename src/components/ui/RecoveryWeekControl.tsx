@@ -41,7 +41,13 @@ export const RecoveryModal: React.FC<{
       <SafeAreaView style={m.container}>
         <View style={m.header}>
           <Text style={m.title}>🛟 {t('aiCoach.recovery.title')}</Text>
-          <TouchableOpacity onPress={onClose} style={m.closeBtn}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={m.closeBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.close', { defaultValue: 'Close' })}
+          >
             <Text style={m.closeText}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -50,6 +56,7 @@ export const RecoveryModal: React.FC<{
           <Text style={m.intro}>{t('aiCoach.recovery.intro')}</Text>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[m.optionCard, choice === 'recovery' && m.optionCardActive]}
             onPress={() => setChoice('recovery')}
           >
@@ -64,6 +71,7 @@ export const RecoveryModal: React.FC<{
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[m.optionCard, choice === 'vacation' && m.optionCardActive]}
             onPress={() => setChoice('vacation')}
           >
@@ -78,6 +86,7 @@ export const RecoveryModal: React.FC<{
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[m.optionCard, choice === 'taper' && m.optionCardActive]}
             onPress={() => setChoice('taper')}
           >
@@ -94,6 +103,7 @@ export const RecoveryModal: React.FC<{
 
         <View style={m.footer}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[m.saveBtn, (!choice || busy) && m.saveBtnDisabled]}
             onPress={() => choice && onConfirm(choice)}
             disabled={!choice || busy}

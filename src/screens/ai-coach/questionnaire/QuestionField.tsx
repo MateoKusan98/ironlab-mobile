@@ -12,7 +12,7 @@ const SingleChoice = ({ options, value, onChange }: { options: Option[]; value: 
     {options.map((opt) => {
       const selected = value === opt.value;
       return (
-        <TouchableOpacity key={opt.value} style={[q.optionCard, selected && q.optionSelected]} onPress={() => onChange(opt.value)}>
+        <TouchableOpacity accessibilityRole="button" key={opt.value} style={[q.optionCard, selected && q.optionSelected]} onPress={() => onChange(opt.value)}>
           <Text style={[q.optionText, selected && q.optionTextSelected]}>
             {opt.icon ? `${opt.icon}  ` : ''}{opt.label}
           </Text>
@@ -31,6 +31,7 @@ const MultiChoice = ({ options, value, onChange }: { options: Option[]; value: s
       const selected = value.includes(opt.value);
       return (
         <TouchableOpacity
+          accessibilityRole="button"
           key={opt.value}
           style={[q.chip, selected && q.chipSelected]}
           onPress={() => {
@@ -68,6 +69,9 @@ const BoolInput = ({ value, onChange, trueLabel = 'Yes', falseLabel = 'No' }: { 
         key={String(v)}
         style={[q.boolBtn, value === v && q.boolBtnSelected]}
         onPress={() => onChange(v)}
+        accessibilityRole="radio"
+        accessibilityLabel={v ? trueLabel : falseLabel}
+        accessibilityState={{ checked: value === v }}
       >
         <Text style={[q.boolText, value === v && q.boolTextSelected]}>{v ? trueLabel : falseLabel}</Text>
       </TouchableOpacity>
@@ -78,7 +82,7 @@ const BoolInput = ({ value, onChange, trueLabel = 'Yes', falseLabel = 'No' }: { 
 const SliderInput = ({ value, onChange, min = 1, max = 5 }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) => (
   <View style={q.sliderRow}>
     {Array.from({ length: max - min + 1 }, (_, i) => i + min).map((v) => (
-      <TouchableOpacity key={v} style={[q.sliderDot, value >= v && q.sliderDotActive]} onPress={() => onChange(v)}>
+      <TouchableOpacity accessibilityRole="button" key={v} style={[q.sliderDot, value >= v && q.sliderDotActive]} onPress={() => onChange(v)}>
         <Text style={[q.sliderDotText, value >= v && q.sliderDotTextActive]}>{v}</Text>
       </TouchableOpacity>
     ))}
@@ -102,7 +106,15 @@ const FocusSlider = ({ value, onChange, t }: { value: string; onChange: (v: stri
         {FOCUS_TICKS.map((tick) => {
           const active = value === tick;
           return (
-            <TouchableOpacity key={tick} onPress={() => onChange(tick)} style={fs.dotTouch} activeOpacity={0.7}>
+            <TouchableOpacity
+              key={tick}
+              onPress={() => onChange(tick)}
+              style={fs.dotTouch}
+              activeOpacity={0.7}
+              accessibilityRole="radio"
+              accessibilityLabel={String(tick)}
+              accessibilityState={{ checked: active }}
+            >
               <View style={[fs.dot, active && fs.dotActive]}>
                 {active && <View style={fs.dotInner} />}
               </View>
@@ -165,18 +177,21 @@ const CompDateField = ({
     <View>
       <View style={cd.typeRow}>
         <TouchableOpacity
+          accessibilityRole="button"
           style={[cd.typeBtn, !type && cd.typeBtnActive]}
           onPress={() => pickType(null)}
         >
           <Text style={[cd.typeText, !type && cd.typeTextActive]}>{t('aiCoachExtendedSetup.compDateNone')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          accessibilityRole="button"
           style={[cd.typeBtn, type === 'meet' && cd.typeBtnActive]}
           onPress={() => pickType('meet')}
         >
           <Text style={[cd.typeText, type === 'meet' && cd.typeTextActive]}>{t('aiCoach.competition.meet')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          accessibilityRole="button"
           style={[cd.typeBtn, type === 'pr_test' && cd.typeBtnActive]}
           onPress={() => pickType('pr_test')}
         >
@@ -193,6 +208,7 @@ const CompDateField = ({
               const active = selected && Math.abs(selected.getTime() - d.getTime()) < 3 * 86_400_000;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={w}
                   style={[cd.quickBtn, active && cd.quickBtnActive]}
                   onPress={() => onChange(cdToISO(d), type)}
@@ -212,6 +228,7 @@ const CompDateField = ({
                 selected.getFullYear() === d.getFullYear();
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={label}
                   style={[cd.monthChip, active && cd.monthChipActive]}
                   onPress={() => onChange(cdToISO(d), type)}

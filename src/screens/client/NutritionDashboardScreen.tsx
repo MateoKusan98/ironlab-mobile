@@ -113,7 +113,11 @@ export const NutritionDashboardScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.navigate('ClientApp')}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ClientApp')}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.openProfile', { defaultValue: 'Open profile' })}
+          >
             <UserAvatar user={user} size={40} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('nav.nutrition')}</Text>
@@ -164,6 +168,9 @@ export const NutritionDashboardScreen: React.FC = () => {
                         key={f} 
                         onPress={() => setActiveFilter(f)}
                         style={[styles.filterTab, activeFilter === f && styles.filterTabActive]}
+                        accessibilityRole="tab"
+                        accessibilityLabel={f}
+                        accessibilityState={{ selected: activeFilter === f }}
                     >
                         <Text style={[styles.filterTabText, activeFilter === f && styles.filterTabTextActive]}>{f}</Text>
                     </TouchableOpacity>
@@ -262,6 +269,7 @@ export const NutritionDashboardScreen: React.FC = () => {
 
         {/* Log New Meal Button */}
         <TouchableOpacity
+            accessibilityRole="button"
             style={styles.logBtn}
             onPress={() => navigation.navigate('FoodScanOnboarding')}
         >
@@ -272,7 +280,7 @@ export const NutritionDashboardScreen: React.FC = () => {
         <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t('nutrition.browseMeals')}</Text>
         </View>
-        <TouchableOpacity style={styles.mealCard} onPress={() => navigation.navigate('BrowseMeals')}>
+        <TouchableOpacity accessibilityRole="button" style={styles.mealCard} onPress={() => navigation.navigate('BrowseMeals')}>
             <Image 
                 source={{ uri: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c' }} 
                 style={styles.mealCardImage} 
@@ -400,8 +408,18 @@ export const NutritionDashboardScreen: React.FC = () => {
                     {new Date(calendarMonth.year, calendarMonth.month, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                 </Text>
                 <View style={styles.calendarNav}>
-                    <TouchableOpacity onPress={() => shiftCalendarMonth(-1)}><Text style={styles.calNavText}>‹</Text></TouchableOpacity>
-                    <TouchableOpacity onPress={() => shiftCalendarMonth(1)}><Text style={styles.calNavText}>›</Text></TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => shiftCalendarMonth(-1)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('a11y.previousMonth', { defaultValue: 'Previous month' })}
+                    ><Text style={styles.calNavText}>‹</Text></TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => shiftCalendarMonth(1)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('a11y.nextMonth', { defaultValue: 'Next month' })}
+                    ><Text style={styles.calNavText}>›</Text></TouchableOpacity>
                 </View>
             </View>
             <View style={styles.calendarGrid}>
@@ -420,6 +438,9 @@ export const NutritionDashboardScreen: React.FC = () => {
                             key={dateStr}
                             style={[styles.calCell, isSelected && styles.calCellSelected]}
                             onPress={() => setSelectedDate(dateStr)}
+                            accessibilityRole="button"
+                            accessibilityLabel={dateStr}
+                            accessibilityState={{ selected: isSelected }}
                         >
                             <Text style={[styles.calCellDate, isSelected && styles.calCellDateSelected]}>{i + 1}</Text>
                             {status !== undefined && (

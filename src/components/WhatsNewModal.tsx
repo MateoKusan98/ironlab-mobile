@@ -96,7 +96,7 @@ export const WhatsNewModal: React.FC<Props> = ({ entries, onDismiss }) => {
             ))}
           </ScrollView>
 
-          <TouchableOpacity style={styles.button} onPress={onDismiss} activeOpacity={0.85}>
+          <TouchableOpacity accessibilityRole="button" style={styles.button} onPress={onDismiss} activeOpacity={0.85}>
             <Text style={styles.buttonText}>Got it</Text>
           </TouchableOpacity>
         </Animated.View>

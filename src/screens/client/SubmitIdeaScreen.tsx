@@ -114,6 +114,7 @@ export const SubmitIdeaScreen: React.FC = () => {
             <Text style={styles.charCount}>{content.length}/{MAX_CHARS}</Text>
 
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
               onPress={handleSubmit}
               disabled={loading || content.trim().length < 10}

@@ -102,7 +102,7 @@ export const MessagesScreen: React.FC = () => {
         data={conversations}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.row} onPress={() => openConversation(item)}>
+          <TouchableOpacity accessibilityRole="button" style={styles.row} onPress={() => openConversation(item)}>
             <View style={styles.avatarWrap}>
               <AvatarThumb name={item.otherUser.name} avatar={item.otherUser.avatar} size={50} />
               {item.unreadCount > 0 && (

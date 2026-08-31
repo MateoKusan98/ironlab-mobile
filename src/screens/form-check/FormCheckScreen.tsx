@@ -267,7 +267,11 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
     setAnalysisReady(false);
     setAnalyzing(true);
     try {
-      const exercise = aiExercise.trim();
+      // Store the canonical English name, not what the autocomplete showed. The
+      // suggestions are localised, so a Croatian athlete picking "Čučanj" used to
+      // persist that — and the verdict then never matched the plan's "Squat" when
+      // exercise-cues replays it as a cue at the top of the set.
+      const exercise = canonical(aiExercise.trim());
       const notes = aiNotes.trim() || undefined;
       const { aiAnalysis } = aiVideo
         ? await formCheckService.analyzeVideo(aiVideo, exercise, notes)
@@ -418,6 +422,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
       {/* Tabs */}
       <View style={styles.tabRow}>
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.tab, activeTab === 'ai' && styles.tabActive]}
           onPress={() => handleTabChange('ai')}
         >
@@ -425,6 +430,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={[styles.tabLabel, activeTab === 'ai' && styles.tabLabelActive]}>{t('formCheck.aiCheck')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.tab, activeTab === 'coach' && styles.tabActive]}
           onPress={() => handleTabChange('coach')}
         >
@@ -432,6 +438,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={[styles.tabLabel, activeTab === 'coach' && styles.tabLabelActive]}>{t('formCheck.ironlabCheck')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.tab, activeTab === 'community' && styles.tabActive]}
           onPress={() => handleTabChange('community')}
         >
@@ -453,7 +460,13 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
                   <Video size={36} weight="fill" color={palette.brand[400]} />
                   <Text style={styles.videoLabel}>{t('formCheck.videoSelected')}</Text>
                 </View>
-                <TouchableOpacity style={styles.mediaRemove} onPress={removeAIVideo}>
+                <TouchableOpacity
+                  style={styles.mediaRemove}
+                  onPress={removeAIVideo}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('a11y.removeMedia', { defaultValue: 'Remove attachment' })}
+                >
                   <X size={14} weight="bold" color={palette.white} />
                 </TouchableOpacity>
               </View>
@@ -464,13 +477,19 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
                   {aiImages.map((uri, i) => (
                     <View key={i} style={styles.photoThumb}>
                       <Image source={{ uri }} style={styles.photoImg} />
-                      <TouchableOpacity style={styles.photoRemove} onPress={() => removeAIImage(i)}>
+                      <TouchableOpacity
+                        style={styles.photoRemove}
+                        onPress={() => removeAIImage(i)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('a11y.removeMedia', { defaultValue: 'Remove attachment' })}
+                      >
                         <X size={12} weight="bold" color={palette.white} />
                       </TouchableOpacity>
                     </View>
                   ))}
                   {aiImages.length < 3 && (
-                    <TouchableOpacity style={styles.photoAdd} onPress={pickAIImages}>
+                    <TouchableOpacity accessibilityRole="button" style={styles.photoAdd} onPress={pickAIImages}>
                       <Plus size={24} weight="bold" color={palette.gray[500]} />
                       <Text style={styles.photoAddLabel}>{t('formCheck.addPhoto')}</Text>
                     </TouchableOpacity>
@@ -479,7 +498,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
 
                 {/* Video alternative */}
                 {aiImages.length === 0 && (
-                  <TouchableOpacity style={styles.videoPickBtn} onPress={pickAIVideo}>
+                  <TouchableOpacity accessibilityRole="button" style={styles.videoPickBtn} onPress={pickAIVideo}>
                     <Video size={18} weight="bold" color={palette.brand[400]} />
                     <Text style={styles.videoPickLabel}>{t('formCheck.orUploadVideo')}</Text>
                   </TouchableOpacity>
@@ -515,6 +534,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
             />
 
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.primaryBtn, (analyzing || (!aiImages.length && !aiVideo) || !aiExercise.trim()) && styles.primaryBtnDisabled]}
               onPress={analyzeForm}
               disabled={analyzing || (!aiImages.length && !aiVideo) || !aiExercise.trim()}
@@ -554,12 +574,18 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
                     <Text style={styles.videoLabel}>{t('formCheck.videoSelected')}</Text>
                   </View>
                 )}
-                <TouchableOpacity style={styles.mediaRemove} onPress={() => setCoachMedia(null)}>
+                <TouchableOpacity
+                  style={styles.mediaRemove}
+                  onPress={() => setCoachMedia(null)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('a11y.removeMedia', { defaultValue: 'Remove attachment' })}
+                >
                   <X size={14} weight="bold" color={palette.white} />
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity style={styles.mediaPickerBtn} onPress={pickCoachMedia}>
+              <TouchableOpacity accessibilityRole="button" style={styles.mediaPickerBtn} onPress={pickCoachMedia}>
                 <Camera size={28} weight="bold" color={palette.gray[500]} />
                 <Text style={styles.mediaPickerLabel}>{t('formCheck.addMedia')}</Text>
                 <Text style={styles.mediaPickerSub}>{t('formCheck.tapToSelect')}</Text>
@@ -586,6 +612,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
             />
 
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.primaryBtn, (submitting || !coachMedia || !coachExercise.trim()) && styles.primaryBtnDisabled]}
               onPress={submitToCoach}
               disabled={submitting || !coachMedia || !coachExercise.trim()}
@@ -623,7 +650,13 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
               /* Video preview */
               <View style={styles.mediaPreview}>
                 <PostVideo uri={commVideo} style={{ height: '100%', borderRadius: 16 }} />
-                <TouchableOpacity style={styles.mediaRemove} onPress={() => setCommVideo(null)}>
+                <TouchableOpacity
+                  style={styles.mediaRemove}
+                  onPress={() => setCommVideo(null)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('a11y.removeMedia', { defaultValue: 'Remove attachment' })}
+                >
                   <X size={14} weight="bold" color={palette.white} />
                 </TouchableOpacity>
               </View>
@@ -637,13 +670,16 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
                       <TouchableOpacity
                         style={styles.photoRemove}
                         onPress={() => setCommImages((prev) => prev.filter((_, idx) => idx !== i))}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('a11y.removeMedia', { defaultValue: 'Remove attachment' })}
                       >
                         <X size={12} weight="bold" color={palette.white} />
                       </TouchableOpacity>
                     </View>
                   ))}
                   {commImages.length < 3 && (
-                    <TouchableOpacity style={styles.photoAdd} onPress={pickCommunityImages}>
+                    <TouchableOpacity accessibilityRole="button" style={styles.photoAdd} onPress={pickCommunityImages}>
                       <Plus size={24} weight="bold" color={palette.gray[500]} />
                       <Text style={styles.photoAddLabel}>{t('formCheck.addPhoto')}</Text>
                     </TouchableOpacity>
@@ -652,7 +688,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
 
                 {/* Video alternative */}
                 {commImages.length === 0 && (
-                  <TouchableOpacity style={styles.videoPickBtn} onPress={pickCommunityVideo}>
+                  <TouchableOpacity accessibilityRole="button" style={styles.videoPickBtn} onPress={pickCommunityVideo}>
                     <Video size={18} weight="bold" color={palette.brand[400]} />
                     <Text style={styles.videoPickLabel}>{t('formCheck.orUploadVideo')}</Text>
                   </TouchableOpacity>
@@ -680,6 +716,7 @@ export const FormCheckScreen: React.FC<Props> = ({ navigation }) => {
             />
 
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.primaryBtn, (posting || (!commImages.length && !commVideo) || !commExercise.trim()) && styles.primaryBtnDisabled]}
               onPress={postToCommunity}
               disabled={posting || (!commImages.length && !commVideo) || !commExercise.trim()}

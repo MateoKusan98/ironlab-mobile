@@ -58,6 +58,7 @@ export const FoodScanOnboardingScreen: React.FC = () => {
 
         <View style={styles.footer}>
             <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.scanBtn, !isReady && styles.scanBtnDisabled]}
                 onPress={() => navigation.navigate('MealScan')}
                 disabled={!isReady}
@@ -67,6 +68,7 @@ export const FoodScanOnboardingScreen: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.barcodeBtn, !isReady && styles.scanBtnDisabled]}
                 onPress={() => navigation.navigate('BarcodeScanner')}
                 disabled={!isReady}
@@ -75,6 +77,7 @@ export const FoodScanOnboardingScreen: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
+                accessibilityRole="button"
                 style={styles.manualBtn}
                 onPress={() => navigation.navigate('ManualFoodLog')}
             >

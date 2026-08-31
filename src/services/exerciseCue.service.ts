@@ -1,11 +1,22 @@
 import { api } from './api';
 
+/**
+ * Where a cue came from. 'form-check' cues are DERIVED server-side from the
+ * athlete's most recent AI form check on that movement — they have no row behind
+ * them, so they must never be offered a delete (the server would 404) and they
+ * age out of the verdict window on their own.
+ */
+export type ExerciseCueSource = 'manual' | 'form-check';
+
 export interface ExerciseCue {
   id: string;
   exerciseName: string;
   exerciseKey: string;
   text: string;
   createdAt: string;
+  source: ExerciseCueSource;
+  /** Set only on form-check cues. */
+  formCheckId?: string;
 }
 
 // Must mirror exerciseCueKey() on the backend so a workout's exercises resolve

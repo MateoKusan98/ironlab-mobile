@@ -104,7 +104,7 @@ export const BrowseMealsScreen: React.FC = () => {
   const isFiltering = activeCategory !== undefined || activeCalorieRange.label !== 'Any' || debouncedSearchQuery !== '';
 
   const renderHorizontalCard = (meal: FoodLogResponse) => (
-    <TouchableOpacity key={meal.id} style={styles.horizontalCard} onPress={() => navigation.navigate('FoodDetails', { food: meal })}>
+    <TouchableOpacity accessibilityRole="button" key={meal.id} style={styles.horizontalCard} onPress={() => navigation.navigate('FoodDetails', { food: meal })}>
       <View style={styles.hCardContent}>
         <View style={styles.hCardTag}>
           <Text style={styles.hCardTagText}>{meal.tags?.[0] || 'Meal'}</Text>
@@ -160,7 +160,8 @@ export const BrowseMealsScreen: React.FC = () => {
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
           {CATEGORIES.map((cat) => (
-            <TouchableOpacity 
+            <TouchableOpacity
+                accessibilityRole="button" 
                 key={cat.value} 
                 style={styles.categoryItem}
                 onPress={() => handleCategoryPress(cat.value)}
@@ -180,7 +181,8 @@ export const BrowseMealsScreen: React.FC = () => {
         </View>
         <View style={styles.rangeContainer}>
             {CALORIE_RANGES.map((range, i) => (
-                <TouchableOpacity 
+                <TouchableOpacity
+                    accessibilityRole="button" 
                     key={i} 
                     style={[styles.rangeBtn, activeCalorieRange.label === range.label && styles.rangeBtnActive]}
                     onPress={() => setActiveCalorieRange(range)}
@@ -198,7 +200,7 @@ export const BrowseMealsScreen: React.FC = () => {
                 <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>{t('browseMeals.featured')}</Text>
                 </View>
-                <TouchableOpacity style={styles.featuredCard} onPress={() => navigation.navigate('FoodDetails', { food: featuredMeal })}>
+                <TouchableOpacity accessibilityRole="button" style={styles.featuredCard} onPress={() => navigation.navigate('FoodDetails', { food: featuredMeal })}>
                     {featuredMeal.imageUrl ? (
                         <Image source={{ uri: featuredMeal.imageUrl }} style={styles.featuredImage} />
                     ) : (
@@ -207,7 +209,7 @@ export const BrowseMealsScreen: React.FC = () => {
                     <View style={styles.featuredOverlay}>
                         <View style={styles.featuredTopRow}>
                             <View style={styles.newBadge}><Text style={styles.newBadgeText}>New</Text></View>
-                            <TouchableOpacity style={styles.saveBtn}><Text style={{ color: palette.white }}>🔖</Text></TouchableOpacity>
+                            <TouchableOpacity style={styles.saveBtn} accessible={false}><Text style={{ color: palette.white }}>🔖</Text></TouchableOpacity>
                         </View>
                         <View style={styles.featuredDetails}>
                             <Text style={styles.featuredTitle}>{featuredMeal.mealName || 'Untitled Meal'}</Text>
@@ -236,7 +238,7 @@ export const BrowseMealsScreen: React.FC = () => {
                     <Text style={styles.emptyText}>{t('browseMeals.noMealsFound')}</Text>
                 )}
                 {allMeals.map((meal) => (
-                    <TouchableOpacity key={meal.id} style={styles.verticalCard} onPress={() => navigation.navigate('FoodDetails', { food: meal })}>
+                    <TouchableOpacity accessibilityRole="button" key={meal.id} style={styles.verticalCard} onPress={() => navigation.navigate('FoodDetails', { food: meal })}>
                         <View style={styles.vCardImageContainer}>
                             {meal.imageUrl ? (
                                 <Image source={{ uri: meal.imageUrl }} style={styles.vCardImage} />
@@ -294,7 +296,8 @@ export const BrowseMealsScreen: React.FC = () => {
 
         {/* Load More Button */}
         {data && allMeals.length < data.total && (
-            <TouchableOpacity 
+            <TouchableOpacity
+                accessibilityRole="button" 
                 style={styles.loadMoreBtn} 
                 onPress={handleLoadMore}
                 disabled={isLoading || isFetching}

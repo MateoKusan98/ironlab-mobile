@@ -174,7 +174,13 @@ export const SupportChatScreen: React.FC<Props> = () => {
             <Text style={styles.quickLabel}>{t('support.commonQuestions')}</Text>
             <View style={styles.quickGrid}>
               {QUICK_QUESTIONS.map((q) => (
-                <TouchableOpacity key={q} style={styles.quickChip} onPress={() => send(q)}>
+                <TouchableOpacity
+                  key={q}
+                  style={styles.quickChip}
+                  onPress={() => send(q)}
+                  accessibilityRole="button"
+                  accessibilityLabel={q}
+                >
                   <Text style={styles.quickChipText}>{q}</Text>
                 </TouchableOpacity>
               ))}
@@ -198,7 +204,11 @@ export const SupportChatScreen: React.FC<Props> = () => {
           <TouchableOpacity
             style={[styles.sendBtn, (!input.trim() || isLoading) && styles.sendBtnDisabled]}
             onPress={() => send(input)}
+            hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
             disabled={!input.trim() || isLoading}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.sendMessage', { defaultValue: 'Send message' })}
+            accessibilityState={{ disabled: !input.trim() || isLoading, busy: isLoading }}
           >
             {isLoading ? (
               <ActivityIndicator size="small" color={palette.black} />

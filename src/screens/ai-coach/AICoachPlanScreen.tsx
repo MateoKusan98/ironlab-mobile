@@ -74,7 +74,13 @@ const DebugModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
       <SafeAreaView style={dbg.container}>
         <View style={dbg.header}>
           <Text style={dbg.title}>Prompt Debug</Text>
-          <TouchableOpacity onPress={onClose} style={dbg.closeBtn}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={dbg.closeBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          >
             <Text style={dbg.closeText}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -85,6 +91,7 @@ const DebugModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
           <ScrollView style={dbg.scroll} contentContainerStyle={{ paddingBottom: 40 }}>
             {/* System prompt */}
             <TouchableOpacity
+              accessibilityRole="button"
               style={[dbg.layerHeader, openKey === '__system__' && dbg.layerHeaderOpen]}
               onPress={() => setOpenKey(openKey === '__system__' ? null : '__system__')}
             >
@@ -101,6 +108,7 @@ const DebugModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ visib
             {layers.map(({ key, label, content }) => (
               <View key={key}>
                 <TouchableOpacity
+                  accessibilityRole="button"
                   style={[dbg.layerHeader, openKey === key && dbg.layerHeaderOpen]}
                   onPress={() => setOpenKey(openKey === key ? null : key)}
                 >
@@ -176,7 +184,13 @@ const InjuryModal: React.FC<{
       <SafeAreaView style={inj.container}>
         <View style={inj.header}>
           <Text style={inj.title}>{t('aiCoach.injuryHandling')}</Text>
-          <TouchableOpacity onPress={onClose} style={inj.closeBtn}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={inj.closeBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.close', { defaultValue: 'Close' })}
+          >
             <Text style={inj.closeText}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -219,6 +233,7 @@ const InjuryModal: React.FC<{
           <Text style={[inj.sectionLabel, { marginTop: 24 }]}>How should M-7EO handle these?</Text>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[inj.optionCard, choice === 'replace' && inj.optionCardActive]}
             onPress={() => setChoice('replace')}
           >
@@ -235,6 +250,7 @@ const InjuryModal: React.FC<{
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[inj.optionCard, choice === 'reduce' && inj.optionCardActive]}
             onPress={() => setChoice('reduce')}
           >
@@ -251,6 +267,7 @@ const InjuryModal: React.FC<{
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[inj.optionCard, choice === 'remove' && inj.optionCardActive]}
             onPress={() => setChoice('remove')}
           >
@@ -269,6 +286,7 @@ const InjuryModal: React.FC<{
 
         <View style={inj.footer}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[inj.saveBtn, !choice && inj.saveBtnDisabled]}
             onPress={() => choice && onSave(choice)}
             disabled={!choice}
@@ -297,7 +315,7 @@ const InjuryBanner: React.FC<{
     : 'Tap to set injury protocol';
 
   return (
-    <TouchableOpacity style={inj.banner} onPress={onPress}>
+    <TouchableOpacity accessibilityRole="button" style={inj.banner} onPress={onPress}>
       <View style={inj.bannerLeft}>
         <Text style={inj.bannerEmoji}>🩹</Text>
         <View>
@@ -367,7 +385,13 @@ const CompDateModal: React.FC<{
       <SafeAreaView style={comp.container}>
         <View style={comp.header}>
           <Text style={comp.title}>{t('aiCoach.competition.title')}</Text>
-          <TouchableOpacity onPress={onClose} style={comp.closeBtn}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={comp.closeBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.close', { defaultValue: 'Close' })}
+          >
             <Text style={comp.closeText}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -377,12 +401,14 @@ const CompDateModal: React.FC<{
           <Text style={comp.sectionLabel}>Event type</Text>
           <View style={comp.typeRow}>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[comp.typeBtn, type === 'meet' && comp.typeBtnActive]}
               onPress={() => setType('meet')}
             >
               <Text style={[comp.typeBtnText, type === 'meet' && comp.typeBtnTextActive]}>{t('aiCoach.competition.meet')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[comp.typeBtn, type === 'pr_test' && comp.typeBtnActive]}
               onPress={() => setType('pr_test')}
             >
@@ -398,6 +424,7 @@ const CompDateModal: React.FC<{
               const active = selectedDate && Math.abs(selectedDate.getTime() - d.getTime()) < 3 * 86_400_000;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={w}
                   style={[comp.quickBtn, active && comp.quickBtnActive]}
                   onPress={() => handleQuickPick(w)}
@@ -419,6 +446,7 @@ const CompDateModal: React.FC<{
               selectedDate.getFullYear() === date.getFullYear();
             return (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={label}
                 style={[comp.monthRow, active && comp.monthRowActive]}
                 onPress={() => setSelectedDate(date)}
@@ -443,6 +471,7 @@ const CompDateModal: React.FC<{
           )}
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[comp.saveBtn, !selectedDate && comp.saveBtnDisabled]}
             onPress={handleConfirm}
             disabled={!selectedDate}
@@ -451,7 +480,7 @@ const CompDateModal: React.FC<{
           </TouchableOpacity>
 
           {currentDate && (
-            <TouchableOpacity style={comp.clearBtn} onPress={onClear}>
+            <TouchableOpacity accessibilityRole="button" style={comp.clearBtn} onPress={onClear}>
               <Text style={comp.clearBtnText}>{t('aiCoach.competition.removeDate')}</Text>
             </TouchableOpacity>
           )}
@@ -477,7 +506,7 @@ const CompBanner: React.FC<{
   const border = urgency === 'critical' ? palette.error[500] : urgency === 'high' ? palette.brand[600] : palette.stone[600];
 
   return (
-    <TouchableOpacity style={[banner.wrap, { backgroundColor: bg, borderColor: border }]} onPress={onPress}>
+    <TouchableOpacity accessibilityRole="button" style={[banner.wrap, { backgroundColor: bg, borderColor: border }]} onPress={onPress}>
       <View style={banner.left}>
         {compType === 'pr_test' ? <ChartBar size={22} weight="fill" color={palette.brand[400]} /> : <Trophy size={22} weight="fill" color={palette.brand[400]} />}
         <View>
@@ -511,7 +540,7 @@ const FatigueBanner: React.FC<{ status: FatigueStatus; onPress: () => void }> = 
     ? 'Tap to review or clear it'
     : 'Recovery looks good';
   return (
-    <TouchableOpacity style={[fat.banner, { backgroundColor: m.bg, borderBottomColor: m.border }]} onPress={onPress}>
+    <TouchableOpacity accessibilityRole="button" style={[fat.banner, { backgroundColor: m.bg, borderBottomColor: m.border }]} onPress={onPress}>
       <View style={fat.bannerLeft}>
         <Text style={fat.bannerEmoji}>{m.emoji}</Text>
         <View style={{ flex: 1 }}>
@@ -585,7 +614,7 @@ const FatigueModal: React.FC<{
 
         <View style={fat.footer}>
           {status.recommendation?.action === 'taper' && (
-            <TouchableOpacity style={fat.taperBtn} onPress={onTaper} disabled={busy}>
+            <TouchableOpacity accessibilityRole="button" style={fat.taperBtn} onPress={onTaper} disabled={busy}>
               {busy ? <ActivityIndicator color={palette.white} /> : <Text style={fat.taperBtnText}>Start the taper — keep the peak</Text>}
             </TouchableOpacity>
           )}
@@ -593,6 +622,7 @@ const FatigueModal: React.FC<{
               to the secondary style — one primary button per screen. */}
           {status.canDismiss && (
             <TouchableOpacity
+              accessibilityRole="button"
               style={status.recommendation?.action === 'taper' ? fat.resumeBtn : fat.clearBtn}
               onPress={onDismiss}
               disabled={busy}
@@ -603,7 +633,7 @@ const FatigueModal: React.FC<{
             </TouchableOpacity>
           )}
           {status.dismissed && (
-            <TouchableOpacity style={fat.resumeBtn} onPress={onResume} disabled={busy}>
+            <TouchableOpacity accessibilityRole="button" style={fat.resumeBtn} onPress={onResume} disabled={busy}>
               {busy ? <ActivityIndicator color={palette.gray[300]} /> : <Text style={fat.resumeBtnText}>Actually, I need to recover</Text>}
             </TouchableOpacity>
           )}
@@ -658,7 +688,7 @@ const NotesModal: React.FC<{
               blurOnSubmit
               onSubmitEditing={submit}
             />
-            <TouchableOpacity style={[fat.noteAddBtn, (busy || text.trim().length < 2) && fat.noteAddBtnDisabled]} onPress={submit} disabled={busy || text.trim().length < 2}>
+            <TouchableOpacity accessibilityRole="button" style={[fat.noteAddBtn, (busy || text.trim().length < 2) && fat.noteAddBtnDisabled]} onPress={submit} disabled={busy || text.trim().length < 2}>
               {busy ? <ActivityIndicator color={palette.white} /> : <Text style={fat.noteAddBtnText}>Save</Text>}
             </TouchableOpacity>
           </View>
@@ -1064,11 +1094,18 @@ export const AICoachPlanScreen: React.FC = () => {
           )}
         </View>
         {isAdmin && (
-          <TouchableOpacity style={styles.debugBtn} onPress={() => setDebugVisible(true)}>
+          <TouchableOpacity
+            style={styles.debugBtn}
+            onPress={() => setDebugVisible(true)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Prompt debug"
+          >
             <MagnifyingGlass size={18} weight="bold" color={palette.gray[400]} />
           </TouchableOpacity>
         )}
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.regenBtn, regenUsedToday && styles.regenBtnDisabled]}
           onPress={() => {
             if (regenUsedToday) {
@@ -1101,6 +1138,7 @@ export const AICoachPlanScreen: React.FC = () => {
             onSubmitEditing={() => handleGenerate(regenNote)}
           />
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.noteGenerateBtn}
             onPress={() => handleGenerate(regenNote)}
             disabled={generating}
@@ -1131,7 +1169,7 @@ export const AICoachPlanScreen: React.FC = () => {
       )}
 
       {/* Coach memory — free-form notes the athlete wants the coach to remember */}
-      <TouchableOpacity style={styles.setCompRow} onPress={() => setNotesModalVisible(true)}>
+      <TouchableOpacity accessibilityRole="button" style={styles.setCompRow} onPress={() => setNotesModalVisible(true)}>
         <Text style={styles.setCompText}>
           🧠 Coach memory{notes.length > 0 ? ` (${notes.length})` : ' — tell me what to remember'}
         </Text>
@@ -1142,7 +1180,7 @@ export const AICoachPlanScreen: React.FC = () => {
       {compDate ? (
         <CompBanner compDate={compDate} compType={compType} onPress={() => setCompModalVisible(true)} />
       ) : (
-        <TouchableOpacity style={styles.setCompRow} onPress={() => setCompModalVisible(true)}>
+        <TouchableOpacity accessibilityRole="button" style={styles.setCompRow} onPress={() => setCompModalVisible(true)}>
           <Text style={styles.setCompText}>{t('aiCoach.setCompDate')}</Text>
           <Text style={styles.setCompArrow}>›</Text>
         </TouchableOpacity>
@@ -1152,7 +1190,7 @@ export const AICoachPlanScreen: React.FC = () => {
       {recoveryWeek ? (
         <RecoveryBanner status={recoveryWeek} onEnd={handleEndRecovery} />
       ) : (
-        <TouchableOpacity style={styles.setCompRow} onPress={() => setRecoveryModalVisible(true)}>
+        <TouchableOpacity accessibilityRole="button" style={styles.setCompRow} onPress={() => setRecoveryModalVisible(true)}>
           <Text style={styles.setCompText}>{t('aiCoach.recovery.entry')}</Text>
           <Text style={styles.setCompArrow}>›</Text>
         </TouchableOpacity>
@@ -1160,12 +1198,14 @@ export const AICoachPlanScreen: React.FC = () => {
 
       <View style={styles.footer}>
         <TouchableOpacity
+          accessibilityRole="button"
           style={styles.startBtn}
           onPress={() => navigation.navigate('StartSession', { plan: plan ?? undefined })}
         >
           <Text style={styles.startBtnText}>{t('aiCoach.startWorkout')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          accessibilityRole="button"
           style={styles.chatBtn}
           onPress={() => navigation.navigate('AICoachChat', {})}
         >

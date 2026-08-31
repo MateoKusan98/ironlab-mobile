@@ -280,6 +280,7 @@ export const WorkoutHistoryScreen: React.FC = () => {
                 const stats = sessionStats(session);
                 return (
                   <TouchableOpacity
+                    accessibilityRole="button"
                     key={session.id}
                     style={[styles.sessionCard, stats.hasPR && styles.sessionCardPR]}
                     onPress={() => navigation.navigate('SessionDetail', { sessionId: session.id })}

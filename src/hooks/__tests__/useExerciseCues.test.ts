@@ -10,8 +10,13 @@ const cue = (over: Partial<ExerciseCue> = {}): ExerciseCue => ({
   id: 'cue-1',
   exerciseKey: 'squat',
   text: 'knees out',
+  source: 'manual',
   ...over,
 } as ExerciseCue);
+
+/** A cue the server derived from a form-check verdict — no row behind it. */
+const formCheckCue = (over: Partial<ExerciseCue> = {}): ExerciseCue =>
+  cue({ id: 'formcheck:fc-1:0', text: 'sit back into the hips', source: 'form-check', ...over });
 
 const flush = async () => { await act(async () => {}); };
 
@@ -194,6 +199,32 @@ describe('useExerciseCues', () => {
     await act(async () => { ok = await result.current.deleteCue(target); });
 
     expect(ok).toBe(false);
+    expect(result.current.cuesByKey.get('squat')).toHaveLength(1);
+  });
+
+  it('pops the reminder for a form-check verdict on a movement with no cue of the athlete\'s own', async () => {
+    // The whole point of the feature: a verdict read once on the results screen
+    // three weeks ago, back at the top of the set it applies to.
+    jest.mocked(exerciseCueService.getCues).mockResolvedValue([formCheckCue()]);
+
+    const { result } = await mount('Squat');
+    await flush();
+
+    expect(result.current.cueReminder?.cues.map((c) => c.text)).toEqual(['sit back into the hips']);
+  });
+
+  it('refuses to delete a form-check cue — it is derived, there is no row', async () => {
+    const derived = formCheckCue();
+    jest.mocked(exerciseCueService.getCues).mockResolvedValue([derived]);
+
+    const { result } = await mount(null);
+    await flush();
+
+    let ok = true;
+    await act(async () => { ok = await result.current.deleteCue(derived); });
+
+    expect(ok).toBe(false);
+    expect(exerciseCueService.deleteCue).not.toHaveBeenCalled();
     expect(result.current.cuesByKey.get('squat')).toHaveLength(1);
   });
 

@@ -143,7 +143,7 @@ export const BodyScanScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <Text style={{ color: palette.white, textAlign: 'center' }}>{t('bodyScan.noCamera')}</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={{ color: palette.brand[500] }}>{t('bodyScan.goBack')}</Text>
         </TouchableOpacity>
       </View>
@@ -161,10 +161,17 @@ export const BodyScanScreen: React.FC = () => {
         <SafeAreaView style={styles.overlay}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.closeBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.close', { defaultValue: 'Close' })}
+            >
               <Text style={styles.closeText}>✕</Text>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               onPress={cycleTimer}
               style={[styles.timerBtn, timerDuration > 0 && styles.timerBtnActive]}
               disabled={countdown !== null || isAnalyzing}
@@ -211,6 +218,7 @@ export const BodyScanScreen: React.FC = () => {
           {/* Bottom Action */}
           <View style={styles.bottomContainer}>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.captureBtn, (isAnalyzing || countdown !== null) && styles.btnDisabled]}
               onPress={handleScanPress}
               disabled={isAnalyzing || countdown !== null}
@@ -228,6 +236,7 @@ export const BodyScanScreen: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.galleryBtn, (isAnalyzing || countdown !== null) && styles.btnDisabled]}
               onPress={pickFromGallery}
               disabled={isAnalyzing || countdown !== null}

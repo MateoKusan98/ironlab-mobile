@@ -111,7 +111,13 @@ export const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
             secureTextEntry={!showPassword}
             leftIcon={<Lock size={18} color={palette.gray[500]} />}
             rightIcon={
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('auth.togglePassword', { defaultValue: 'Show or hide password' })}
+                accessibilityState={{ expanded: showPassword }}
+              >
                 {showPassword ? (
                   <EyeSlash size={18} color={palette.gray[500]} />
                 ) : (
@@ -141,7 +147,7 @@ export const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
             disabled={isLoading}
           />
 
-          <TouchableOpacity onPress={handleResend} disabled={isResending} style={styles.resendRow}>
+          <TouchableOpacity accessibilityRole="button" onPress={handleResend} disabled={isResending} style={styles.resendRow}>
             <Text style={styles.resendText}>
               {isResending ? t('auth.sending') : t('auth.resendCode')}
             </Text>

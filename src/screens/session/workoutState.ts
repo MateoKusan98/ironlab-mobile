@@ -40,6 +40,15 @@ export interface LocalSet {
   targetReps?: number;
   targetWeight?: number;
   targetRpe?: number;
+  /**
+   * A mid-session load cut the athlete accepted (see LoadAdjustCard). Kept SEPARATE from
+   * targetWeight on purpose: targetWeight is what the plan prescribed and is what the API
+   * receives, so the debrief can still see that the athlete went under the prescription.
+   * Overwriting it would erase the cut from the record and report perfect compliance on a
+   * session that was deliberately backed off. This field only changes what the plate
+   * stack draws — the bar the athlete actually has to build.
+   */
+  adjustedWeight?: number;
   isCompleted: boolean;
   isSaving?: boolean;
   prs?: PRResult[];
@@ -56,6 +65,10 @@ export interface Exercise {
   // during the workout so the user knows what to watch — and can answer the
   // Technique self-report meaningfully instead of guessing.
   cue?: string;
+  // This movement is loaded by hanging plates on a barbell, so its prescribed
+  // weights can be drawn as a loaded bar. Set from the plan; absent on exercises
+  // added or substituted mid-workout, which simply get no drawing.
+  barLoaded?: boolean;
 }
 
 export interface PlannedExercise {
@@ -65,6 +78,7 @@ export interface PlannedExercise {
   weight: number;
   rpe?: number;
   cue?: string;
+  barLoaded?: boolean;
 }
 
 // ---------------------------------------------------------------- persistence
@@ -226,6 +240,7 @@ export function buildFromPlan(
       order,
       isExpanded: true,
       cue: pe.cue,
+      barLoaded: pe.barLoaded,
       sets: [...loggedSets, ...remaining],
       ...(logged ? reviewOf(logged.sets) : {}),
     };

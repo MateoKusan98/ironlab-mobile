@@ -294,7 +294,7 @@ export const ProfileScreen: React.FC = () => {
 
         {/* Avatar */}
         <View style={styles.avatarContainer}>
-          <TouchableOpacity onPress={handleAvatarPress} disabled={uploadingAvatar} style={styles.avatarWrapper}>
+          <TouchableOpacity accessibilityRole="button" onPress={handleAvatarPress} disabled={uploadingAvatar} style={styles.avatarWrapper}>
             <View style={styles.avatar}>
               {user?.avatar ? (
                 <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
@@ -320,6 +320,7 @@ export const ProfileScreen: React.FC = () => {
         {/* Rank tier badge */}
         {showRankBadge && (
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.rankCard, { borderColor: TIERS[rank.tier].glow + '55' }]}
             activeOpacity={0.85}
             onPress={() => navigation.navigate('Badges')}
@@ -391,6 +392,9 @@ export const ProfileScreen: React.FC = () => {
                   const next = Math.max(1, trainingDays.length - 1);
                   setTrainingDays(OPTIMAL_DAYS[next] ?? []);
                 }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('a11y.decreaseTrainingDays', { defaultValue: 'One fewer training day' })}
               >
                 <Text style={styles.sessionStepText}>−</Text>
               </TouchableOpacity>
@@ -401,6 +405,9 @@ export const ProfileScreen: React.FC = () => {
                   const next = Math.min(7, trainingDays.length + 1);
                   setTrainingDays(OPTIMAL_DAYS[next] ?? []);
                 }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('a11y.increaseTrainingDays', { defaultValue: 'One more training day' })}
               >
                 <Text style={styles.sessionStepText}>+</Text>
               </TouchableOpacity>
@@ -417,6 +424,9 @@ export const ProfileScreen: React.FC = () => {
                   key={day.value}
                   style={[styles.dayBtn, active && styles.dayBtnActive]}
                   onPress={() => toggleDay(day.value)}
+                  accessibilityRole="checkbox"
+                  accessibilityLabel={day.short}
+                  accessibilityState={{ checked: active }}
                 >
                   <Text style={[styles.dayBtnText, active && styles.dayBtnTextActive]}>{day.short}</Text>
                 </TouchableOpacity>
@@ -425,6 +435,7 @@ export const ProfileScreen: React.FC = () => {
           </View>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.saveBtn, savingDays && styles.saveBtnDisabled]}
             onPress={saveTrainingDays}
             disabled={savingDays}
@@ -454,6 +465,9 @@ export const ProfileScreen: React.FC = () => {
                 style={[styles.stepBtn, compoundRestSecs <= REST_MIN && styles.stepBtnDisabled]}
                 onPress={() => setCompoundRestSecs(Math.max(REST_MIN, compoundRestSecs - REST_STEP))}
                 disabled={compoundRestSecs <= REST_MIN}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('profile.decreaseCompoundRest', { defaultValue: 'Less rest between compound sets' })}
               >
                 <Text style={styles.stepBtnText}>−</Text>
               </TouchableOpacity>
@@ -461,6 +475,9 @@ export const ProfileScreen: React.FC = () => {
               <TouchableOpacity
                 style={[styles.stepBtn, compoundRestSecs >= REST_MAX && styles.stepBtnDisabled]}
                 onPress={() => setCompoundRestSecs(Math.min(REST_MAX, compoundRestSecs + REST_STEP))}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('profile.increaseCompoundRest', { defaultValue: 'More rest between compound sets' })}
                 disabled={compoundRestSecs >= REST_MAX}
               >
                 <Text style={styles.stepBtnText}>+</Text>
@@ -482,6 +499,9 @@ export const ProfileScreen: React.FC = () => {
                 style={[styles.stepBtn, isolationRestSecs <= REST_MIN && styles.stepBtnDisabled]}
                 onPress={() => setIsolationRestSecs(Math.max(REST_MIN, isolationRestSecs - REST_STEP))}
                 disabled={isolationRestSecs <= REST_MIN}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('profile.decreaseIsolationRest', { defaultValue: 'Less rest between isolation sets' })}
               >
                 <Text style={styles.stepBtnText}>−</Text>
               </TouchableOpacity>
@@ -489,6 +509,9 @@ export const ProfileScreen: React.FC = () => {
               <TouchableOpacity
                 style={[styles.stepBtn, isolationRestSecs >= REST_MAX && styles.stepBtnDisabled]}
                 onPress={() => setIsolationRestSecs(Math.min(REST_MAX, isolationRestSecs + REST_STEP))}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('profile.increaseIsolationRest', { defaultValue: 'More rest between isolation sets' })}
                 disabled={isolationRestSecs >= REST_MAX}
               >
                 <Text style={styles.stepBtnText}>+</Text>
@@ -506,6 +529,7 @@ export const ProfileScreen: React.FC = () => {
               const active = language === lang.code;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={lang.code}
                   style={[styles.langBtn, active && styles.langBtnActive]}
                   onPress={() => handleLanguageChange(lang.code)}
@@ -559,6 +583,7 @@ export const ProfileScreen: React.FC = () => {
         {/* Settings menu */}
         <View style={styles.menu}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.menuItem}
             onPress={() => navigation.navigate('PathTree')}
           >
@@ -569,6 +594,7 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.menuItem}
             onPress={() => navigation.navigate('AICoachSettings')}
           >
@@ -579,6 +605,7 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.menuItem}
             onPress={() => navigation.navigate('Progress')}
           >
@@ -589,6 +616,7 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.menuItem}
             onPress={() => navigation.navigate('FormCheck')}
           >
@@ -599,6 +627,7 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.menuItem}
             onPress={() => navigation.navigate('Badges')}
           >
@@ -609,6 +638,7 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.menuItem}
             onPress={() => navigation.navigate('Quiz')}
           >
@@ -619,6 +649,7 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.menuItem}
             onPress={() => navigation.navigate('Messages')}
           >
@@ -641,6 +672,7 @@ export const ProfileScreen: React.FC = () => {
             <Text style={styles.menuText}>{t('profile.helpSupport')}</Text>
           </View>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.menuItem}
             onPress={openWhatsNew}
           >
@@ -651,6 +683,7 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.menuItem}
             onPress={() => navigation.navigate('SubmitIdea')}
           >
@@ -661,6 +694,7 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.menuItem, styles.menuItemLast]}
             onPress={handleExport}
             disabled={exporting}
@@ -680,6 +714,7 @@ export const ProfileScreen: React.FC = () => {
         {isAdmin(user?.role) && (
           <>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.adminButton}
               onPress={() => navigation.navigate('AdminUsers')}
             >
@@ -692,6 +727,7 @@ export const ProfileScreen: React.FC = () => {
               </View>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.adminButton, { marginTop: 8 }]}
               onPress={() => navigation.navigate('AdminIdeas')}
             >
@@ -702,6 +738,7 @@ export const ProfileScreen: React.FC = () => {
               </View>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.adminButton, { marginTop: 8 }]}
               onPress={() => navigation.navigate('AdminLogs')}
             >
@@ -725,6 +762,7 @@ export const ProfileScreen: React.FC = () => {
               {'\n'}Log in again or tap below to cancel.
             </Text>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.cancelDeletionBtn}
               onPress={handleCancelDeletion}
               disabled={cancellingDeletion}
@@ -738,6 +776,7 @@ export const ProfileScreen: React.FC = () => {
           </View>
         ) : (
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.deleteAccountButton}
             onPress={() => setDeleteModalVisible(true)}
           >
@@ -745,7 +784,7 @@ export const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity accessibilityRole="button" style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>{t('profile.signOut')}</Text>
         </TouchableOpacity>
       </KeyboardAwareScreen>
@@ -769,12 +808,14 @@ export const ProfileScreen: React.FC = () => {
             />
             <View style={styles.modalActions}>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={styles.modalCancel}
                 onPress={() => { setDeleteModalVisible(false); setDeletePassword(''); }}
               >
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.modalConfirm, (!deletePassword.trim() || deletingAccount) && styles.modalConfirmDisabled]}
                 onPress={handleDeleteAccount}
                 disabled={!deletePassword.trim() || deletingAccount}

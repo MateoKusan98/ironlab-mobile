@@ -21,12 +21,13 @@ import { useSettingsStore } from '../../stores/settings.store';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette, alpha } from '../../theme';
 import { sessionService } from '../../services/session.service';
-import { aiCoachService, FatigueRecommendation, PrForecast } from '../../services/ai-coach.service';
+import { aiCoachService, BarLoading, FatigueRecommendation, PrForecast } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, ChartBar } from 'phosphor-react-native';
 
 import { Card, PRForecastCard } from '../../components/ui';
+import { LoadDerivation } from './components/LoadDerivation';
 import { apiErrorMessage } from '../../utils/apiError';
 // Tracks which generated workout a readiness check was already submitted for.
 // Keyed per-user; value pins the plan's `generatedAt` so the readiness step is
@@ -142,6 +143,13 @@ export const StartSessionScreen: React.FC = () => {
   // so the athlete actually sees how close the meet is on every single session.
   const [comp, setComp] = useState<{ date: string; type: string | null } | null>(null);
   const [coachsCall, setCoachsCall] = useState<string | undefined>(route.params?.nextSessionJson?.coachsCall);
+  // The athlete's bar and plates, resolved from their equipment profile server-side.
+  // Carried into the workout screen so a prescribed load can be drawn as the stack
+  // that makes it. Null/absent simply means no drawing.
+  const [barLoading, setBarLoading] = useState<BarLoading | null>(null);
+  // Which plan row has its load derivation open. One at a time — this is a glance before
+  // training, not a document.
+  const [whyOpen, setWhyOpen] = useState<number | null>(null);
   const [errors, setErrors] = useState<{ sleep?: string; bodyweight?: string }>({});
 
   const applyPlanResult = (result: Awaited<ReturnType<typeof aiCoachService.getPlan>>) => {
@@ -151,6 +159,7 @@ export const StartSessionScreen: React.FC = () => {
       setPlannedExercises(parsePlanExercises(result.plan));
     }
     setCoachsCall(result.nextSessionJson?.coachsCall);
+    setBarLoading(result.barLoading);
     setComp(result.competitionDate ? { date: result.competitionDate, type: result.competitionType } : null);
     if (result.trainingWeek && result.sessionInWeek && result.sessionsPerCycle) {
       setCycleInfo({ week: result.trainingWeek, session: result.sessionInWeek, total: result.sessionsPerCycle });
@@ -342,6 +351,7 @@ export const StartSessionScreen: React.FC = () => {
       navigation.replace('ActiveWorkout', {
         sessionId: session.id,
         plannedExercises: plannedExercises.length ? plannedExercises : undefined,
+        barLoading,
       });
     } catch {
       Alert.alert(t('common.error'), t('session.couldNotStart'));
@@ -358,7 +368,7 @@ export const StartSessionScreen: React.FC = () => {
           t('session.workoutInProgress'),
           'You have an unfinished workout. Starting a new one will end it.',
           [
-            { text: t('session.resumeWorkout'), style: 'cancel', onPress: () => navigation.replace('ActiveWorkout', { sessionId: active.id, plannedExercises: plannedExercises.length ? plannedExercises : undefined }) },
+            { text: t('session.resumeWorkout'), style: 'cancel', onPress: () => navigation.replace('ActiveWorkout', { sessionId: active.id, plannedExercises: plannedExercises.length ? plannedExercises : undefined, barLoading }) },
             {
               text: t('session.endAndStart'),
               style: 'destructive',
@@ -442,6 +452,7 @@ export const StartSessionScreen: React.FC = () => {
               <View style={styles.moodRow}>
                 {MOODS.map((m) => (
                   <TouchableOpacity
+                    accessibilityRole="button"
                     key={m.value}
                     style={[styles.moodBtn, mood === m.value && styles.moodBtnActive]}
                     onPress={() => setMood(m.value)}
@@ -459,7 +470,14 @@ export const StartSessionScreen: React.FC = () => {
               <Text style={styles.energyValue}>{ENERGY_LABELS[energyLevel]}</Text>
               <View style={styles.energyDots}>
                 {[1, 2, 3, 4, 5].map((lvl) => (
-                  <TouchableOpacity key={lvl} onPress={() => setEnergyLevel(lvl)} style={styles.dotWrap}>
+                  <TouchableOpacity
+                    key={lvl}
+                    onPress={() => setEnergyLevel(lvl)}
+                    style={styles.dotWrap}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('session.energyLevel') + ' ' + lvl}
+                    accessibilityState={{ selected: lvl === energyLevel }}
+                  >
                     <View style={[styles.dot, lvl <= energyLevel && styles.dotActive]} />
                   </TouchableOpacity>
                 ))}
@@ -502,6 +520,7 @@ export const StartSessionScreen: React.FC = () => {
 
             {/* Continue to workout */}
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.startBtn, planLoading && styles.startBtnDisabled]}
               onPress={handleSeeWorkout}
               disabled={planLoading}
@@ -530,6 +549,36 @@ export const StartSessionScreen: React.FC = () => {
                       {ex.sets}×{ex.reps} @ {ex.weight > 0 ? `${ex.weight}kg` : 'BW'}{ex.weightPerc ? ` · ${ex.weightPerc}% 1RM` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}
                     </Text>
                     {ex.cue ? <Text style={styles.planExCue}>"{ex.cue}"</Text> : null}
+                    {/* The derivation behind the number above, for the movements whose
+                        load the engine computes. Collapsed by default: an athlete who
+                        trusts the number should not have to scroll past the proof, and
+                        one who doesn't should not have to ask anyone for it. */}
+                    {ex.loadBasis ? (
+                      <>
+                        <TouchableOpacity
+                          onPress={() => setWhyOpen(whyOpen === i ? null : i)}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('session.whyThisWeightA11y', {
+                            exercise: exName(ex.name),
+                            defaultValue: 'Why this weight for {{exercise}}',
+                          })}
+                        >
+                          <Text style={styles.whyBtn}>
+                            {whyOpen === i
+                              ? t('session.whyThisWeightHide', { defaultValue: 'Hide' })
+                              : t('session.whyThisWeight', { defaultValue: 'Why this weight?' })}
+                          </Text>
+                        </TouchableOpacity>
+                        {whyOpen === i ? (
+                          <LoadDerivation
+                            basis={ex.loadBasis}
+                            weight={ex.weight}
+                            weightPerc={ex.weightPerc}
+                            onFixMax={() => navigation.navigate('AICoachSettings', { focusSection: 'maxes' })}
+                          />
+                        ) : null}
+                      </>
+                    ) : null}
                   </View>
                 ))}
                 {coachsCall ? (
@@ -553,6 +602,7 @@ export const StartSessionScreen: React.FC = () => {
 
             {/* Start Button */}
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.startBtn, loading && styles.startBtnDisabled]}
               onPress={handleStart}
               disabled={loading}
@@ -609,6 +659,7 @@ export const StartSessionScreen: React.FC = () => {
                   : t('session.fatigueGate.elevatedQuestion', { defaultValue: 'Trim today’s session, or run it in full?' })}
             </Text>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.gateAcceptBtn}
               disabled={taperBusy}
               onPress={() => (isTaperGate ? acceptTaper() : proceedGeneration(fatigueGate?.level === 'high' ? 'accept' : undefined))}
@@ -623,7 +674,7 @@ export const StartSessionScreen: React.FC = () => {
                 </Text>
               )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.gateDismissBtn} disabled={taperBusy} onPress={() => proceedGeneration('dismiss')}>
+            <TouchableOpacity accessibilityRole="button" style={styles.gateDismissBtn} disabled={taperBusy} onPress={() => proceedGeneration('dismiss')}>
               <Text style={styles.gateDismissText}>
                 {isTaperGate
                   ? t('session.fatigueGate.taperDismiss', { defaultValue: 'I feel fine — train as planned' })
@@ -766,6 +817,12 @@ const styles = StyleSheet.create({
   planRow: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: palette.gray[700] },
   planExName: { fontSize: 15, fontWeight: '700', color: theme.colors.text },
   planExDetail: { fontSize: 13, color: palette.brand[400], fontWeight: '600', marginTop: 2 },
+  whyBtn: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: palette.gray[400],
+    marginTop: 6,
+  },
   planExCue: { fontSize: 11, color: palette.gray[500], fontStyle: 'italic', marginTop: 3 },
   coachsCall: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: palette.gray[700] },
   coachsCallLabel: { fontSize: 11, fontWeight: '700', color: palette.brand[400], letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },

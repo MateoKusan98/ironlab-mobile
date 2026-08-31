@@ -148,12 +148,12 @@ export const SubstituteExerciseModal: React.FC<SubstituteExerciseModalProps> = (
 
           <ScrollView>
             {custom && (
-              <TouchableOpacity style={styles.customRow} onPress={() => pick(search.trim())}>
+              <TouchableOpacity accessibilityRole="button" style={styles.customRow} onPress={() => pick(search.trim())}>
                 <Text style={styles.customText}>+ Use &quot;{search.trim()}&quot;</Text>
               </TouchableOpacity>
             )}
             {ranked.map((name) => (
-              <TouchableOpacity key={name} style={styles.row} onPress={() => pick(name)}>
+              <TouchableOpacity accessibilityRole="button" key={name} style={styles.row} onPress={() => pick(name)}>
                 <Text style={styles.rowText}>{name}</Text>
                 <Text style={styles.arrow}>→</Text>
               </TouchableOpacity>

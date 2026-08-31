@@ -42,18 +42,20 @@ export const ClientDetailScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity accessibilityRole="button" onPress={() => navigation.goBack()}>
           <Text style={styles.back}>{t('common.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.title}>{params.clientName}</Text>
         <View style={styles.actions}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.actionBtn}
             onPress={() => navigation.navigate('CreateWorkout', params)}
           >
             <Text style={styles.actionText}>{t('coach.addWorkout')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.actionBtn}
             onPress={() => navigation.navigate('Notes', params)}
           >
@@ -65,6 +67,7 @@ export const ClientDetailScreen: React.FC = () => {
       <View style={styles.tabBar}>
         {tabs.map((tab) => (
           <TouchableOpacity
+            accessibilityRole="button"
             key={tab.key}
             style={[styles.tab, activeTab === tab.key && styles.tabActive]}
             onPress={() => setActiveTab(tab.key)}

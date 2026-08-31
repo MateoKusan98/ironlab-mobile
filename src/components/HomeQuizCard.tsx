@@ -47,7 +47,13 @@ export const HomeQuizCard: React.FC<{ style?: StyleProp<ViewStyle> }> = ({ style
         <Brain size={18} weight="fill" color={palette.brand[400]} />
         <Text style={styles.headerTitle}>Quick Quiz</Text>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity style={styles.ratingChip} onPress={() => navigation.navigate('Quiz')} hitSlop={8}>
+        <TouchableOpacity
+          style={styles.ratingChip}
+          onPress={() => navigation.navigate('Quiz')}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`Fitness quiz — rating ${rating}, ${ratingTitle(rating)}`}
+        >
           <Text style={styles.ratingChipText}>⚡ {rating} · {ratingTitle(rating)}</Text>
           <CaretRight size={12} weight="bold" color={palette.brand[400]} />
         </TouchableOpacity>
@@ -87,6 +93,9 @@ export const HomeQuizCard: React.FC<{ style?: StyleProp<ViewStyle> }> = ({ style
             activeOpacity={answered ? 1 : 0.7}
             onPress={() => handleSelect(i)}
             disabled={answered}
+            accessibilityRole="radio"
+            accessibilityLabel={opt}
+            accessibilityState={{ checked: selected === i, disabled: answered }}
           >
             <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
             {icon}
@@ -105,7 +114,7 @@ export const HomeQuizCard: React.FC<{ style?: StyleProp<ViewStyle> }> = ({ style
               </Text>
             )}
             <View style={{ flex: 1 }} />
-            <TouchableOpacity style={styles.nextBtn} onPress={advance} hitSlop={8}>
+            <TouchableOpacity accessibilityRole="button" style={styles.nextBtn} onPress={advance} hitSlop={8}>
               <Text style={styles.nextBtnText}>Next question</Text>
               <CaretRight size={14} weight="bold" color={palette.brand[400]} />
             </TouchableOpacity>

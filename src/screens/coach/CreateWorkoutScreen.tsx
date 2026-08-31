@@ -121,7 +121,7 @@ export const CreateWorkoutScreen: React.FC = () => {
 
         <View style={styles.exercisesHeader}>
           <Text style={styles.label}>Exercises</Text>
-          <TouchableOpacity onPress={addExercise}>
+          <TouchableOpacity accessibilityRole="button" onPress={addExercise}>
             <Text style={styles.addText}>+ Add</Text>
           </TouchableOpacity>
         </View>
@@ -131,7 +131,7 @@ export const CreateWorkoutScreen: React.FC = () => {
             <View style={styles.exerciseHeader}>
               <Text style={styles.exerciseNum}>#{i + 1}</Text>
               {exercises.length > 1 && (
-                <TouchableOpacity onPress={() => removeExercise(i)}>
+                <TouchableOpacity accessibilityRole="button" onPress={() => removeExercise(i)}>
                   <Text style={styles.removeText}>Remove</Text>
                 </TouchableOpacity>
               )}
@@ -178,6 +178,7 @@ export const CreateWorkoutScreen: React.FC = () => {
         ))}
 
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.submitBtn, createPlan.isPending && styles.disabled]}
           onPress={handleSubmit}
           disabled={createPlan.isPending}

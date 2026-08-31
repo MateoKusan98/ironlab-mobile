@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette } from '../../theme';
@@ -20,6 +21,7 @@ import { QuestionField } from './questionnaire/QuestionField';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AICoachSettings'>;
+  route: RouteProp<RootStackParamList, 'AICoachSettings'>;
 };
 
 /**
@@ -57,7 +59,7 @@ const questionHaystack = (question: Question): string =>
 
 const sectionHaystack = (section: Section): string => norm(`${section.title} ${section.subtitle}`);
 
-export const AICoachSettingsScreen: React.FC<Props> = ({ navigation }) => {
+export const AICoachSettingsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const SECTIONS = useMemo(() => getSections(t), [t]);
 
@@ -67,7 +69,12 @@ export const AICoachSettingsScreen: React.FC<Props> = ({ navigation }) => {
   const [loadFailed, setLoadFailed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState('');
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // Arriving from a "your stored max looks stale" prompt: open the section holding the
+  // field to fix, so the correction is the tap the athlete came here to make rather than
+  // a search through every section.
+  const [expanded, setExpanded] = useState<Set<string>>(
+    () => new Set(route.params?.focusSection ? [route.params.focusSection] : []),
+  );
 
   const load = useCallback(async () => {
     try {

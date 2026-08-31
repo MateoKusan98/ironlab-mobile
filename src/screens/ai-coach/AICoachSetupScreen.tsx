@@ -301,18 +301,28 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         {step > 0 ? (
-          <TouchableOpacity onPress={goBack}>
+          <TouchableOpacity
+            onPress={goBack}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.back', { defaultValue: 'Go back' })}
+          >
             <Text style={styles.backBtn}>‹</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.back', { defaultValue: 'Go back' })}
+          >
             <Text style={styles.backBtn}>‹</Text>
           </TouchableOpacity>
         )}
         <View style={styles.progressTrack}>
           <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
         </View>
-        <TouchableOpacity onPress={handleFinish}>
+        <TouchableOpacity accessibilityRole="button" onPress={handleFinish}>
           <Text style={styles.skipBtn}>{t('aiCoachSetup.skip')}</Text>
         </TouchableOpacity>
       </View>
@@ -329,6 +339,7 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
               const selected = mode === opt.value;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={opt.value}
                   style={[styles.modeCard, selected && styles.optionCardSelected]}
                   onPress={() => setMode(opt.value)}
@@ -363,6 +374,7 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
               const selected = prefs.timeSlot === opt.value;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={opt.value}
                   style={[styles.optionCard, selected && styles.optionCardSelected]}
                   onPress={() => setPrefs((p) => ({ ...p, timeSlot: opt.value }))}
@@ -419,6 +431,7 @@ export const AICoachSetupScreen: React.FC<Props> = ({ navigation }) => {
 
       <View style={styles.footer}>
         <TouchableOpacity
+          accessibilityRole="button"
           style={styles.continueBtn}
           onPress={step < TOTAL_STEPS - 1 ? goNext : handleFinish}
         >

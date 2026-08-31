@@ -265,14 +265,25 @@ export const ManualFoodLogScreen: React.FC = () => {
           )}
           {/* Dish Icon Section */}
           <View style={styles.dishSection}>
-            <TouchableOpacity onPress={pickImage} style={styles.dishCircle}>
+            <TouchableOpacity
+              onPress={pickImage}
+              style={styles.dishCircle}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.pickFromGallery', { defaultValue: 'Choose from gallery' })}
+            >
               {mealImage ? (
                 <Image source={{ uri: mealImage }} style={styles.pickedImage} />
               ) : (
                 <Text style={styles.dishIcon}>🍴</Text>
               )}
             </TouchableOpacity>
-            <TouchableOpacity onPress={pickImage} style={styles.uploadBtn}>
+            <TouchableOpacity
+              onPress={pickImage}
+              style={styles.uploadBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.pickFromGallery', { defaultValue: 'Choose from gallery' })}
+            >
                 <Text style={styles.uploadBtnIcon}>📤</Text>
             </TouchableOpacity>
           </View>
@@ -316,6 +327,7 @@ export const ManualFoodLogScreen: React.FC = () => {
               <Text style={styles.sectionIcon}>🛒</Text>
               <Text style={styles.sectionLabel}>{t('manualFood.ingredients')}</Text>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={styles.pasteBtn}
                 onPress={() => setPasteModalVisible(true)}
               >
@@ -348,7 +360,13 @@ export const ManualFoodLogScreen: React.FC = () => {
                       <Text style={styles.ingName}>{ing.name}</Text>
                       <Text style={styles.ingDetails}>{ing.grams}g • {ing.calories} kcal • P: {ing.protein}g C: {ing.carbs}g F: {ing.fat}g</Text>
                     </View>
-                    <TouchableOpacity onPress={() => handleRemoveIngredient(ing.id)} style={styles.removeIngBtn}>
+                    <TouchableOpacity
+                      onPress={() => handleRemoveIngredient(ing.id)}
+                      style={styles.removeIngBtn}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('manualFood.removeIngredient', { defaultValue: 'Remove ingredient' })}
+                    >
                       <Text style={styles.removeIngIcon}>✕</Text>
                     </TouchableOpacity>
                   </View>
@@ -371,7 +389,7 @@ export const ManualFoodLogScreen: React.FC = () => {
                     </View>
                     <Button label="Add" onPress={handleAddIngredient} style={{ marginTop: 28 }} />
                  </View>
-                 <TouchableOpacity onPress={() => setSelectedIngredient(null)} style={{ marginTop: 10 }}>
+                 <TouchableOpacity accessibilityRole="button" onPress={() => setSelectedIngredient(null)} style={{ marginTop: 10 }}>
                     <Text style={{ color: palette.gray[500], textAlign: 'center' }}>{t('common.cancel')}</Text>
                  </TouchableOpacity>
               </View>
@@ -394,7 +412,8 @@ export const ManualFoodLogScreen: React.FC = () => {
                                 <Text style={styles.noResultsText}>{t('manualFood.noResults')}</Text>
                             ) : undefined}
                             {searchResults.slice(0, 5).map((res: IngredientSearchResult) => (
-                                <TouchableOpacity 
+                                <TouchableOpacity
+                                    accessibilityRole="button" 
                                     key={res.fdcId} 
                                     style={styles.searchResultItem}
                                     onPress={() => setSelectedIngredient(res)}
@@ -495,7 +514,13 @@ export const ManualFoodLogScreen: React.FC = () => {
         <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: palette.black }}>
           <View style={pm.header}>
             <Text style={pm.title}>{t('manualFood.pasteRecipeTitle')}</Text>
-            <TouchableOpacity onPress={() => setPasteModalVisible(false)} style={pm.closeBtn}>
+            <TouchableOpacity
+              onPress={() => setPasteModalVisible(false)}
+              style={pm.closeBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.close', { defaultValue: 'Close' })}
+            >
               <Text style={pm.closeText}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -518,6 +543,7 @@ export const ManualFoodLogScreen: React.FC = () => {
 
           <View style={pm.footer}>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[pm.analyzeBtn, (!pasteText.trim() || parsing) && pm.analyzeBtnDisabled]}
               onPress={handleParseIngredients}
               disabled={!pasteText.trim() || parsing}

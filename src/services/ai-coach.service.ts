@@ -7,6 +7,51 @@ import { FormValues } from '@shared';
 // saves the plan (the user then sees an error on a session that did generate).
 const PLAN_GEN_TIMEOUT_MS = 120000;
 
+/**
+ * How a computed load was arrived at, exactly as the pass that set it recorded them.
+ * Present only for the movements the load system actually owns — the competition lifts
+ * and their variations — and absent on deload/taper/realization days, which own their
+ * loads through their own clamps.
+ */
+export interface LoadBasisView {
+  /** The 1RM (or e1RM) the weight was priced from, before the role discount. */
+  anchor: number;
+  anchorSource: 'stored-1rm' | 'own-e1rm' | 'variation-ratio';
+  /** 'heavy' | 'secondary' | 'volume' | 'technique', or null on a day with no role. */
+  role: string | null;
+  roleMultiplier: number;
+  targetRpe: number;
+  rpeParts: { phase: number; weeklyRamp: number; frequencyDamping: number };
+  incrementKg: number;
+  reps: number;
+  /**
+   * Set when the athlete's own logged sets estimate a materially higher max than the one
+   * this load was priced from. The one thing on the card they can fix themselves.
+   */
+  stale: { storedAnchor: number; demonstratedE1Rm: number; deltaKg: number; deltaPct: number } | null;
+}
+
+/**
+ * A mid-session load cut. Downward only, by construction — the backend has no branch
+ * that raises a weight inside a workout, because one good set is one observation.
+ */
+export interface InSessionAdjustment {
+  exercise: string;
+  currentWeight: number;
+  suggestedWeight: number;
+  cutKg: number;
+  cutPct: number;
+  observedRpe: number;
+  targetRpe: number;
+  /** Today's max, inverted from the set just logged. */
+  observedE1Rm: number;
+  /** The max the load was originally priced from. */
+  plannedAnchor: number;
+  remainingSets: number;
+  /** The honest recomputation was larger and got bounded — treat as a bad day, not a number. */
+  capped: boolean;
+}
+
 export interface NextSessionExercise {
   name: string;
   sets: number;
@@ -15,6 +60,24 @@ export interface NextSessionExercise {
   rpe?: number;
   weightPerc?: number;
   cue?: string;
+  loadBasis?: LoadBasisView;
+  /**
+   * This movement is loaded by hanging plates on a barbell, so `weight` can be
+   * drawn as a loaded bar. Derived server-side from the equipment rule table (the
+   * one place movement modality is written down) and absent — never false — for
+   * anything it does not recognise.
+   */
+  barLoaded?: boolean;
+}
+
+/**
+ * The athlete's bar and the plates their gym implies, resolved server-side from the
+ * equipment capability model. Null when there is no barbell to draw. Presentational
+ * only — see `utils/plateMath`.
+ */
+export interface BarLoading {
+  barKg: number;
+  plates: number[];
 }
 
 /** Schedule + big-3 frequency the coach infers from recent logged sessions. */
@@ -109,6 +172,23 @@ export interface MuscleVolumeRow {
   status: MuscleStatus;
   /** Competition lifts this muscle builds. Empty = not a powerlifting priority. */
   supports: Array<'squat' | 'bench' | 'deadlift'>;
+}
+
+/** Mirrors backend ai-coach/technique.ts. See that module for what each field means. */
+export interface TechniqueLift {
+  /** Family key: 'squat' | 'bench' | 'deadlift', or a normalised movement name. */
+  key: string;
+  label: string;
+  /** Non-null when the −10% can reach this movement's prescribed load. */
+  compLift: 'squat' | 'bench' | 'deadlift' | null;
+  exposures: number;
+  /** Last form-check score out of 10, or null when never filmed. */
+  score: number | null;
+  scoredAtMs: number | null;
+  flagged: boolean;
+  /** A flag the athlete waived by hand; the score is still weak. */
+  dismissed: boolean;
+  loadMultiplier: number;
 }
 
 export interface MuscleVolumeSummary {
@@ -333,6 +413,20 @@ export const aiCoachService = {
     return data.data;
   },
 
+  /** Per-movement technique state from the athlete's own form checks. Free, LLM-free. */
+  technique: async (): Promise<{ lifts: TechniqueLift[] }> => {
+    const { data } = await api.get<{ data: { lifts: TechniqueLift[] } }>('/ai-coach/technique');
+    return data.data;
+  },
+
+  /** Waive a technique flag ("give me my weight back"), or restore one already waived. */
+  setTechniqueFlag: async (liftKey: string, dismissed: boolean): Promise<{ lifts: TechniqueLift[] }> => {
+    const { data } = await api.post<{ data: { lifts: TechniqueLift[] } }>(
+      '/ai-coach/technique/flag', { liftKey, dismissed },
+    );
+    return data.data;
+  },
+
   /** "I feel fine, clear it" — dismiss a reactive fatigue alarm. Live until the next logged session. */
   dismissFatigue: async (): Promise<FatigueStatus> => {
     const { data } = await api.post<{ data: FatigueStatus }>('/ai-coach/fatigue-dismiss');
@@ -395,6 +489,20 @@ export const aiCoachService = {
     return data.data;
   },
 
+  /**
+   * "That set was RPE 9 against a target of 7 — what should the rest be?"
+   *
+   * Free, LLM-free and CUT-ONLY: the backend returns a lighter weight or nothing at all.
+   * Never blocks a logged set — the caller treats any failure as "no suggestion".
+   */
+  getInSessionAdjustment: async (sessionId: string, exercise: string): Promise<InSessionAdjustment | null> => {
+    const { data } = await api.get<{ data: { adjustment: InSessionAdjustment | null } }>(
+      '/ai-coach/in-session-adjust',
+      { params: { sessionId, exercise } },
+    );
+    return data.data.adjustment;
+  },
+
   getPlan: async (): Promise<{
     plan: string | null;
     generatedAt: string | null;
@@ -414,6 +522,7 @@ export const aiCoachService = {
     completedToday: boolean;
     regenerating: boolean;
     recoveryWeek: RecoveryWeekStatus | null;
+    barLoading: BarLoading | null;
   }> => {
     const { data } = await api.get<{ data: {
       plan: string | null;
@@ -434,6 +543,7 @@ export const aiCoachService = {
       completedToday: boolean;
       regenerating: boolean;
       recoveryWeek: RecoveryWeekStatus | null;
+      barLoading: BarLoading | null;
     } }>('/ai-coach/plan');
     return data.data;
   },

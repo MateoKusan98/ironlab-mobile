@@ -131,6 +131,7 @@ const DetailView = ({ item, onBack }: { item: QueueItem; onBack: () => void }) =
 
         {item.status !== 'reviewed' && (
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.submitBtn, (saving || !response.trim()) && styles.submitBtnDisabled]}
             onPress={submit}
             disabled={saving || !response.trim()}
@@ -179,6 +180,9 @@ export const FormCheckQueueScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.backBtn}
           onPress={selected ? () => { setSelected(null); load(); } : () => navigation.goBack()}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.back', { defaultValue: 'Go back' })}
         >
           <ArrowLeft size={22} weight="bold" color={theme.colors.text} />
         </TouchableOpacity>

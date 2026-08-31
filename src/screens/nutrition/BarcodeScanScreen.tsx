@@ -81,7 +81,7 @@ export const BarcodeScanScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.noCamera}>Camera permission is required to scan barcodes.</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backBtnText}>Go back</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -149,7 +149,13 @@ export const BarcodeScanScreen: React.FC = () => {
 
       {/* Header */}
       <View style={[styles.header, { top: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.closeBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        >
           <Text style={styles.closeText}>✕</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>🔲 Scan Barcode</Text>
@@ -159,6 +165,7 @@ export const BarcodeScanScreen: React.FC = () => {
       {/* Bottom fallback link */}
       <View style={[styles.bottom, { bottom: insets.bottom + 24 }]}>
         <TouchableOpacity
+          accessibilityRole="button"
           onPress={() => navigation.replace('ManualFoodLog', {})}
           style={styles.manualLink}
         >

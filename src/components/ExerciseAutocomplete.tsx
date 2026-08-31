@@ -76,7 +76,12 @@ export const ExerciseAutocomplete: React.FC<Props> = ({
           autoCapitalize="words"
         />
         {value.length > 0 && (
-          <TouchableOpacity onPress={() => onChangeText('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity
+            onPress={() => onChangeText('')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Clear search"
+          >
             <X size={16} weight="bold" color={palette.gray[500]} />
           </TouchableOpacity>
         )}
@@ -85,12 +90,12 @@ export const ExerciseAutocomplete: React.FC<Props> = ({
       {open && (
         <View style={styles.dropdown}>
           {suggestions.map((o) => (
-            <TouchableOpacity key={o} style={styles.row} onPress={() => select(o)}>
+            <TouchableOpacity key={o} style={styles.row} onPress={() => select(o)} accessibilityRole="button" accessibilityLabel={o}>
               <Text style={styles.rowText}>{o}</Text>
             </TouchableOpacity>
           ))}
           {showCustom && (
-            <TouchableOpacity style={[styles.row, styles.customRow]} onPress={() => select(value.trim())}>
+            <TouchableOpacity accessibilityRole="button" style={[styles.row, styles.customRow]} onPress={() => select(value.trim())}>
               <PlusCircle size={16} weight="fill" color={palette.brand[400]} />
               <Text style={styles.customText} numberOfLines={1}>
                 {t('formCheck.useCustomExercise', { name: value.trim() })}

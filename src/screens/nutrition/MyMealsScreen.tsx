@@ -95,11 +95,17 @@ export const MyMealsScreen: React.FC = () => {
         {loggingId === item.id ? (
           <ActivityIndicator color={palette.brand[400]} />
         ) : (
-          <TouchableOpacity style={s.logBtn} onPress={() => setLogModalMeal(item)}>
+          <TouchableOpacity accessibilityRole="button" style={s.logBtn} onPress={() => setLogModalMeal(item)}>
             <Text style={s.logBtnText}>+ Log</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete(item)}>
+        <TouchableOpacity
+          style={s.deleteBtn}
+          onPress={() => handleDelete(item)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.deleteMeal', { defaultValue: 'Delete meal' })}
+        >
           <Text style={s.deleteBtnText}>✕</Text>
         </TouchableOpacity>
       </View>
@@ -140,12 +146,13 @@ export const MyMealsScreen: React.FC = () => {
         animationType="fade"
         onRequestClose={() => setLogModalMeal(null)}
       >
-        <TouchableOpacity style={s.backdrop} activeOpacity={1} onPress={() => setLogModalMeal(null)}>
+        <TouchableOpacity accessibilityRole="button" style={s.backdrop} activeOpacity={1} onPress={() => setLogModalMeal(null)}>
           <View style={s.sheet}>
             <Text style={s.sheetTitle}>{t('myMeals.logAs')}</Text>
             <Text style={s.sheetSub} numberOfLines={1}>{logModalMeal?.name}</Text>
             {MEAL_TYPES.map((mt) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={mt.value}
                 style={s.sheetOption}
                 onPress={() => logModalMeal && handleQuickLog(logModalMeal, mt.value)}
@@ -154,7 +161,7 @@ export const MyMealsScreen: React.FC = () => {
                 <Text style={s.sheetOptionLabel}>{mt.label}</Text>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity style={s.sheetCancel} onPress={() => setLogModalMeal(null)}>
+            <TouchableOpacity accessibilityRole="button" style={s.sheetCancel} onPress={() => setLogModalMeal(null)}>
               <Text style={s.sheetCancelText}>{t('myMeals.cancel')}</Text>
             </TouchableOpacity>
           </View>

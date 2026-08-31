@@ -161,10 +161,10 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
         <Text style={styles.introHeading}>
           {t('nutritionSetup.introGreeting', { name: user?.name?.split(' ')[0] || 'there' })}
         </Text>
-        <TouchableOpacity style={styles.introYesBtn} onPress={nextStep} activeOpacity={0.85}>
+        <TouchableOpacity accessibilityRole="button" style={styles.introYesBtn} onPress={nextStep} activeOpacity={0.85}>
           <Text style={styles.introYesBtnText}>{t('nutritionSetup.yesStart')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.introNoBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity accessibilityRole="button" style={styles.introNoBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.introNoBtnText}>{t('common.no')}</Text>
         </TouchableOpacity>
       </Animated.View>
@@ -178,6 +178,7 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
         <ScrollView style={styles.optionsList}>
           {PREFERENCE_OPTIONS.map((opt) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={opt.id}
               style={[
                 styles.optionItem,
@@ -211,6 +212,7 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
             const isSelected = allergies.includes(opt.id);
             return (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={opt.id}
                 style={[
                   styles.chip,
@@ -247,6 +249,7 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
             const isSelected = snackingFrequency === idx;
             return (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={freqKey}
                 onPress={() => setSnackingFrequency(idx)}
                 style={[styles.pickerItem, isSelected && styles.pickerItemActive]}
@@ -274,6 +277,7 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
             const isSelected = goal === opt.id;
             return (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={opt.id}
                 style={[styles.goalItem, isSelected && styles.optionItemActive]}
                 onPress={() => setGoal(opt.id)}
@@ -312,11 +316,23 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
         <View style={styles.caloriesInputContainer}>
           <Text style={styles.caloriesUnit}>{t('nutritionSetup.daysPerWeek')}</Text>
           <View style={styles.stepperRow}>
-            <TouchableOpacity style={styles.stepBtn} onPress={() => setTrainingDaysPerWeek(Math.max(0, trainingDaysPerWeek - 1))}>
+            <TouchableOpacity
+              style={styles.stepBtn}
+              onPress={() => setTrainingDaysPerWeek(Math.max(0, trainingDaysPerWeek - 1))}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.decreaseTrainingDays', { defaultValue: 'One fewer training day' })}
+            >
               <Text style={styles.stepBtnText}>⊖</Text>
             </TouchableOpacity>
             <Text style={styles.caloriesValue}>{trainingDaysPerWeek}</Text>
-            <TouchableOpacity style={styles.stepBtn} onPress={() => setTrainingDaysPerWeek(Math.min(7, trainingDaysPerWeek + 1))}>
+            <TouchableOpacity
+              style={styles.stepBtn}
+              onPress={() => setTrainingDaysPerWeek(Math.min(7, trainingDaysPerWeek + 1))}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.increaseTrainingDays', { defaultValue: 'One more training day' })}
+            >
               <Text style={styles.stepBtnText}>⊕</Text>
             </TouchableOpacity>
           </View>
@@ -387,6 +403,7 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
         {!targets ? (
           <View style={styles.caloriesInputContainer}>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.calculateBtn}
               onPress={handleCalculateTDEE}
               disabled={isFetchingTdee}
@@ -403,11 +420,23 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
             <Text style={styles.orText}>{t('nutritionSetup.orSetManually')}</Text>
             <Text style={styles.caloriesUnit}>{t('nutritionSetup.dailyIntake')}</Text>
             <View style={styles.stepperRow}>
-              <TouchableOpacity style={styles.stepBtn} onPress={() => setDailyCalorieTarget(Math.max(1000, dailyCalorieTarget - 50))}>
+              <TouchableOpacity
+                style={styles.stepBtn}
+                onPress={() => setDailyCalorieTarget(Math.max(1000, dailyCalorieTarget - 50))}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('a11y.decreaseTarget', { defaultValue: 'Decrease target' })}
+              >
                 <Text style={styles.stepBtnText}>⊖</Text>
               </TouchableOpacity>
               <Text style={styles.caloriesValue}>{dailyCalorieTarget.toLocaleString()}</Text>
-              <TouchableOpacity style={styles.stepBtn} onPress={() => setDailyCalorieTarget(dailyCalorieTarget + 50)}>
+              <TouchableOpacity
+                style={styles.stepBtn}
+                onPress={() => setDailyCalorieTarget(dailyCalorieTarget + 50)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('a11y.increaseTarget', { defaultValue: 'Increase target' })}
+              >
                 <Text style={styles.stepBtnText}>⊕</Text>
               </TouchableOpacity>
             </View>
@@ -420,17 +449,29 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
               <Text style={styles.tdeeValue}>{t('nutritionSetup.perDay', { value: targets.tdee.toLocaleString() })}</Text>
               <Text style={styles.tdeeSub}>{t('nutritionSetup.bmrLabel', { value: targets.bmr.toLocaleString() })}</Text>
               <Text style={styles.tdeeSub}>{ACTIVITY_LABELS[targets.activityLevel] ?? targets.activityLevel}</Text>
-              <TouchableOpacity onPress={() => setTargets(null)} style={styles.tdeeRecalcBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={() => setTargets(null)} style={styles.tdeeRecalcBtn}>
                 <Text style={styles.tdeeRecalcText}>{t('nutritionSetup.enterManually')}</Text>
               </TouchableOpacity>
             </View>
             <Text style={styles.caloriesUnit}>{t('nutritionSetup.fineTune')}</Text>
             <View style={styles.stepperRow}>
-              <TouchableOpacity style={styles.stepBtn} onPress={() => setDailyCalorieTarget(Math.max(1000, dailyCalorieTarget - 50))}>
+              <TouchableOpacity
+                style={styles.stepBtn}
+                onPress={() => setDailyCalorieTarget(Math.max(1000, dailyCalorieTarget - 50))}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('a11y.decreaseTarget', { defaultValue: 'Decrease target' })}
+              >
                 <Text style={styles.stepBtnText}>⊖</Text>
               </TouchableOpacity>
               <Text style={styles.caloriesValue}>{dailyCalorieTarget.toLocaleString()}</Text>
-              <TouchableOpacity style={styles.stepBtn} onPress={() => setDailyCalorieTarget(dailyCalorieTarget + 50)}>
+              <TouchableOpacity
+                style={styles.stepBtn}
+                onPress={() => setDailyCalorieTarget(dailyCalorieTarget + 50)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('a11y.increaseTarget', { defaultValue: 'Increase target' })}
+              >
                 <Text style={styles.stepBtnText}>⊕</Text>
               </TouchableOpacity>
             </View>

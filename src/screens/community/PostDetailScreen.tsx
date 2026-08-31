@@ -153,7 +153,13 @@ export const PostDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         <Text style={styles.commentText}>{item.content}</Text>
       </View>
       {item.userId === user?.id && (
-        <TouchableOpacity onPress={() => handleDeleteComment(item.id)} style={styles.deleteCommentBtn}>
+        <TouchableOpacity
+          onPress={() => handleDeleteComment(item.id)}
+          style={styles.deleteCommentBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('community.deleteComment', { defaultValue: 'Delete comment' })}
+        >
           <DotsThree size={18} color={theme.colors.textTertiary} weight="bold" />
         </TouchableOpacity>
       )}
@@ -226,7 +232,14 @@ export const PostDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Image source={{ uri: post.imageUrl }} style={styles.postImage} resizeMode="cover" />
               ) : null}
               <View style={styles.postActions}>
-                <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  onPress={handleLike}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('a11y.likePost', { defaultValue: 'Like post' })}
+                  accessibilityState={{ selected: post.isLiked }}
+                >
                   <Animated.View style={{ transform: [{ scale: likeAnim }] }}>
                     <Heart
                       size={22}
@@ -264,7 +277,11 @@ export const PostDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           <TouchableOpacity
             style={[styles.sendBtn, (!commentText.trim() || sending) && styles.sendBtnDisabled]}
             onPress={handleSendComment}
+            hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
             disabled={!commentText.trim() || sending}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.commentOnPost', { defaultValue: 'Comment on post' })}
+            accessibilityState={{ disabled: !commentText.trim() || sending, busy: sending }}
           >
             {sending ? (
               <ActivityIndicator size="small" color={palette.white} />

@@ -91,14 +91,24 @@ export const CreatePostScreen: React.FC<Props> = ({ navigation }) => {
         behavior="padding"
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.closeBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.close', { defaultValue: 'Close' })}
+          >
             <X size={22} color={theme.colors.text} weight="bold" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('community.newPost')}</Text>
           <TouchableOpacity
             style={[styles.postBtn, !canSubmit() && styles.postBtnDisabled]}
             onPress={handleSubmit}
+            hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
             disabled={!canSubmit()}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.sendPost', { defaultValue: 'Publish post' })}
+            accessibilityState={{ disabled: !canSubmit(), busy: submitting }}
           >
             {submitting ? (
               <ActivityIndicator size="small" color={palette.white} />
@@ -112,6 +122,7 @@ export const CreatePostScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.typeRow}>
             {POST_TYPES.map((t) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={t.type}
                 style={[
                   styles.typeChip,

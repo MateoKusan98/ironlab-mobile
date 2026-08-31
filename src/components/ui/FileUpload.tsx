@@ -12,6 +12,8 @@ export interface FileUploadItemProps {
   status: UploadStatus;
   onRemove?: () => void;
   onRetry?: () => void;
+  /** Screen-reader label for the remove button; defaults to "Remove <filename>". */
+  removeLabel?: string;
 }
 
 export const FileUploadItem: React.FC<FileUploadItemProps> = ({
@@ -21,6 +23,7 @@ export const FileUploadItem: React.FC<FileUploadItemProps> = ({
   status,
   onRemove,
   onRetry,
+  removeLabel,
 }) => {
   const isError = status === 'error';
   const isSuccess = status === 'success';
@@ -67,7 +70,7 @@ export const FileUploadItem: React.FC<FileUploadItemProps> = ({
 
         <View style={styles.actions}>
           {isError && onRetry && (
-            <TouchableOpacity onPress={onRetry} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <TouchableOpacity accessibilityRole="button" onPress={onRetry} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={[theme.typography.textSm, { color: palette.error[400], marginRight: theme.spacing.sm }]}>
                 Try Again
               </Text>
@@ -75,7 +78,12 @@ export const FileUploadItem: React.FC<FileUploadItemProps> = ({
           )}
 
           {onRemove && (
-            <TouchableOpacity onPress={onRemove} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <TouchableOpacity
+              onPress={onRemove}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel={removeLabel ?? `Remove ${filename}`}
+            >
               <Text style={{ fontSize: 16, color: palette.gray[400] }}>🗑</Text>
             </TouchableOpacity>
           )}

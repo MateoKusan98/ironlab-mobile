@@ -35,7 +35,13 @@ export const ProgramCreatorStartScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Close"
+                >
                     <Text style={styles.backIcon}>✕</Text>
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>New Program</Text>
@@ -65,6 +71,9 @@ export const ProgramCreatorStartScreen: React.FC = () => {
                                 key={goal} 
                                 onPress={() => setOverview({ goal })}
                                 style={[styles.chip, draft.goal === goal && styles.chipActive]}
+                                accessibilityRole="radio"
+                                accessibilityLabel={goal.replace('_', ' ')}
+                                accessibilityState={{ checked: draft.goal === goal }}
                             >
                                 <Text style={[styles.chipText, draft.goal === goal && styles.chipTextActive]}>
                                     {goal.replace('_', ' ')}
@@ -82,6 +91,9 @@ export const ProgramCreatorStartScreen: React.FC = () => {
                                 key={diff} 
                                 onPress={() => setOverview({ difficulty: diff })}
                                 style={[styles.chip, draft.difficulty === diff && styles.chipActive]}
+                                accessibilityRole="radio"
+                                accessibilityLabel={diff}
+                                accessibilityState={{ checked: draft.difficulty === diff }}
                             >
                                 <Text style={[styles.chipText, draft.difficulty === diff && styles.chipTextActive]}>{diff}</Text>
                             </TouchableOpacity>
@@ -117,7 +129,7 @@ export const ProgramCreatorStartScreen: React.FC = () => {
             </ScrollView>
 
             <View style={styles.footer}>
-                <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+                <TouchableOpacity accessibilityRole="button" style={styles.nextBtn} onPress={handleNext}>
                     <Text style={styles.nextBtnText}>Next Step: Build Blocks →</Text>
                 </TouchableOpacity>
             </View>

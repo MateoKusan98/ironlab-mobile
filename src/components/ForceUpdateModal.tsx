@@ -59,7 +59,7 @@ export const ForceUpdateModal: React.FC<Props> = ({ requirement }) => {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={openStore} activeOpacity={0.85}>
+        <TouchableOpacity accessibilityRole="button" style={styles.button} onPress={openStore} activeOpacity={0.85}>
           <Text style={styles.buttonText}>{t('forceUpdate.updateNow')}</Text>
         </TouchableOpacity>
       </View>

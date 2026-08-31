@@ -97,7 +97,7 @@ export const FoodDetailsScreen: React.FC = () => {
              <View style={styles.titleWrapper}>
                 <Text style={styles.headerTitle}>{t('foodDetails.title')}</Text>
              </View>
-             <TouchableOpacity style={styles.saveBtn}>
+             <TouchableOpacity style={styles.saveBtn} accessible={false}>
                 <Text style={styles.saveIcon}>🔖</Text>
              </TouchableOpacity>
           </View>
@@ -135,6 +135,7 @@ export const FoodDetailsScreen: React.FC = () => {
             <View style={styles.tabsBackground}>
                 {(['Overview', 'Recipe'] as const).map((tabKey) => (
                     <TouchableOpacity
+                        accessibilityRole="button"
                         key={tabKey}
                         style={[styles.tab, activeTab === tabKey && styles.activeTab]}
                         onPress={() => setActiveTab(tabKey)}
@@ -174,7 +175,7 @@ export const FoodDetailsScreen: React.FC = () => {
 
                 <View style={styles.rowBetween}>
                     <Text style={styles.sectionTitle}>{t('foodDetails.galleries')}</Text>
-                    <TouchableOpacity><Text style={styles.seeAllText}>{t('foodDetails.seeAll')}</Text></TouchableOpacity>
+                    <TouchableOpacity accessible={false}><Text style={styles.seeAllText}>{t('foodDetails.seeAll')}</Text></TouchableOpacity>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.galleryScroll}>
                     {[1, 2, 3, 4].map((i) => (
@@ -244,7 +245,7 @@ export const FoodDetailsScreen: React.FC = () => {
 
                 <View style={styles.rowBetween}>
                     <Text style={styles.sectionTitle}>{t('foodDetails.youMightLike')}</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('BrowseMeals')}>
+                    <TouchableOpacity accessibilityRole="button" onPress={() => navigation.navigate('BrowseMeals')}>
                         <Text style={styles.seeAllText}>{t('foodDetails.seeAll')}</Text>
                     </TouchableOpacity>
                 </View>
@@ -254,7 +255,8 @@ export const FoodDetailsScreen: React.FC = () => {
                         { name: 'Berry Smoothie', cals: 180, time: 5, img: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888' },
                         { name: 'Chicken Salad', cals: 420, time: 15, img: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd' }
                     ].map((item, i) => (
-                        <TouchableOpacity 
+                        <TouchableOpacity
+                            accessibilityRole="button" 
                             key={i} 
                             style={styles.recCard}
                             onPress={() => {
@@ -289,7 +291,7 @@ export const FoodDetailsScreen: React.FC = () => {
             <View style={styles.recipeView}>
                 <View style={styles.rowBetween}>
                     <Text style={styles.sectionTitle}>{t('foodDetails.ingredients')}</Text>
-                    <TouchableOpacity><Text style={styles.seeAllText}>{t('foodDetails.seeAll')}</Text></TouchableOpacity>
+                    <TouchableOpacity accessible={false}><Text style={styles.seeAllText}>{t('foodDetails.seeAll')}</Text></TouchableOpacity>
                 </View>
                 <View style={styles.ingredientsList}>
                     {displayData.ingredients.map((ing: { name: string; amount?: string; unit?: string }, i: number) => (
@@ -322,7 +324,8 @@ export const FoodDetailsScreen: React.FC = () => {
 
       {/* Footer sticky buttons */}
       <View style={styles.footerButtons}>
-          <TouchableOpacity 
+          <TouchableOpacity
+            accessibilityRole="button" 
             style={[styles.addMealBtn, createFoodLog.isPending && { opacity: 0.7 }]}
             onPress={handleLogMeal}
             disabled={createFoodLog.isPending}
@@ -333,7 +336,7 @@ export const FoodDetailsScreen: React.FC = () => {
                   <Text style={styles.addMealBtnText}>{t('foodDetails.addMeal')}</Text>
               )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.aiCoachBtn}>
+          <TouchableOpacity style={styles.aiCoachBtn} accessible={false}>
               <Text style={styles.aiCoachBtnText}>{t('foodDetails.consultCoach')}</Text>
           </TouchableOpacity>
       </View>

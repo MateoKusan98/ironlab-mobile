@@ -136,6 +136,7 @@ export const AdminIdeasScreen: React.FC = () => {
         {isPending && (
           <View style={styles.actions}>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.rejectBtn, isProcessing && styles.btnDisabled]}
               onPress={() => handleReject(item)}
               disabled={isProcessing}
@@ -147,6 +148,7 @@ export const AdminIdeasScreen: React.FC = () => {
               )}
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.thanksBtn, isProcessing && styles.btnDisabled]}
               onPress={() => handleThanks(item)}
               disabled={isProcessing}
@@ -174,6 +176,7 @@ export const AdminIdeasScreen: React.FC = () => {
       <View style={styles.filterRow}>
         {(['PENDING', 'ALL', 'THANKED', 'REJECTED'] as FilterStatus[]).map((f) => (
           <TouchableOpacity
+            accessibilityRole="button"
             key={f}
             style={[styles.filterChip, filter === f && styles.filterChipActive]}
             onPress={() => setFilter(f)}

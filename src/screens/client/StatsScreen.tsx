@@ -519,6 +519,7 @@ export const StatsScreen: React.FC = () => {
         <View style={styles.tabRow}>
           {(['performance', 'records', 'body', 'wellbeing'] as const).map(tab => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}

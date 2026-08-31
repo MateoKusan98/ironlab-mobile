@@ -25,6 +25,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, separator = '>' }
         return (
           <React.Fragment key={index}>
             <TouchableOpacity
+              accessibilityRole="button"
               onPress={item.onPress}
               disabled={!item.onPress || item.isActive}
               style={styles.item}

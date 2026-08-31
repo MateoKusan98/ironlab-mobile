@@ -77,7 +77,7 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                         <View key={week.id} style={styles.weekCard}>
                             <View style={styles.weekHeader}>
                                 <Text style={styles.weekTitle}>{week.name}</Text>
-                                <TouchableOpacity style={styles.copyBtn} onPress={() => openCopyModal(bIdx, wIdx)}>
+                                <TouchableOpacity accessibilityRole="button" style={styles.copyBtn} onPress={() => openCopyModal(bIdx, wIdx)}>
                                     <Text style={styles.copyBtnText}>Copy From...</Text>
                                 </TouchableOpacity>
                             </View>
@@ -88,7 +88,8 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                                     const isConfigured = exercisesCount > 0;
 
                                     return (
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
+                                            accessibilityRole="button" 
                                             key={day.id} 
                                             style={[styles.dayCircle, isConfigured && styles.dayCircleConfigured, day.isRestDay && styles.dayCircleRest]}
                                             onPress={() => navigateToDay(bIdx, wIdx, dIdx)}
@@ -116,6 +117,9 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                 style={[styles.publishBtn, createProgramMutation.isPending && { opacity: 0.5 }]} 
                 onPress={handlePublish}
                 disabled={createProgramMutation.isPending}
+                accessibilityRole="button"
+                accessibilityLabel="Publish Program"
+                accessibilityState={{ disabled: createProgramMutation.isPending, busy: createProgramMutation.isPending }}
             >
                 <Text style={styles.publishBtnText}>
                     {createProgramMutation.isPending ? 'Publishing...' : 'Publish Program'}
@@ -144,7 +148,8 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                                 if (isTarget) return null; // Can't copy target onto itself
                                 
                                 return (
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
+                                        accessibilityRole="button" 
                                         key={w.id} 
                                         style={[styles.sourceOption, isSelected && styles.sourceOptionSelected]}
                                         onPress={() => setSourceWeek({ bIdx: bI, wIdx: wI })}
@@ -159,10 +164,11 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                     </ScrollView>
 
                     <View style={styles.modalActions}>
-                        <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setCopyModalVisible(false)}>
+                        <TouchableOpacity accessibilityRole="button" style={styles.modalBtnCancel} onPress={() => setCopyModalVisible(false)}>
                             <Text style={styles.modalBtnTextCancel}>Cancel</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity 
+                        <TouchableOpacity
+                            accessibilityRole="button" 
                             style={[styles.modalBtnSubmit, !sourceWeek && { opacity: 0.5 }]} 
                             disabled={!sourceWeek}
                             onPress={handleCopySubmit}

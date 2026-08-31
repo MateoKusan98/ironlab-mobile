@@ -284,7 +284,7 @@ export const SessionSummaryScreen: React.FC = () => {
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
-          <TouchableOpacity style={styles.statCard} onPress={openDurationEdit} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={styles.statCard} onPress={openDurationEdit} activeOpacity={0.7}>
             <Text style={styles.statValue}>
               {duration >= 60 ? `${Math.floor(duration / 60)}h ${duration % 60}m` : `${duration}m`}
             </Text>
@@ -415,6 +415,7 @@ export const SessionSummaryScreen: React.FC = () => {
           <View style={styles.moodRow}>
             {MOODS.map((m) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={m.value}
                 style={[styles.moodBtn, mood === m.value && styles.moodBtnActive]}
                 onPress={() => setMood(m.value)}
@@ -450,7 +451,7 @@ export const SessionSummaryScreen: React.FC = () => {
               <Text style={styles.shareHint}>
                 Turn this workout into a ready-to-post caption for TikTok, Instagram & more.
               </Text>
-              <TouchableOpacity style={styles.shareGenBtn} onPress={() => generateCaptions(captionLang)}>
+              <TouchableOpacity accessibilityRole="button" style={styles.shareGenBtn} onPress={() => generateCaptions(captionLang)}>
                 <Sparkle size={18} weight="fill" color={palette.white} />
                 <Text style={styles.shareGenText}>Generate caption</Text>
               </TouchableOpacity>
@@ -472,6 +473,7 @@ export const SessionSummaryScreen: React.FC = () => {
                   const empty = !captions[s.key]?.trim();
                   return (
                     <TouchableOpacity
+                      accessibilityRole="button"
                       key={s.key}
                       disabled={empty}
                       style={[
@@ -498,6 +500,7 @@ export const SessionSummaryScreen: React.FC = () => {
                 <View style={styles.langToggle}>
                   {[{ code: 'en', label: 'EN' }, { code: localLang.code, label: localLang.label }].map((l) => (
                     <TouchableOpacity
+                      accessibilityRole="button"
                       key={l.code}
                       style={[styles.langBtn, captionLang === l.code && styles.langBtnActive]}
                       onPress={() => captionLang !== l.code && generateCaptions(l.code)}
@@ -512,19 +515,24 @@ export const SessionSummaryScreen: React.FC = () => {
 
               {/* Copy / Share */}
               <View style={styles.shareActions}>
-                <TouchableOpacity style={[styles.shareActionBtn, styles.copyBtn]} onPress={handleCopyCaption}>
+                <TouchableOpacity
+                  style={[styles.shareActionBtn, styles.copyBtn]}
+                  onPress={handleCopyCaption}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('a11y.copySummary', { defaultValue: 'Copy session summary' })}
+                >
                   {copied ? <Check size={16} weight="bold" color={palette.brand[400]} /> : <Copy size={16} weight="bold" color={palette.gray[200]} />}
                   <Text style={[styles.shareActionText, copied && { color: palette.brand[400] }]}>
                     {copied ? 'Copied!' : 'Copy'}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.shareActionBtn, styles.shareSheetBtn]} onPress={handleShareCaption}>
+                <TouchableOpacity accessibilityRole="button" style={[styles.shareActionBtn, styles.shareSheetBtn]} onPress={handleShareCaption}>
                   <ShareNetwork size={16} weight="bold" color={palette.white} />
                   <Text style={[styles.shareActionText, { color: palette.white }]}>Share</Text>
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity onPress={() => generateCaptions(captionLang)}>
+              <TouchableOpacity accessibilityRole="button" onPress={() => generateCaptions(captionLang)}>
                 <Text style={styles.regenLink}>↻ Regenerate</Text>
               </TouchableOpacity>
             </>
@@ -577,6 +585,7 @@ export const SessionSummaryScreen: React.FC = () => {
         onRequestClose={() => setEditingDuration(false)}
       >
         <TouchableOpacity
+          accessibilityRole="button"
           style={durStyles.overlay}
           activeOpacity={1}
           onPress={() => setEditingDuration(false)}
@@ -614,12 +623,14 @@ export const SessionSummaryScreen: React.FC = () => {
             </View>
             <View style={durStyles.actions}>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[durStyles.actionBtn, durStyles.cancelBtn]}
                 onPress={() => setEditingDuration(false)}
               >
                 <Text style={durStyles.cancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[durStyles.actionBtn, durStyles.confirmBtn]}
                 onPress={saveDurationEdit}
               >

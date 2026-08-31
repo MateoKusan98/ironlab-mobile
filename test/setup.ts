@@ -41,10 +41,18 @@ jest.mock('react-native-keyboard-controller', () => {
 
 // i18n: return the supplied defaultValue (or the key) so assertions read as the
 // English copy the screens declare inline, without booting the real i18n stack.
+// {{placeholders}} are filled from the same options object, so a test can assert on the
+// sentence an athlete actually reads ("RPE 9 against a target of 7") rather than on the
+// template that produced it.
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, opts?: { defaultValue?: string } & Record<string, unknown>) =>
-      opts?.defaultValue ?? key,
+    t: (key: string, opts?: { defaultValue?: string } & Record<string, unknown>) => {
+      const copy = opts?.defaultValue ?? key;
+      if (!opts) return copy;
+      return copy.replace(/\{\{(\w+)\}\}/g, (match, name) =>
+        opts[name] != null ? String(opts[name]) : match,
+      );
+    },
     i18n: { language: 'en', changeLanguage: jest.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: jest.fn() },

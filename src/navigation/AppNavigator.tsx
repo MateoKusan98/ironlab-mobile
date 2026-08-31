@@ -61,6 +61,7 @@ import { PostDetailScreen } from '../screens/community/PostDetailScreen';
 import { UserProfileScreen } from '../screens/community/UserProfileScreen';
 import { MessagesScreen } from '../screens/messaging/MessagesScreen';
 import { ConversationScreen } from '../screens/messaging/ConversationScreen';
+import type { LoadBasisView } from '../services/ai-coach.service';
 
 /** A meal/food handed to the details screen, either scanned or picked from search. */
 export type FoodDetailsParam = {
@@ -114,7 +115,9 @@ export type RootStackParamList = {
   AICoachWelcome: undefined;
   AICoachSetup: undefined;
   AICoachExtendedSetup: { preferences?: import('../services/ai-coach.service').CoachPreferences; editMode?: boolean; express?: boolean; experienceLevel?: 'novice' | 'beginner' | 'intermediate' | 'advanced' };
-  AICoachSettings: undefined;
+  // `focusSection` opens that section expanded — the one-tap route from a load
+  // derivation that says the athlete's stored max has gone stale.
+  AICoachSettings: { focusSection?: string } | undefined;
   AICoachChat: { preferences?: import('../services/ai-coach.service').CoachPreferences };
   AICoachPlan: undefined;
   PathTree: undefined;
@@ -124,7 +127,7 @@ export type RootStackParamList = {
   PRs: undefined;
   SessionDetail: { sessionId: string };
   StartSession: { plan?: string; nextSessionJson?: import('../services/ai-coach.service').NextSession | null; freeSession?: boolean; makeUp?: boolean; skipNext?: boolean; trainAhead?: boolean };
-  ActiveWorkout: { sessionId: string; plannedExercises?: { name: string; sets: number; reps: number; weight: number; rpe?: number; weightPerc?: number; cue?: string }[] };
+  ActiveWorkout: { sessionId: string; plannedExercises?: { name: string; sets: number; reps: number; weight: number; rpe?: number; weightPerc?: number; cue?: string; barLoaded?: boolean; loadBasis?: LoadBasisView }[]; barLoading?: { barKg: number; plates: number[] } | null };
   SessionSummary: { sessionId: string; durationMinutes: number; prs?: { type: string; label: string; value: number; previous: number | null; exerciseName: string; tier: 'pr' | 'mini'; e1rm?: number; prevE1rm?: number | null }[] };
   CardioLog: undefined;
   SupportChat: undefined;

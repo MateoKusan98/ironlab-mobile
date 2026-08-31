@@ -168,7 +168,7 @@ export const AICoachChatScreen: React.FC<Props> = ({ route }) => {
             <Text style={styles.headerSub}>{t('aiCoachChat.personalFitnessCoach')}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.headerSettings}>
+        <TouchableOpacity style={styles.headerSettings} accessible={false}>
           <Text style={styles.headerSettingsIcon}>⚙️</Text>
         </TouchableOpacity>
       </View>
@@ -206,6 +206,8 @@ export const AICoachChatScreen: React.FC<Props> = ({ route }) => {
                 onPress={() => {
                   setInput(prompt);
                 }}
+                accessibilityRole="button"
+                accessibilityLabel={prompt}
               >
                 <Text style={styles.quickPromptText}>{prompt}</Text>
               </TouchableOpacity>
@@ -214,7 +216,7 @@ export const AICoachChatScreen: React.FC<Props> = ({ route }) => {
         )}
 
         <View style={styles.inputBar}>
-          <TouchableOpacity style={styles.micBtn}>
+          <TouchableOpacity style={styles.micBtn} accessible={false}>
             <Text style={styles.micIcon}>🎤</Text>
           </TouchableOpacity>
           <TextInput
@@ -227,13 +229,16 @@ export const AICoachChatScreen: React.FC<Props> = ({ route }) => {
             maxLength={500}
             onSubmitEditing={sendMessage}
           />
-          <TouchableOpacity style={styles.attachBtn}>
+          <TouchableOpacity style={styles.attachBtn} accessible={false}>
             <Text style={styles.attachIcon}>📎</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.sendBtn, (!input.trim() || isLoading) && styles.sendBtnDisabled]}
             onPress={sendMessage}
             disabled={!input.trim() || isLoading}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.sendMessage', { defaultValue: 'Send message' })}
+            accessibilityState={{ disabled: !input.trim() || isLoading, busy: isLoading }}
           >
             {isLoading ? (
               <ActivityIndicator size="small" color={palette.black} />

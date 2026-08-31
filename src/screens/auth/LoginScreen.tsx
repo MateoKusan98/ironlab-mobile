@@ -99,7 +99,13 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             secureTextEntry={!showPassword}
             leftIcon={<Lock size={18} color={palette.gray[500]} />}
             rightIcon={
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('auth.togglePassword', { defaultValue: 'Show or hide password' })}
+                accessibilityState={{ expanded: showPassword }}
+              >
                 {showPassword ? (
                   <EyeSlash size={18} color={palette.gray[500]} />
                 ) : (

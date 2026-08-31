@@ -72,7 +72,7 @@ export const MealScanScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.noCamera}>{t('bodyScan.noCamera')}</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backBtnText}>{t('common.back')}</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -93,7 +93,13 @@ export const MealScanScreen: React.FC = () => {
       <SafeAreaView style={styles.overlay}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.closeBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.close', { defaultValue: 'Close' })}
+          >
             <Text style={styles.closeText}>✕</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>📸 AI Meal Scan</Text>
@@ -116,6 +122,7 @@ export const MealScanScreen: React.FC = () => {
         {/* Capture button */}
         <View style={styles.bottom}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.captureBtn, analyzing && styles.captureBtnDisabled]}
             onPress={takePicture}
             disabled={analyzing || !cameraReady}
@@ -129,7 +136,7 @@ export const MealScanScreen: React.FC = () => {
               <Text style={styles.captureBtnText}>📷  Scan Meal</Text>
             )}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.replace('ManualFoodLog', {})} style={styles.manualLink}>
+          <TouchableOpacity accessibilityRole="button" onPress={() => navigation.replace('ManualFoodLog', {})} style={styles.manualLink}>
             <Text style={styles.manualLinkText}>{t('manualFood.logManually') ?? 'Log manually instead'}</Text>
           </TouchableOpacity>
         </View>

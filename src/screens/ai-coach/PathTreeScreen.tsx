@@ -98,7 +98,12 @@ export const PathTreeScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={s.container} edges={['top']}>
       <View style={s.topBar}>
         <Text style={s.title}>{t('pathTree.title')}</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.close', { defaultValue: 'Close' })}
+        >
           <Text style={s.close}>✕</Text>
         </TouchableOpacity>
       </View>

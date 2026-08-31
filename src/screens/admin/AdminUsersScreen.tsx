@@ -200,6 +200,7 @@ export const AdminUsersScreen: React.FC = () => {
 
         <View style={styles.actionRow}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.aiLabBtn, styles.actionBtn]}
             onPress={() => navigation.navigate('AdminAILab', { userId: item.id, userName: item.name })}
           >
@@ -207,6 +208,7 @@ export const AdminUsersScreen: React.FC = () => {
           </TouchableOpacity>
           {canImpersonate && (
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.impersonateBtn, styles.actionBtn]}
               onPress={() => handleImpersonate(item)}
             >
@@ -221,7 +223,13 @@ export const AdminUsersScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()} hitSlop={10}>
+        <TouchableOpacity
+          style={styles.closeBtn}
+          onPress={() => navigation.goBack()}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.close')}
+        >
           <Text style={styles.closeIcon}>✕</Text>
         </TouchableOpacity>
         <Text style={styles.title}>{t('admin.userManagement')}</Text>
@@ -252,6 +260,9 @@ export const AdminUsersScreen: React.FC = () => {
             key={role ?? 'all'}
             style={[styles.filterChip, filterRole === role && styles.filterChipActive]}
             onPress={() => setFilterRole(role)}
+            accessibilityRole="tab"
+            accessibilityLabel={role ? ROLE_LABELS[role] : 'All'}
+            accessibilityState={{ selected: filterRole === role }}
           >
             <Text style={[styles.filterChipText, filterRole === role && styles.filterChipTextActive]}>
               {role ? ROLE_LABELS[role] : 'All'}

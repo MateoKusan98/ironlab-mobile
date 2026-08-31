@@ -96,6 +96,7 @@ export const UserProfileScreen: React.FC<Props> = ({ navigation, route }) => {
 
           {me?.id !== userId && (
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.messageBtn}
               onPress={handleMessage}
               disabled={startingConv}
@@ -121,6 +122,7 @@ export const UserProfileScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.sectionTitle}>Posts</Text>
             {posts.map(post => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={post.id}
                 style={styles.miniCard}
                 onPress={() => navigation.navigate('PostDetail', { postId: post.id })}

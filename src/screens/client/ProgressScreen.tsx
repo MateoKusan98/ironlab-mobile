@@ -145,13 +145,22 @@ export const ProgressScreen: React.FC = () => {
             <Text style={styles.subtitle}>{photos.length} {photos.length === 1 ? t('progress.entry') : t('progress.entries')}</Text>
           </View>
           <View style={styles.headerBtns}>
-            <TouchableOpacity style={styles.uploadBtn} onPress={handleAddPhoto} disabled={isUploading}>
+            <TouchableOpacity
+              style={styles.uploadBtn}
+              onPress={handleAddPhoto}
+              hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
+              disabled={isUploading}
+              accessibilityRole="button"
+              accessibilityLabel={t('progress.addPhoto', { defaultValue: 'Add progress photo' })}
+              accessibilityState={{ disabled: isUploading, busy: isUploading }}
+            >
               {isUploading
                 ? <ActivityIndicator color={palette.black} size="small" />
                 : <Camera size={18} weight="bold" color={palette.black} />
               }
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.scanBtn}
               onPress={() => navigation.navigate('BodyScan', {})}
             >
@@ -193,7 +202,7 @@ export const ProgressScreen: React.FC = () => {
             <Text style={styles.emptyEmoji}>📸</Text>
             <Text style={styles.emptyTitle}>{t('progress.noPhotos')}</Text>
             <Text style={styles.emptySub}>{t('progress.noPhotosSub')}</Text>
-            <TouchableOpacity style={styles.emptyBtn} onPress={() => navigation.navigate('BodyScan', {})}>
+            <TouchableOpacity accessibilityRole="button" style={styles.emptyBtn} onPress={() => navigation.navigate('BodyScan', {})}>
               <Text style={styles.emptyBtnText}>{t('progress.startFirstScan')}</Text>
             </TouchableOpacity>
           </View>
@@ -228,6 +237,7 @@ const PhotoCard: React.FC<{
   isDeleting: boolean;
   onDelete: () => void;
 }> = ({ photo, isDeleting, onDelete }) => {
+  const { t } = useTranslation();
   const hasScan = photo.bodyFatPercentage != null;
   const dateLabel = new Date(photo.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -240,7 +250,15 @@ const PhotoCard: React.FC<{
         <View style={cardStyles.dateBadge}>
           <Text style={cardStyles.dateText}>{dateLabel}</Text>
         </View>
-        <TouchableOpacity onPress={onDelete} style={cardStyles.deleteBtn} disabled={isDeleting}>
+        <TouchableOpacity
+          onPress={onDelete}
+          style={cardStyles.deleteBtn}
+          disabled={isDeleting}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('progress.deletePhoto', { defaultValue: 'Delete progress photo' })}
+          accessibilityState={{ disabled: isDeleting, busy: isDeleting }}
+        >
           {isDeleting
             ? <ActivityIndicator size="small" color={palette.white} />
             : <Trash size={14} weight="bold" color={palette.white} />

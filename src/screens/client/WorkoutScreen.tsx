@@ -19,6 +19,7 @@ import { Bell, PersonSimpleRun, Lightning, Robot, CalendarBlank, ChartBar, Arrow
 import { UserRole } from '@shared';
 import { RecoveryWeekCard } from '../../components/ui/RecoveryWeekControl';
 import { MuscleVolumeCard } from '../../components/ui/MuscleVolumeCard';
+import { TechniqueCard } from '../../components/ui/TechniqueCard';
 
 // const CATEGORIES = [
 //   { id: '1', label: 'HIIT', Icon: Fire, color: theme.categoryTint.green, iconColor: palette.brand[500] },
@@ -37,7 +38,7 @@ export const WorkoutScreen: React.FC = () => {
       <ScreenHeader
         left={<UserAvatar user={user} size={36} />}
         title={t('nav.workouts')}
-        right={<TouchableOpacity style={styles.bellBtn}><Bell size={20} weight="bold" color={palette.zinc[400]} /></TouchableOpacity>}
+        right={<TouchableOpacity style={styles.bellBtn} accessible={false}><Bell size={20} weight="bold" color={palette.zinc[400]} /></TouchableOpacity>}
       />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
@@ -46,6 +47,7 @@ export const WorkoutScreen: React.FC = () => {
             Jumping straight to StartSession from here hid all of that: no other
             entry point in the Workouts tab reaches AICoachPlan. */}
         <TouchableOpacity
+          accessibilityRole="button"
           style={styles.aiBanner}
           onPress={() => user?.isAICoachSetupComplete ? navigation.navigate('AICoachPlan') : navigation.navigate('AICoachWelcome')}
         >
@@ -66,7 +68,7 @@ export const WorkoutScreen: React.FC = () => {
         <Text style={styles.sectionTitle}>Start Training</Text>
 
         {/* Start Session Banner */}
-        <TouchableOpacity style={styles.startSessionBanner} onPress={() => navigation.navigate('StartSession', { freeSession: true })}>
+        <TouchableOpacity accessibilityRole="button" style={styles.startSessionBanner} onPress={() => navigation.navigate('StartSession', { freeSession: true })}>
           <View style={[styles.bannerIconWrap, { backgroundColor: palette.brand[600] + '33' }]}>
             <Lightning size={22} weight="fill" color={palette.brand[400]} />
           </View>
@@ -78,7 +80,7 @@ export const WorkoutScreen: React.FC = () => {
         </TouchableOpacity>
 
         {/* Cardio Log Banner */}
-        <TouchableOpacity style={styles.cardioBanner} onPress={() => navigation.navigate('CardioLog')}>
+        <TouchableOpacity accessibilityRole="button" style={styles.cardioBanner} onPress={() => navigation.navigate('CardioLog')}>
           <View style={[styles.bannerIconWrap, { backgroundColor: alpha(palette.brand[400], 0.133) }]}>
             <PersonSimpleRun size={22} weight="bold" color={palette.brand[400]} />
           </View>
@@ -90,7 +92,7 @@ export const WorkoutScreen: React.FC = () => {
         </TouchableOpacity>
 
         {/* Form Check Banner */}
-        <TouchableOpacity style={styles.formCheckBanner} onPress={() => navigation.navigate('FormCheck')}>
+        <TouchableOpacity accessibilityRole="button" style={styles.formCheckBanner} onPress={() => navigation.navigate('FormCheck')}>
           <View style={[styles.bannerIconWrap, { backgroundColor: alpha(palette.violet[600], 0.133) }]}>
             <Camera size={22} weight="fill" color={palette.violet[400]} />
           </View>
@@ -112,23 +114,27 @@ export const WorkoutScreen: React.FC = () => {
             work they have not done yet. */}
         {user?.isAICoachSetupComplete && <MuscleVolumeCard />}
 
+        {/* What the form-check videos said, per movement — and the ask for the lifts he
+            has never filmed. Renders itself away until his own logs can name them. */}
+        {user?.isAICoachSetupComplete && <TechniqueCard />}
+
         {/* History & Stats row */}
         <View style={styles.quickRow}>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('WorkoutHistory')}>
+          <TouchableOpacity accessibilityRole="button" style={styles.quickCard} onPress={() => navigation.navigate('WorkoutHistory')}>
             <View style={styles.quickIconWrap}>
               <CalendarBlank size={22} weight="bold" color={palette.brand[400]} />
             </View>
             <Text style={styles.quickLabel}>{t('nav.history')}</Text>
             <Text style={styles.quickSub}>Past sessions</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('Stats')}>
+          <TouchableOpacity accessibilityRole="button" style={styles.quickCard} onPress={() => navigation.navigate('Stats')}>
             <View style={styles.quickIconWrap}>
               <ChartBar size={22} weight="bold" color={palette.brand[400]} />
             </View>
             <Text style={styles.quickLabel}>{t('nav.stats')}</Text>
             <Text style={styles.quickSub}>Volume trends</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('PRs')}>
+          <TouchableOpacity accessibilityRole="button" style={styles.quickCard} onPress={() => navigation.navigate('PRs')}>
             <View style={styles.quickIconWrap}>
               <Trophy size={22} weight="bold" color={palette.brand[400]} />
             </View>
@@ -141,6 +147,7 @@ export const WorkoutScreen: React.FC = () => {
           <>
             <Text style={styles.sectionTitle}>Admin</Text>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.aiLabBanner}
               onPress={() => navigation.navigate('AdminAILab', {})}
             >
@@ -160,7 +167,7 @@ export const WorkoutScreen: React.FC = () => {
       </ScrollView>
 
       {/* BUILD YOUR PROGRAM FAB — hidden for now, re-enable when feature is ready */}
-      {/* <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('ProgramCreatorStart')}>
+      {/* <TouchableOpacity accessibilityRole="button" style={styles.fab} onPress={() => navigation.navigate('ProgramCreatorStart')}>
         <Text style={styles.fabIcon}>+</Text>
         <Text style={styles.fabText}>{t('workouts.buildProgram')}</Text>
       </TouchableOpacity> */}

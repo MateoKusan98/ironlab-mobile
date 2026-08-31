@@ -90,7 +90,8 @@
     "resetSuccessMessage": "Your password has been reset. You can now sign in with your new password.",
     "resetError": "Couldn't reset your password. Check the code and try again.",
     "codeResentTitle": "Code Sent",
-    "codeResentMessage": "If an account exists for that email, a new code is on its way."
+    "codeResentMessage": "If an account exists for that email, a new code is on its way.",
+    "togglePassword": "Show or hide password"
   },
   "nav": {
     "home": "Home",
@@ -140,6 +141,9 @@
     }
   },
   "session": {
+    "whyThisWeight": "Why this weight?",
+    "whyThisWeightHide": "Hide",
+    "whyThisWeightA11y": "Why this weight for {{exercise}}",
     "readinessCheck": "Readiness Check",
     "todaysWorkout": "Today's Workout",
     "howAreYouFeeling": "HOW ARE YOU FEELING?",
@@ -196,6 +200,7 @@
     "weight": "WEIGHT (kg)",
     "repsLabel": "REPS",
     "rpeLabel": "RPE",
+    "perSide": "per side",
     "tapToGoBack": "← tap to go back",
     "holdToCancel": "hold to cancel workout",
     "addExercise": "Add Exercise",
@@ -211,8 +216,39 @@
     "cuePlaceholder": "e.g. Pull the elbows down",
     "deleteCue": "Delete cue",
     "cueReminderTitle": "Remember for",
-    "cueReminderSubtitle": "Cues you saved last time:",
-    "cueReminderGotIt": "Got it — let's go"
+    "cueReminderSubtitle": "What to remember this time:",
+    "cueFromFormCheck": "From your form check",
+    "cueReminderGotIt": "Got it — let's go",
+    "techniqueNudgeTitle": "Film a set of",
+    "techniqueNudgeSubtitle": "One of the lifts you train most — and the coach has never seen it.",
+    "techniqueNudgeBody": "One working set from the side is enough. You get a scored breakdown, and the corrections come back as cues on this exercise next time.",
+    "techniqueNudgeFilm": "Film a set now →",
+    "techniqueNudgeLater": "Not now",
+    "adjustLabel": "COACH",
+    "adjustHeadline": "That set came back at RPE {{rpe}} against a target of {{target}}.",
+    "adjustDetail": "For the remaining {{count}} set of {{exercise}}.",
+    "adjustDetail_other": "For the remaining {{count}} sets of {{exercise}}.",
+    "adjustCapped": "Capped — the full recomputation was larger. If this was a bad day rather than a mistyped RPE, cut further or end the lift here.",
+    "adjustApply": "Drop to {{weight}}kg",
+    "adjustApplyA11y": "Drop the remaining sets to {{weight}} kilograms",
+    "adjustKeep": "Keep",
+    "adjustKeepA11y": "Keep {{weight}} kilograms",
+    "minimize": "Minimize workout",
+    "minimizeHint": "Double tap and hold to cancel the workout",
+    "uncompleteSet": "Mark set not done"
+  },
+  "loadDerivation": {
+    "title": "WHY {{weight}}KG",
+    "sourceStored": "your stored 1RM",
+    "sourceOwn": "your own logged best on this movement",
+    "sourceRatio": "estimated from your competition lift (first time doing this one)",
+    "rpeBlock": "RPE {{rpe}} for this block",
+    "rpeRamp": "+{{amount}} this week",
+    "rpeFrequency": "−{{amount}} for training it often",
+    "rounded": "rounded to the nearest {{increment}}kg",
+    "stale": "Your logged sets estimate {{demonstrated}} — {{pct}}% above the {{stored}} this was priced from.",
+    "staleCta": "Update your max →",
+    "staleA11y": "Update your stored one rep max"
   },
   "sessionSummary": {
     "greatWork": "Great Work!",
@@ -378,7 +414,11 @@
     "scheduleSavedTitle": "Saved",
     "scheduleSaved": "Training schedule updated. AI will use this when generating your next session.",
     "scheduleSavedRecalc": "Training schedule updated — your calorie and macro targets were recalculated for your new frequency.",
-    "scheduleSaveError": "Could not save. Please try again."
+    "scheduleSaveError": "Could not save. Please try again.",
+    "decreaseCompoundRest": "Less rest between compound sets",
+    "increaseCompoundRest": "More rest between compound sets",
+    "decreaseIsolationRest": "Less rest between isolation sets",
+    "increaseIsolationRest": "More rest between isolation sets"
   },
   "workouts": {
     "category": "Workout Category",
@@ -964,7 +1004,8 @@
     "parseError": "Could not parse ingredients. Check your input and try again.",
     "noResults": "No ingredients found.",
     "permissionDenied": "Permission Denied",
-    "cameraPermission": "We need camera roll permissions to upload images."
+    "cameraPermission": "We need camera roll permissions to upload images.",
+    "removeIngredient": "Remove ingredient"
   },
   "browseMeals": {
     "title": "Browse Meals",
@@ -1260,7 +1301,8 @@
     "appAssistant": "IronLab app assistant",
     "commonQuestions": "Common questions",
     "welcomeMessage": "Hi, I'm M-730 — I'll guide you through IronLab. Anything not working for you, any feature you can't find, any screen you're lost on — I got you!",
-    "connectionError": "Sorry, I couldn't connect. Please check your connection and try again."
+    "connectionError": "Sorry, I couldn't connect. Please check your connection and try again.",
+    "title": "Support"
   },
   "cardio": {
     "title": "Log Cardio",
@@ -1351,5 +1393,58 @@
     "title": "COACH'S DEBRIEF",
     "coachsRead": "COACH'S READ",
     "writing": "Reading your session…"
+  },
+  "a11y": {
+    "close": "Close",
+    "back": "Go back",
+    "previous": "Previous",
+    "next": "Next",
+    "clearSearch": "Clear search",
+    "dismiss": "Dismiss",
+    "decreaseTrainingDays": "One fewer training day",
+    "increaseTrainingDays": "One more training day",
+    "decreaseHeight": "Decrease height",
+    "increaseHeight": "Increase height",
+    "decreaseWeight": "Decrease weight",
+    "increaseWeight": "Increase weight",
+    "decreaseAge": "Decrease age",
+    "increaseAge": "Increase age",
+    "decreaseMeals": "Fewer meals per day",
+    "increaseMeals": "More meals per day",
+    "decreaseWorkouts": "Fewer workouts per week",
+    "increaseWorkouts": "More workouts per week",
+    "decreaseTarget": "Decrease target",
+    "increaseTarget": "Increase target",
+    "completeSet": "Mark set complete",
+    "exitWorkout": "Exit workout",
+    "pauseWorkout": "Pause workout",
+    "copySummary": "Copy session summary",
+    "openCoachSettings": "Open coach settings",
+    "recordVoiceNote": "Record voice note",
+    "attachFile": "Attach a file",
+    "sendMessage": "Send message",
+    "retakePhoto": "Retake photo",
+    "pickFromGallery": "Choose from gallery",
+    "removeMedia": "Remove attachment",
+    "addMedia": "Add photo or video",
+    "deleteMeal": "Delete meal",
+    "saveMeal": "Save meal",
+    "unsaveMeal": "Remove saved meal",
+    "scanMeal": "Scan a meal",
+    "shareMeal": "Share meal",
+    "openProfile": "Open profile",
+    "openPost": "Open post",
+    "likePost": "Like post",
+    "commentOnPost": "Comment on post",
+    "newPost": "New post",
+    "sendPost": "Publish post",
+    "refresh": "Refresh",
+    "removeUser": "Remove user",
+    "openConversation": "Open conversation",
+    "reviewFormCheck": "Review form check",
+    "startBodyScan": "Start body scan",
+    "viewScan": "View scan",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   }
 }
