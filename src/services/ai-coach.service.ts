@@ -373,6 +373,13 @@ export interface RecoveryWeekStatus {
  * NOT generate their own session: the coach's approved one is the session.
  */
 export interface ReviewStatus {
+  /**
+   * Whether this athlete has a coach at all. The ONLY correct test for "are their
+   * sessions coach-reviewed" — `state` stays 'none' until a first review exists, so it
+   * reads a newly-coached athlete as uncoached, and reads every coach's own account as
+   * one too.
+   */
+  hasCoach: boolean;
   state: 'none' | 'awaiting_review' | 'released';
   /** When an unreviewed session ships anyway. Shown to the athlete as a promise. */
   autoApproveAt: string | null;

@@ -339,7 +339,7 @@ export const HomeScreen: React.FC = () => {
   const catchUpRec = planData?.catchUpRecommendation ?? null;
   // A coached athlete's sessions are approved one at a time, so anything that asks for
   // a different day has no approved session behind it. Hidden rather than inert.
-  const coached = reviewStatus != null && reviewStatus.state !== 'none';
+  const coached = reviewStatus?.hasCoach === true;
   const showCatchUp = !!missed && !catchUpDismissed && !activeSessionId && !coached;
   const nextScheduledDay = planData?.nextScheduledDay ?? null;
   const skipAheadDay = planData?.skipAheadDay ?? null;
@@ -660,7 +660,10 @@ export const HomeScreen: React.FC = () => {
           )}
         </Card>
 
-        {/* Daily Check-in Card — the athlete's report to their coach for today. */}
+        {/* Daily Check-in Card — the athlete's report to their COACH for today, so it
+            exists only for athletes who have one. Someone with no coach has nobody to
+            send it to, and a coach's own account is not an athlete at all. */}
+        {reviewStatus?.hasCoach && (
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={t('home.checkInTitle')}
@@ -680,6 +683,7 @@ export const HomeScreen: React.FC = () => {
             </Text>
           </Card>
         </TouchableOpacity>
+        )}
 
         {/* Nutrition Card */}
         <Card style={styles.cardSpacing}>

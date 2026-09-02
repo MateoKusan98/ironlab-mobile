@@ -80,7 +80,7 @@ describe('coached athlete', () => {
     // and prove nothing. Seeing the approved squat is proof the released plan was
     // served straight through, skipping the readiness→generate path entirely.
     mockGetReviewStatus.mockResolvedValue({
-      state: 'released', autoApproveAt: null, coachNote: null, targetDate: null,
+      hasCoach: true, state: 'released', autoApproveAt: null, coachNote: null, targetDate: null,
     });
 
     const r = await open();
@@ -91,6 +91,7 @@ describe('coached athlete', () => {
 
   it('does not generate while the session is still with the coach', async () => {
     mockGetReviewStatus.mockResolvedValue({
+      hasCoach: true,
       state: 'awaiting_review',
       autoApproveAt: new Date(Date.now() + 3_600_000).toISOString(),
       coachNote: null, targetDate: '2026-09-03',
@@ -109,7 +110,7 @@ describe('coached athlete', () => {
 describe('uncoached athlete', () => {
   it('is unaffected — review adds nothing to an athlete with no coach', async () => {
     mockGetReviewStatus.mockResolvedValue({
-      state: 'none', autoApproveAt: null, coachNote: null, targetDate: null,
+      hasCoach: false, state: 'none', autoApproveAt: null, coachNote: null, targetDate: null,
     });
 
     open();
@@ -128,5 +129,22 @@ describe('uncoached athlete', () => {
     open();
 
     await waitFor(() => expect(mockGetPlan).toHaveBeenCalled());
+  });
+});
+
+
+describe('a coached athlete who has never checked in', () => {
+  it('is still gated, even though no review exists yet', async () => {
+    // The bug this replaced: "coached" was inferred from state !== 'none', but state is
+    // 'none' until a first review row exists — so a freshly-created athlete read as
+    // uncoached and would generate their own session straight past their coach.
+    mockGetReviewStatus.mockResolvedValue({
+      hasCoach: true, state: 'none', autoApproveAt: null, coachNote: null, targetDate: null,
+    });
+
+    await open();
+
+    await waitFor(() => expect(mockGetReviewStatus).toHaveBeenCalled());
+    expect(mockGeneratePlan).not.toHaveBeenCalled();
   });
 });

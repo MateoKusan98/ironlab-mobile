@@ -202,7 +202,7 @@ export const StartSessionScreen: React.FC = () => {
       // Coached athlete with a released session: it is already theirs to train. Show it
       // straight away rather than routing through the readiness check, whose only job
       // here would be to feed a generation that must not happen.
-      if (review && review.state === 'released' && plan && hasPlan) {
+      if (review?.hasCoach && review.state === 'released' && plan && hasPlan) {
         applyPlanResult(plan);
         setInitializing(false);
         setStep(2);
@@ -287,7 +287,7 @@ export const StartSessionScreen: React.FC = () => {
       // morning — a session approved at 20:00 last night has yesterday's generatedAt,
       // so the freshness check reads it as stale and would silently replace the exact
       // thing a human signed off. This is the gate the whole review flow exists for.
-      const coached = reviewStatus != null && reviewStatus.state !== 'none';
+      const coached = reviewStatus?.hasCoach === true;
 
       if (!coached && (!planFromToday || makeUp || skipNext || trainAhead)) {
         // Generate fresh plan using today's readiness data
@@ -353,7 +353,7 @@ export const StartSessionScreen: React.FC = () => {
       const planFromToday = existing.generatedAt ? existing.generatedAt.startsWith(today) : false;
       // Coached athletes never regenerate, so the fatigue gate has no generation to
       // guard — their coach saw the fatigue signals on the draft instead.
-      const coached = reviewStatus != null && reviewStatus.state !== 'none';
+      const coached = reviewStatus?.hasCoach === true;
       const willRegenerate = !coached && (!planFromToday || route.params?.makeUp === true || route.params?.skipNext === true || route.params?.trainAhead === true);
       if (willRegenerate) {
         const gate = await aiCoachService.fatigueCheck().catch(() => null);
@@ -450,7 +450,7 @@ export const StartSessionScreen: React.FC = () => {
   // Coached athlete whose next session is still with their coach. There is nothing for
   // them to do here — generating is exactly what must not happen — so say so plainly and
   // tell them when it ships regardless, rather than showing a button that cannot work.
-  if (reviewStatus?.state === 'awaiting_review' && !plannedExercises.length) {
+  if (reviewStatus?.hasCoach && reviewStatus.state === 'awaiting_review' && !plannedExercises.length) {
     const liveAt = reviewStatus.autoApproveAt
       ? safeLocaleDateString(new Date(reviewStatus.autoApproveAt), locale, {
           weekday: 'long', hour: '2-digit', minute: '2-digit',
@@ -649,7 +649,7 @@ export const StartSessionScreen: React.FC = () => {
                 {/* A line written by a real person when they signed this session off.
                     Distinct from the coach's call above, which the model writes — so it
                     gets its own label rather than being blended into the AI's voice. */}
-                {reviewStatus?.state === 'released' && reviewStatus.coachNote ? (
+                {reviewStatus?.hasCoach && reviewStatus.state === 'released' && reviewStatus.coachNote ? (
                   <View style={styles.coachsCall}>
                     <Text style={styles.coachNoteLabel}>{t('session.fromYourCoach')}</Text>
                     <Text style={styles.coachsCallText}>{reviewStatus.coachNote}</Text>
