@@ -357,6 +357,68 @@ export interface RecoveryWeekStatus {
   resumeWeek: number | null; // phase week that replays on return (null in comp prep)
 }
 
+/**
+ * What the athlete sends their coach each day, and what comes back.
+ *
+ * Bodyweight is write-only here on purpose: it is stored in the weight log, not on the
+ * check-in, so it goes UP with the submit and comes back DOWN through the nutrition
+ * screens that own it. A `bodyweight` on the response would be a second copy waiting
+ * to disagree with the first.
+ */
+/**
+ * Whether the athlete's next session is waiting on their coach.
+ *
+ * `none` means no coach review is in play — every uncoached athlete — and the app must
+ * behave exactly as it did before review existed. Anything else means the athlete does
+ * NOT generate their own session: the coach's approved one is the session.
+ */
+export interface ReviewStatus {
+  state: 'none' | 'awaiting_review' | 'released';
+  /** When an unreviewed session ships anyway. Shown to the athlete as a promise. */
+  autoApproveAt: string | null;
+  coachNote: string | null;
+  targetDate: string | null;
+}
+
+export interface CheckInPayload {
+  sleepHours?: number;
+  sleepQuality?: number;
+  energyLevel?: number;
+  mood?: string;
+  sorenessLevel?: number;
+  sorenessAreas?: string[];
+  stressLevel?: number;
+  note?: string;
+  bodyweight?: number;
+}
+
+export interface CheckInMeal {
+  id: string;
+  mealName: string | null;
+  mealType: string;
+  calories: number | null;
+  protein: number | null;
+  carbs: number | null;
+  fat: number | null;
+}
+
+export interface CheckInView {
+  date: string;
+  submitted: boolean;
+  submittedAt: string | null;
+  sleepHours: number | null;
+  sleepQuality: number | null;
+  energyLevel: number | null;
+  mood: string | null;
+  sorenessLevel: number | null;
+  sorenessAreas: string[] | null;
+  stressLevel: number | null;
+  note: string | null;
+  meals: CheckInMeal[];
+  /** Null — not zeroes — when nothing has been logged for the day yet. */
+  totals: { calories: number; protein: number; carbs: number; fat: number } | null;
+}
+
 export const aiCoachService = {
   chat: async (
     message: string,
@@ -510,6 +572,7 @@ export const aiCoachService = {
     trainingDays: string[] | null;
     competitionDate: string | null;
     competitionType: string | null;
+    blockIntent: string | null;
     injuryHandling: string | null;
     activeInjuries: { id: string; exerciseName: string | null; description: string }[];
     trainingWeek: number | null;
@@ -531,6 +594,7 @@ export const aiCoachService = {
       trainingDays: string[] | null;
       competitionDate: string | null;
       competitionType: string | null;
+      blockIntent: string | null;
       injuryHandling: string | null;
       activeInjuries: { id: string; exerciseName: string | null; description: string }[];
       trainingWeek: number | null;
@@ -605,6 +669,26 @@ export const aiCoachService = {
     await api.delete('/ai-coach/competition');
   },
 
+  /**
+   * Switch between the default peak-on-a-timer cycle and an open-ended offseason.
+   * Offseason waves accumulation <-> intensification and never auto-enters peaking —
+   * the athlete calls the peak themselves with triggerPeak().
+   */
+  setBlockIntent: async (intent: 'offseason' | 'default'): Promise<{ blockIntent: string | null }> => {
+    const { data } = await api.post<{ data: { blockIntent: string | null } }>('/ai-coach/block-intent', { intent });
+    return data.data;
+  },
+
+  /**
+   * "I'm ready to test my maxes." The server schedules a PR test one run-in out and
+   * hands the block clock to the comp countdown, which sequences intensification ->
+   * peaking -> taper and clears itself afterwards.
+   */
+  triggerPeak: async (): Promise<{ date: string; weeksOut: number }> => {
+    const { data } = await api.post<{ data: { date: string; weeksOut: number } }>('/ai-coach/peak-now', {});
+    return data.data;
+  },
+
   getNutritionAdvice: async (): Promise<{ advice: string; generatedAt: string | null }> => {
     const { data } = await api.get<{ data: { advice: string; generatedAt: string | null } }>('/ai-coach/nutrition-advice');
     return data.data;
@@ -612,6 +696,43 @@ export const aiCoachService = {
 
   setNutritionTracking: async (enabled: boolean): Promise<void> => {
     await api.post('/ai-coach/profile', { nutritionTrackingEnabled: enabled });
+  },
+
+  /** Read an athlete's AI-coach profile as their coach (not as them). */
+  coachGetAthleteProfile: async (athleteId: string): Promise<FormValues | null> => {
+    const { data } = await api.get<{ data: FormValues | null }>(`/ai-coach/coach/athletes/${athleteId}/profile`);
+    return data.data;
+  },
+
+  /**
+   * Save what the coach knows about an athlete. Runs the same path the athlete's own
+   * save does, so it is a head start rather than a lock — they can change any of it.
+   */
+  coachSaveAthleteProfile: async (athleteId: string, updates: FormValues): Promise<void> => {
+    await api.post(`/ai-coach/coach/athletes/${athleteId}/profile`, updates);
+  },
+
+  /** Whether the next session is with the coach, released, or not under review. */
+  getReviewStatus: async (): Promise<ReviewStatus> => {
+    const { data } = await api.get<{ data: ReviewStatus }>('/ai-coach/review-status');
+    return data.data;
+  },
+
+  /** Today's check-in, submitted or not, with today's meals read live from the food log. */
+  getCheckIn: async (): Promise<CheckInView> => {
+    const { data } = await api.get<{ data: CheckInView }>('/ai-coach/check-in');
+    return data.data;
+  },
+
+  /**
+   * Files (or revises) today's check-in and returns the day as it now stands.
+   *
+   * Safe to retry: the server keys one check-in per athlete per local day, so a
+   * double-tap revises rather than filing a second day.
+   */
+  submitCheckIn: async (payload: CheckInPayload): Promise<CheckInView> => {
+    const { data } = await api.post<{ data: CheckInView }>('/ai-coach/check-in', payload);
+    return data.data;
   },
 };
 

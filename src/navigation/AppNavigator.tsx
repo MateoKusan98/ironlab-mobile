@@ -29,6 +29,7 @@ import { AICoachExtendedSetupScreen } from '../screens/ai-coach/AICoachExtendedS
 import { AICoachSettingsScreen } from '../screens/ai-coach/AICoachSettingsScreen';
 import { AICoachChatScreen } from '../screens/ai-coach/AICoachChatScreen';
 import { AICoachPlanScreen } from '../screens/ai-coach/AICoachPlanScreen';
+import { DailyCheckInScreen } from '../screens/client/DailyCheckInScreen';
 import { PathTreeScreen } from '../screens/ai-coach/PathTreeScreen';
 
 // Session Logger Screens
@@ -120,6 +121,7 @@ export type RootStackParamList = {
   AICoachSettings: { focusSection?: string } | undefined;
   AICoachChat: { preferences?: import('../services/ai-coach.service').CoachPreferences };
   AICoachPlan: undefined;
+  DailyCheckIn: undefined;
   PathTree: undefined;
   WorkoutHistory: undefined;
   Progress: undefined;
@@ -219,6 +221,7 @@ export const AppNavigator: React.FC = () => {
                         <Stack.Screen name="AICoachSettings" component={AICoachSettingsScreen} />
                         <Stack.Screen name="AICoachChat" component={AICoachChatScreen} />
                         <Stack.Screen name="AICoachPlan" component={AICoachPlanScreen} />
+                        <Stack.Screen name="DailyCheckIn" component={DailyCheckInScreen} />
                         <Stack.Screen name="PathTree" component={PathTreeScreen} />
                       </Stack.Group>
 

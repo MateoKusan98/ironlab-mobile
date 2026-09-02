@@ -209,6 +209,12 @@ export const AICoachSettingsScreen: React.FC<Props> = ({ navigation, route }) =>
         }
       }
 
+      // Same rule as the comp date: only touched. Toggling this re-anchors the block
+      // clock server-side, so a stray write would silently restart the athlete's block.
+      if (dirtyKeys.includes('blockIntent')) {
+        await aiCoachService.setBlockIntent(answers.blockIntent === true ? 'offseason' : 'default');
+      }
+
       setSavedAnswers(answers);
       Alert.alert(t('aiCoachExtendedSetup.savedTitle'), t('aiCoachExtendedSetup.savedMsg'));
     } catch (err: unknown) {

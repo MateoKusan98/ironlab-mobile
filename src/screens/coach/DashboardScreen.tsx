@@ -16,7 +16,7 @@ import { useClients } from '../../hooks/useUsers';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserResponse } from '@shared';
 import { theme, palette, alpha } from '../../theme';
-import { Users, Camera } from 'phosphor-react-native';
+import { Users, Camera, UserPlus } from 'phosphor-react-native';
 
 type Nav = NativeStackNavigationProp<CoachStackParamList, 'Dashboard'>;
 
@@ -60,14 +60,26 @@ export const DashboardScreen: React.FC = () => {
         <Text style={styles.subtitle}>
           {t('coach.clientCount', { count: clients?.length || 0 })}
         </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          style={styles.formCheckBtn}
-          onPress={() => navigation.navigate('FormCheckQueue')}
-        >
-          <Camera size={18} weight="fill" color={palette.violet[400]} />
-          <Text style={styles.formCheckBtnText}>{t('coach.formCheckQueue')}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={styles.formCheckBtn}
+            onPress={() => navigation.navigate('FormCheckQueue')}
+          >
+            <Camera size={18} weight="fill" color={palette.violet[400]} />
+            <Text style={styles.formCheckBtnText}>{t('coach.formCheckQueue')}</Text>
+          </TouchableOpacity>
+          {/* The only way a coach and an athlete get linked — and therefore the only
+              way an athlete's sessions start coming here for review. */}
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={styles.addClientBtn}
+            onPress={() => navigation.navigate('AddClient')}
+          >
+            <UserPlus size={18} weight="fill" color={palette.brand[400]} />
+            <Text style={styles.addClientBtnText}>{t('coach.addClient')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {isLoading ? (
@@ -104,6 +116,13 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: theme.spacing.xs,
   },
+  headerActions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  addClientBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
+    backgroundColor: alpha(palette.brand[500], 0.14),
+  },
+  addClientBtnText: { fontSize: 12, fontWeight: '600', color: palette.brand[400] },
   formCheckBtn: {
     flexDirection: 'row',
     alignItems: 'center',

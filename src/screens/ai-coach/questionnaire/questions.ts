@@ -11,9 +11,10 @@ export type QuestionType = 'single' | 'multi' | 'number' | 'text' | 'slider' | '
 
 export interface Option { value: string; label: string; icon?: string }
 export interface Question {
-  // Mostly profile fields, plus the comp-date pseudo-questions whose answers are
-  // owned by the dedicated /ai-coach/competition endpoint, not the profile DTO.
-  id: keyof AICoachProfileData | 'competitionDate' | 'competitionType';
+  // Mostly profile fields, plus the pseudo-questions whose answers are owned by
+  // dedicated endpoints rather than the profile DTO: the comp date
+  // (/ai-coach/competition) and the offseason toggle (/ai-coach/block-intent).
+  id: keyof AICoachProfileData | 'competitionDate' | 'competitionType' | 'blockIntent';
   label: string;
   subtitle?: string;
   type: QuestionType;
@@ -72,6 +73,13 @@ export const getSections = (t: TFunction): Section[] => [
         id: 'competitionDate', label: t('aiCoachExtendedSetup.questionCompDate'),
         subtitle: t('aiCoachExtendedSetup.questionCompDateSubtitle'),
         type: 'comp_date', optional: true,
+      },
+      {
+        id: 'blockIntent', label: t('aiCoachExtendedSetup.questionOffseason'),
+        subtitle: t('aiCoachExtendedSetup.questionOffseasonSubtitle'),
+        type: 'bool', optional: true,
+        trueLabel: t('aiCoachExtendedSetup.optionOffseasonOn'),
+        falseLabel: t('aiCoachExtendedSetup.optionOffseasonOff'),
       },
     ],
   },
@@ -440,6 +448,13 @@ export const DONT_KNOW = '__unknown__';
 export const COMPETITION_KEYS = ['competitionDate', 'competitionType'];
 
 /**
+ * Every pseudo-question above — asked on the profile screens, saved through a dedicated
+ * endpoint. buildProfilePatch filters these out because POST /ai-coach/profile rejects
+ * them; each edit surface is responsible for routing its own.
+ */
+export const DEDICATED_ENDPOINT_KEYS = [...COMPETITION_KEYS, 'blockIntent'];
+
+/**
  * Answers that must reach the DTO as numbers rather than the strings a TextInput
  * (or the getProfile projection) hands back. Shared so the wizard and the settings
  * screen coerce identically — a field sent as '2' by one screen and 2 by the other
@@ -538,7 +553,7 @@ export const summarizeAnswer = (question: Question, answers: FormValues, t: TFun
  */
 export const hydrateAnswers = (
   profile: FormValues | null,
-  competition: { competitionDate?: string | null; competitionType?: string | null } | null,
+  competition: { competitionDate?: string | null; competitionType?: string | null; blockIntent?: string | null } | null,
   editableKeys: Set<string>,
 ): FormValues => {
   const loaded: FormValues = {};
@@ -555,6 +570,11 @@ export const hydrateAnswers = (
     loaded.competitionDate = String(competition.competitionDate).split('T')[0];
     loaded.competitionType = competition.competitionType === 'pr_test' ? 'pr_test' : 'meet';
   }
+  // Set whenever the plan payload arrived at all: this is a bool, and leaving it
+  // absent renders the toggle as unset rather than as the OFF state it actually is.
+  // Omitted when the payload is missing (the getPlan call failed) — guessing OFF there
+  // would show an offseason athlete the wrong switch position.
+  if (competition) loaded.blockIntent = competition.blockIntent === 'offseason';
   return loaded;
 };
 
@@ -587,8 +607,8 @@ export const changedKeys = (saved: FormValues, current: FormValues): string[] =>
  * withdrawn answer ("I don't know") clears too: leaving the old value would let the
  * coach keep programming off a fact the athlete just retracted.
  *
- * competitionDate/competitionType are excluded — they belong to the dedicated
- * /ai-coach/competition endpoint and the profile DTO rejects them.
+ * DEDICATED_ENDPOINT_KEYS are excluded — they belong to /ai-coach/competition and
+ * /ai-coach/block-intent, and the profile DTO rejects them.
  */
 export const buildProfilePatch = (
   keys: string[],
@@ -597,7 +617,7 @@ export const buildProfilePatch = (
 ): FormValues => {
   const patch: FormValues = {};
   keys
-    .filter((key) => editableKeys.has(key) && !COMPETITION_KEYS.includes(key))
+    .filter((key) => editableKeys.has(key) && !DEDICATED_ENDPOINT_KEYS.includes(key))
     .forEach((key) => {
       const value = answers[key];
       if (!isAnswered(value) || value === DONT_KNOW) {

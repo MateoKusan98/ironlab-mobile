@@ -58,6 +58,28 @@ export const usersService = {
     return data.data;
   },
 
+  /**
+   * Create an athlete account under the signed-in coach. This is the only writer of the
+   * coach↔athlete link, so it is what switches an athlete onto coach-reviewed sessions.
+   *
+   * `temporaryPassword` comes back ONLY when no password was supplied, and only this
+   * once — it is never stored in a readable form, so it has to be shown to the coach
+   * immediately or the athlete has to reset.
+   */
+  createClient: async (body: { email: string; name: string; password?: string }):
+    Promise<UserResponse & { temporaryPassword?: string }> => {
+    const { data } = await api.post<ApiResponse<UserResponse & { temporaryPassword?: string }>>(
+      '/users/clients', body,
+    );
+    return data.data;
+  },
+
+  /** Take on an athlete who already signed up for themselves. */
+  claimClient: async (email: string): Promise<UserResponse> => {
+    const { data } = await api.post<ApiResponse<UserResponse>>('/users/clients/claim', { email });
+    return data.data;
+  },
+
   exportData: async (): Promise<string> => {
     const { data } = await api.get<string>('/users/me/export', {
       responseType: 'text',

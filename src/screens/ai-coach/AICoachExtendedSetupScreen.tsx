@@ -16,7 +16,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { apiErrorMessage } from '../../utils/apiError';
 import { FormValues, asNumber, asStringList } from '@shared';
 import {
-  COMPETITION_KEYS, DONT_KNOW, EXPRESS_LAYOUT, NUMERIC_PROFILE_FIELDS, QUESTION_KEYS,
+  DEDICATED_ENDPOINT_KEYS, DONT_KNOW, EXPRESS_LAYOUT, NUMERIC_PROFILE_FIELDS, QUESTION_KEYS,
   getSections, hydrateAnswers, isAnswered, visibleQuestions,
 } from './questionnaire/questions';
 import { QuestionField } from './questionnaire/QuestionField';
@@ -168,9 +168,12 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
         }
       });
 
-      // The competition/PR date lives behind its own endpoint, and the profile DTO
-      // would reject it. Strip it out here and reconcile it separately below.
-      COMPETITION_KEYS.forEach((key) => { delete dynamic[key]; });
+      // The competition/PR date and the offseason toggle live behind their own
+      // endpoints, and the profile DTO would reject them. Strip them out here; the
+      // comp date is reconciled separately below, and the offseason toggle is not
+      // asked during onboarding (an athlete with no training history has no block to
+      // extend) — it is a settings-screen decision.
+      DEDICATED_ENDPOINT_KEYS.forEach((key) => { delete dynamic[key]; });
 
       // Express (beginner) onboarding fills in sensible defaults for everything we
       // deliberately didn't ask, so the coach can build a safe general program on

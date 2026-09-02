@@ -21,7 +21,7 @@ import { useSettingsStore } from '../../stores/settings.store';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { theme, palette, alpha } from '../../theme';
 import { sessionService } from '../../services/session.service';
-import { aiCoachService, BarLoading, FatigueRecommendation, PrForecast } from '../../services/ai-coach.service';
+import { aiCoachService, ReviewStatus, BarLoading, FatigueRecommendation, PrForecast } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, ChartBar } from 'phosphor-react-native';
@@ -126,6 +126,13 @@ export const StartSessionScreen: React.FC = () => {
   // Reactive HIGH-fatigue alarm awaiting the athlete's call. Non-null = modal shown.
   const [fatigueGate, setFatigueGate] = useState<{ reasons: string[]; level: 'elevated' | 'high'; recommendation: FatigueRecommendation | null } | null>(null);
   const [taperBusy, setTaperBusy] = useState(false);
+  /**
+   * Whether this athlete's sessions go through a coach. `none` (every uncoached
+   * athlete) leaves every code path below exactly as it was; anything else means the
+   * athlete does NOT generate their own session — the coach's approved one IS the
+   * session, and generating here would overwrite what the coach signed off.
+   */
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
   const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[]>(() => {
     if (route.params?.nextSessionJson?.exercises?.length) {
       return route.params.nextSessionJson.exercises;
@@ -170,12 +177,18 @@ export const StartSessionScreen: React.FC = () => {
     let cancelled = false;
 
     const init = async () => {
-      const [readiness, plan, markerRaw] = await Promise.all([
+      const [readiness, plan, markerRaw, review] = await Promise.all([
         sessionService.getLastReadiness().catch(() => null),
         aiCoachService.getPlan().catch(() => null),
         uid ? AsyncStorage.getItem(readinessAppliedKey(uid)).catch(() => null) : Promise.resolve(null),
+        // A failed read falls back to null, which every check below treats as
+        // "uncoached" — i.e. the pre-review behaviour. Failing OPEN is deliberate:
+        // an athlete standing in the gym must not be locked out of training because
+        // one advisory endpoint was unreachable.
+        aiCoachService.getReviewStatus().catch(() => null),
       ]);
       if (cancelled) return;
+      setReviewStatus(review);
 
       // Pre-fill from last session
       if (readiness?.lastBodyweight != null) setBodyweight(String(readiness.lastBodyweight));
@@ -185,6 +198,16 @@ export const StartSessionScreen: React.FC = () => {
       // skip straight to the workout — only re-show it once a new workout is generated.
       const marker: ReadinessMarker | null = markerRaw ? JSON.parse(markerRaw) : null;
       const hasPlan = !!(plan?.plan || plan?.nextSessionJson?.exercises?.length);
+
+      // Coached athlete with a released session: it is already theirs to train. Show it
+      // straight away rather than routing through the readiness check, whose only job
+      // here would be to feed a generation that must not happen.
+      if (review && review.state === 'released' && plan && hasPlan) {
+        applyPlanResult(plan);
+        setInitializing(false);
+        setStep(2);
+        return;
+      }
       // A make-up, skip-ahead or train-ahead always re-runs readiness → regenerate for
       // the chosen slot, so never short-circuit to the already-generated (natural
       // next-day) plan.
@@ -259,7 +282,14 @@ export const StartSessionScreen: React.FC = () => {
       // must be replaced with one for the chosen slot — and the `planFromToday` guard
       // must NOT suppress that (training twice in one calendar day is the case it
       // otherwise mishandles: it re-serves the just-finished session).
-      if (!planFromToday || makeUp || skipNext || trainAhead) {
+      // A coached athlete NEVER generates here. Their session came from the coach, and
+      // the `!planFromToday` branch below would otherwise regenerate over it every
+      // morning — a session approved at 20:00 last night has yesterday's generatedAt,
+      // so the freshness check reads it as stale and would silently replace the exact
+      // thing a human signed off. This is the gate the whole review flow exists for.
+      const coached = reviewStatus != null && reviewStatus.state !== 'none';
+
+      if (!coached && (!planFromToday || makeUp || skipNext || trainAhead)) {
         // Generate fresh plan using today's readiness data
         await aiCoachService.generatePlan({
           mood,
@@ -321,7 +351,10 @@ export const StartSessionScreen: React.FC = () => {
       const existing = await aiCoachService.getPlan();
       const today = new Date().toISOString().split('T')[0];
       const planFromToday = existing.generatedAt ? existing.generatedAt.startsWith(today) : false;
-      const willRegenerate = !planFromToday || route.params?.makeUp === true || route.params?.skipNext === true || route.params?.trainAhead === true;
+      // Coached athletes never regenerate, so the fatigue gate has no generation to
+      // guard — their coach saw the fatigue signals on the draft instead.
+      const coached = reviewStatus != null && reviewStatus.state !== 'none';
+      const willRegenerate = !coached && (!planFromToday || route.params?.makeUp === true || route.params?.skipNext === true || route.params?.trainAhead === true);
       if (willRegenerate) {
         const gate = await aiCoachService.fatigueCheck().catch(() => null);
         if (gate?.requiresAck && gate.reasons.length && (gate.level === 'high' || gate.level === 'elevated')) {
@@ -410,6 +443,32 @@ export const StartSessionScreen: React.FC = () => {
             setStep(2);
           }}
         />
+      </SafeAreaView>
+    );
+  }
+
+  // Coached athlete whose next session is still with their coach. There is nothing for
+  // them to do here — generating is exactly what must not happen — so say so plainly and
+  // tell them when it ships regardless, rather than showing a button that cannot work.
+  if (reviewStatus?.state === 'awaiting_review' && !plannedExercises.length) {
+    const liveAt = reviewStatus.autoApproveAt
+      ? safeLocaleDateString(new Date(reviewStatus.autoApproveAt), locale, {
+          weekday: 'long', hour: '2-digit', minute: '2-digit',
+        })
+      : null;
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{t('session.awaitingCoach.title')}</Text>
+        </View>
+        <View style={styles.awaitingWrap}>
+          <Text style={styles.awaitingBody}>{t('session.awaitingCoach.body')}</Text>
+          {liveAt && (
+            <Text style={styles.awaitingDeadline}>
+              {t('session.awaitingCoach.liveAt', { when: liveAt })}
+            </Text>
+          )}
+        </View>
       </SafeAreaView>
     );
   }
@@ -587,6 +646,15 @@ export const StartSessionScreen: React.FC = () => {
                     <Text style={styles.coachsCallText}>{coachsCall}</Text>
                   </View>
                 ) : null}
+                {/* A line written by a real person when they signed this session off.
+                    Distinct from the coach's call above, which the model writes — so it
+                    gets its own label rather than being blended into the AI's voice. */}
+                {reviewStatus?.state === 'released' && reviewStatus.coachNote ? (
+                  <View style={styles.coachsCall}>
+                    <Text style={styles.coachNoteLabel}>{t('session.fromYourCoach')}</Text>
+                    <Text style={styles.coachsCallText}>{reviewStatus.coachNote}</Text>
+                  </View>
+                ) : null}
               </View>
             ) : route.params?.freeSession ? (
               <Card background={palette.gray[800]} bordered={false} padding={20} style={styles.cardSpacing}>
@@ -691,6 +759,9 @@ export const StartSessionScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  awaitingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 },
+  awaitingBody: { fontSize: 15, lineHeight: 22, color: theme.colors.textSecondary, textAlign: 'center' },
+  awaitingDeadline: { fontSize: 13, color: theme.colors.textTertiary, textAlign: 'center' },
   container: { flex: 1, backgroundColor: theme.colors.background },
   scroll: { padding: 20, paddingBottom: 40 },
 
@@ -825,6 +896,7 @@ const styles = StyleSheet.create({
   },
   planExCue: { fontSize: 11, color: palette.gray[500], fontStyle: 'italic', marginTop: 3 },
   coachsCall: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: palette.gray[700] },
+  coachNoteLabel: { fontSize: 11, fontWeight: '700', color: palette.success[400], letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
   coachsCallLabel: { fontSize: 11, fontWeight: '700', color: palette.brand[400], letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
   coachsCallText: { fontSize: 13, lineHeight: 19, color: palette.gray[300] },
 });

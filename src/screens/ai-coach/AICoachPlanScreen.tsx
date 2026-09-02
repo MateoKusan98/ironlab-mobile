@@ -21,7 +21,7 @@ import { theme, palette } from '../../theme';
 import { aiCoachService, RecoveryWeekStatus, FatigueStatus, FatigueLevel, CoachNote, PrForecast } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { UserRole } from '@shared';
-import { MagnifyingGlass, Trophy, ChartBar } from 'phosphor-react-native';
+import { MagnifyingGlass, Trophy, ChartBar, Barbell } from 'phosphor-react-native';
 import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
 import { RecoveryModal, RecoveryBanner } from '../../components/ui/RecoveryWeekControl';
 import { PRForecastCard } from '../../components/ui/PRForecastCard';
@@ -521,6 +521,39 @@ const CompBanner: React.FC<{
   );
 };
 
+// ─── Offseason banner ─────────────────────────────────────────────────────────
+
+/**
+ * Shown instead of the "set a comp date" nudge while the athlete is building
+ * open-endedly. The point of an offseason is that nothing is counting down, so this
+ * deliberately shows no date and no progress bar — just the one action that ends it.
+ */
+const OffseasonBanner: React.FC<{
+  busy: boolean;
+  onTest: () => void;
+  onEdit: () => void;
+}> = ({ busy, onTest, onEdit }) => (
+  <View style={[banner.wrap, { backgroundColor: palette.stone[900], borderColor: palette.stone[600], flexDirection: 'column', alignItems: 'stretch', gap: 10 }]}>
+    <TouchableOpacity accessibilityRole="button" style={banner.left} onPress={onEdit}>
+      <Barbell size={22} weight="fill" color={palette.brand[400]} />
+      <View style={{ flex: 1 }}>
+        <Text style={banner.label}>Offseason — building</Text>
+        <Text style={banner.sub}>No test scheduled. You call it when you're ready.</Text>
+      </View>
+      <Text style={banner.edit}>Edit ›</Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel="Test my maxes"
+      style={comp.saveBtn}
+      disabled={busy}
+      onPress={onTest}
+    >
+      {busy ? <ActivityIndicator color={palette.white} /> : <Text style={comp.saveBtnText}>I'm ready — test my maxes</Text>}
+    </TouchableOpacity>
+  </View>
+);
+
 // ─── Fatigue status (recovery) ────────────────────────────────────────────────
 
 const FATIGUE_META: Record<FatigueLevel, { color: string; bg: string; border: string; emoji: string; label: string }> = {
@@ -731,6 +764,8 @@ export const AICoachPlanScreen: React.FC = () => {
   const [regenUsedToday, setRegenUsedToday] = useState(false);
   const [debugVisible, setDebugVisible] = useState(false);
   const [compDate, setCompDate] = useState<string | null>(null);
+  const [blockIntent, setBlockIntent] = useState<string | null>(null);
+  const [peakBusy, setPeakBusy] = useState(false);
   const [compType, setCompType] = useState<string | null>(null);
   const [compModalVisible, setCompModalVisible] = useState(false);
   const [activeInjuries, setActiveInjuries] = useState<{ id: string; exerciseName: string | null; description: string }[]>([]);
@@ -779,9 +814,10 @@ export const AICoachPlanScreen: React.FC = () => {
     }).catch(() => {});
 
     aiCoachService.getPlan()
-      .then(({ plan: p, generatedAt: ga, competitionDate: cd, competitionType: ct, activeInjuries: ai, injuryHandling: ih, recoveryWeek: rw }) => {
+      .then(({ plan: p, generatedAt: ga, competitionDate: cd, competitionType: ct, blockIntent: bi, activeInjuries: ai, injuryHandling: ih, recoveryWeek: rw }) => {
         setCompDate(cd);
         setCompType(ct);
+        setBlockIntent(bi ?? null);
         setActiveInjuries(ai ?? []);
         setInjuryHandling(ih);
         setRecoveryWeek(rw ?? null);
@@ -867,6 +903,28 @@ export const AICoachPlanScreen: React.FC = () => {
       Alert.alert('Saved', 'Competition date set. Regenerate your plan to apply the new phase.');
     } catch {
       Alert.alert('Error', 'Could not save competition date.');
+    }
+  };
+
+  /**
+   * Ends the offseason on the athlete's word. The server owns the run-in length, so the
+   * confirmation can only be honest about it AFTER the call — hence the alert reporting
+   * the weeks rather than a prompt promising a number the client guessed.
+   */
+  const handleTriggerPeak = async () => {
+    setPeakBusy(true);
+    try {
+      const { date, weeksOut } = await aiCoachService.triggerPeak();
+      setCompDate(date);
+      setCompType('pr_test');
+      Alert.alert(
+        `PR test in ${weeksOut} weeks`,
+        `Your build is done. The next ${weeksOut} weeks ramp into the attempt, then you drop straight back into the offseason. Regenerate your plan to start.`,
+      );
+    } catch (e: any) {
+      Alert.alert('Not yet', e?.response?.data?.message ?? 'Could not schedule the test.');
+    } finally {
+      setPeakBusy(false);
     }
   };
 
@@ -1179,6 +1237,8 @@ export const AICoachPlanScreen: React.FC = () => {
       {/* Competition countdown banner or "set date" nudge */}
       {compDate ? (
         <CompBanner compDate={compDate} compType={compType} onPress={() => setCompModalVisible(true)} />
+      ) : blockIntent === 'offseason' ? (
+        <OffseasonBanner busy={peakBusy} onTest={handleTriggerPeak} onEdit={() => setCompModalVisible(true)} />
       ) : (
         <TouchableOpacity accessibilityRole="button" style={styles.setCompRow} onPress={() => setCompModalVisible(true)}>
           <Text style={styles.setCompText}>{t('aiCoach.setCompDate')}</Text>

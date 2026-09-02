@@ -101,6 +101,13 @@ describe('hydrateAnswers', () => {
     expect(answers.competitionType).toBe('pr_test');
   });
 
+  it('renders the offseason toggle as a real bool, and leaves it unset without a payload', () => {
+    expect(hydrateAnswers(null, { blockIntent: 'offseason' }, new Set()).blockIntent).toBe(true);
+    expect(hydrateAnswers(null, { blockIntent: null }, new Set()).blockIntent).toBe(false);
+    // getPlan failed — guessing OFF would show an offseason athlete the wrong switch.
+    expect(hydrateAnswers(null, null, new Set())).not.toHaveProperty('blockIntent');
+  });
+
   it('skips internal columns the save DTO would reject', () => {
     expect(hydrateAnswers({ id: 'abc', sleepQuality: 'good' }, null, new Set(['sleepQuality'])))
       .toEqual({ sleepQuality: 'good' });

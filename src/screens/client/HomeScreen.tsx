@@ -24,7 +24,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useFoodLogs } from '../../hooks/useNutrition';
 import { useExerciseName } from '../../hooks/useExerciseName';
 import { theme, palette, alpha } from '../../theme';
-import { aiCoachService, BarLoading, NextSession } from '../../services/ai-coach.service';
+import { aiCoachService, BarLoading, CheckInView, NextSession, ReviewStatus } from '../../services/ai-coach.service';
 import { sessionService, TodaySummary } from '../../services/session.service';
 import { proposalsService, AIProposal } from '../../services/proposals.service';
 import { devTimeService, DevTimeStatus } from '../../services/dev-time.service';
@@ -48,6 +48,7 @@ import {
   Heartbeat,
   FastForward,
   CheckCircle,
+  ClipboardText,
 } from 'phosphor-react-native';
 
 import { Card } from '../../components/ui';
@@ -170,20 +171,34 @@ export const HomeScreen: React.FC = () => {
   const [creatineMode, setCreatineMode] = useState<'setup' | 'daily' | null>(null);
   const creatineSlide = useRef(new Animated.Value(300)).current;
   const [todaySummary, setTodaySummary] = useState<TodaySummary | null>(null);
+  const [checkIn, setCheckIn] = useState<CheckInView | null>(null);
+  /**
+   * Whether this athlete's sessions go through a coach. Rescheduling affordances
+   * (make-up, train-anyway, skip-ahead) all ask for a DIFFERENT session than the one
+   * that was approved, which needs its own review cycle — so for a coached athlete they
+   * are hidden rather than left visible and inert.
+   */
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
 
   const loadDashboard = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const [plan, active, pending, summary] = await Promise.all([
+      const [plan, active, pending, summary, todaysCheckIn, review] = await Promise.all([
         aiCoachService.getPlan().catch(() => null),
         sessionService.getActiveSession().catch(() => null),
         proposalsService.getPending().catch(() => null),
         sessionService.getTodaySummary(today).catch(() => null),
+        // Advisory: a failed read hides the card. The dashboard must never fail
+        // to render because a check-in could not be fetched.
+        aiCoachService.getCheckIn().catch(() => null),
+        aiCoachService.getReviewStatus().catch(() => null),
       ]);
       setPlanData(plan ? { nextSessionJson: plan.nextSessionJson, trainingDays: plan.trainingDays, planText: plan.plan, missedSession: plan.missedSession, catchUpRecommendation: plan.catchUpRecommendation, nextScheduledDay: plan.nextScheduledDay, skipAheadDay: plan.skipAheadDay, completedToday: plan.completedToday, regenerating: plan.regenerating, barLoading: plan.barLoading } : null);
       setActiveSessionId(active?.id ?? null);
       setProposal(pending);
       setTodaySummary(summary);
+      setCheckIn(todaysCheckIn);
+      setReviewStatus(review);
     } finally {
       setPlanLoading(false);
       setRefreshing(false);
@@ -322,7 +337,10 @@ export const HomeScreen: React.FC = () => {
   // no logged session and recommends make-up vs skip (48h-spacing rule).
   const missed = planData?.missedSession ?? null;
   const catchUpRec = planData?.catchUpRecommendation ?? null;
-  const showCatchUp = !!missed && !catchUpDismissed && !activeSessionId;
+  // A coached athlete's sessions are approved one at a time, so anything that asks for
+  // a different day has no approved session behind it. Hidden rather than inert.
+  const coached = reviewStatus != null && reviewStatus.state !== 'none';
+  const showCatchUp = !!missed && !catchUpDismissed && !activeSessionId && !coached;
   const nextScheduledDay = planData?.nextScheduledDay ?? null;
   const skipAheadDay = planData?.skipAheadDay ?? null;
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -602,7 +620,7 @@ export const HomeScreen: React.FC = () => {
               ) : (
                 <>
                   {renderSessionPreview(true)}
-                  {nextScheduledDay && (
+                  {nextScheduledDay && !coached && (
                     <TouchableOpacity
                       accessibilityRole="button"
                       style={styles.shiftLink}
@@ -624,7 +642,7 @@ export const HomeScreen: React.FC = () => {
               <TouchableOpacity accessibilityRole="button" style={styles.startBtn} onPress={startTodayWorkout}>
                 <Text style={styles.startBtnText}>{t('home.startWorkout')}</Text>
               </TouchableOpacity>
-              {skipAheadDay && skipAheadDay !== todayDayName && (
+              {skipAheadDay && skipAheadDay !== todayDayName && !coached && (
                 <TouchableOpacity
                   accessibilityRole="button"
                   style={styles.shiftLink}
@@ -641,6 +659,27 @@ export const HomeScreen: React.FC = () => {
             </TouchableOpacity>
           )}
         </Card>
+
+        {/* Daily Check-in Card — the athlete's report to their coach for today. */}
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('home.checkInTitle')}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('DailyCheckIn')}
+        >
+          <Card style={styles.cardSpacing}>
+            <View style={styles.cardHeader}>
+              <ClipboardText size={22} weight="bold" color={palette.brand[400]} />
+              <Text style={styles.cardTitle}>{t('home.checkInTitle')}</Text>
+              {checkIn?.submitted && (
+                <CheckCircle size={20} weight="fill" color={palette.success[500]} />
+              )}
+            </View>
+            <Text style={styles.checkInPrompt}>
+              {checkIn?.submitted ? t('home.checkInDone') : t('home.checkInPrompt')}
+            </Text>
+          </Card>
+        </TouchableOpacity>
 
         {/* Nutrition Card */}
         <Card style={styles.cardSpacing}>
@@ -966,6 +1005,7 @@ restDayText: { fontSize: 18, fontWeight: '700', color: palette.gray[300], margin
   },
   startBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
 
+  checkInPrompt: { fontSize: 13, color: theme.colors.textSecondary, lineHeight: 19 },
   nutritionRow: { flexDirection: 'row', alignItems: 'center' },
   nutritionStat: { flex: 1, alignItems: 'center' },
   nutritionValue: { fontSize: 28, fontWeight: '800', color: theme.colors.accent },
