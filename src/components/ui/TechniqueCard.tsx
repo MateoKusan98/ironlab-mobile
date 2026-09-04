@@ -173,6 +173,7 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     paddingBottom: 14,
     marginTop: 16,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: alpha(palette.zinc[700], 0.5),
   },
