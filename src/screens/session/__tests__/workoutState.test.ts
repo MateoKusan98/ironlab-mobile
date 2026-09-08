@@ -9,6 +9,7 @@ import {
   pruneOtherDrafts,
   reconcileDraft,
   saveDraft,
+  shouldAskForAdjustment,
   unresolvedDeletions,
 } from '../workoutState';
 
@@ -234,5 +235,49 @@ describe('persistence', () => {
     expect(await loadDraft('sess')).not.toBeNull();
     expect(await loadDraft('older')).toBeNull();
     expect(await AsyncStorage.getItem('hasSeenRPEGuide')).toBe('1');
+  });
+});
+
+// ─── The 2026-09-07 reps-short miss ─────────────────────────────────────────
+//
+// This filter exists only to keep an ordinary set from costing a request; the backend
+// owns the decision. So it must be the UNION of the backend's gates. It was not: the
+// athlete logged 172.5kg×6 @RPE 9 against a prescribed 8 @RPE 8.5 — three identical sets,
+// because half a point over sat inside the RPE gate and the app never asked. The two
+// missing reps, which priced his squat that day at 212.7kg against the 230kg the load
+// came from, were never sent anywhere.
+describe('shouldAskForAdjustment', () => {
+  const set = (p: Partial<Parameters<typeof shouldAskForAdjustment>[0]>) =>
+    shouldAskForAdjustment({ rpe: '8', reps: '8', targetRpe: 8, targetReps: 8, ...p });
+
+  it('asks for the 172.5×6 @9 against a prescribed 8 @8.5 that shipped silently', () => {
+    expect(set({ rpe: '9', reps: '6', targetRpe: 8.5, targetReps: 8 })).toBe(true);
+  });
+
+  it('still asks on a full point of RPE overshoot at the prescribed reps', () => {
+    expect(set({ rpe: '9', reps: '8', targetRpe: 8 })).toBe(true);
+  });
+
+  it('stays quiet for one rep short — a miscount, not a load', () => {
+    expect(set({ rpe: '8', reps: '7', targetRpe: 8, targetReps: 8 })).toBe(false);
+  });
+
+  it('stays quiet when the athlete stopped early but rated the set EASY', () => {
+    expect(set({ rpe: '6', reps: '5', targetRpe: 8, targetReps: 8 })).toBe(false);
+  });
+
+  it('stays quiet on an ordinary set that met its prescription', () => {
+    expect(set({ rpe: '8', reps: '8', targetRpe: 8, targetReps: 8 })).toBe(false);
+  });
+
+  it('says nothing about a set that carried no prescription', () => {
+    expect(shouldAskForAdjustment({ rpe: '10', reps: '2', targetRpe: undefined, targetReps: undefined })).toBe(false);
+    expect(set({ rpe: '9', reps: '4', targetRpe: 8.5, targetReps: undefined })).toBe(false);
+  });
+
+  it('ignores an unrated or unparseable set rather than guessing', () => {
+    expect(set({ rpe: '', reps: '4' })).toBe(false);
+    expect(set({ rpe: 'x', reps: '4' })).toBe(false);
+    expect(set({ rpe: '8', reps: '', targetRpe: 8, targetReps: 8 })).toBe(false);
   });
 });

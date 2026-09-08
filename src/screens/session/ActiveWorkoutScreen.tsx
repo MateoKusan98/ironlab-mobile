@@ -49,6 +49,7 @@ import {
   pruneOtherDrafts,
   reconcileDraft,
   saveDraft,
+  shouldAskForAdjustment,
   unresolvedDeletions,
 } from './workoutState';
 type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
@@ -56,11 +57,6 @@ type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
 // Long enough that typing a set doesn't write on every keystroke, short enough
 // that backgrounding the app right after an edit still captures it.
 const DRAFT_SAVE_DEBOUNCE_MS = 400;
-
-// How far over the prescribed RPE a set has to land before we ask the coach whether the
-// remaining sets should come down. Mirrors MIN_RPE_OVERSHOOT on the backend, which owns
-// the decision — this is only here to keep an ordinary set from costing a request.
-const ADJUST_RPE_OVERSHOOT = 1;
 
 // The technique note is free text, so wait for a real pause in typing before
 // spending a request on it.
@@ -552,9 +548,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
    * set must never fail because one could not be generated.
    */
   const maybeSuggestAdjustment = async (exIdx: number, ex: Exercise, set: LocalSet) => {
-    if (set.targetRpe == null || !set.rpe) return;
-    const rated = parseFloat(set.rpe);
-    if (!Number.isFinite(rated) || rated - set.targetRpe < ADJUST_RPE_OVERSHOOT) return;
+    if (!shouldAskForAdjustment(set)) return;
 
     const key = `${ex.name}:${set.uid}`;
     if (adjustAskedRef.current.has(key)) return;

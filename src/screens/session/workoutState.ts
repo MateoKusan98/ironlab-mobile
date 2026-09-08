@@ -313,3 +313,43 @@ export function unresolvedDeletions(draft: WorkoutDraft, serverSets: SessionSet[
   const removed = new Set(draft.removedSetIds ?? []);
   return serverSets.filter((s) => removed.has(s.id)).map((s) => s.id);
 }
+
+// How far over the prescribed RPE a set has to land before the app asks the coach whether
+// the remaining sets should come down. Mirrors MIN_RPE_OVERSHOOT on the backend.
+export const ADJUST_RPE_OVERSHOOT = 1;
+
+// …and the other half of that question: reps that came up short of the prescription at
+// the effort it was supposed to cost. Mirrors MIN_REPS_SHORTFALL on the backend.
+export const ADJUST_REPS_SHORTFALL = 2;
+
+/**
+ * Whether a just-completed set is worth asking the server about.
+ *
+ * The BACKEND owns the decision — this is a call-avoidance filter, and it must stay the
+ * UNION of the backend's gates rather than a subset. 2026-09-07: the athlete logged
+ * 172.5kg×6 @RPE 9 against a prescribed 8 @RPE 8.5, three sets running. Half a point over
+ * is inside the RPE gate, so the app never asked and the backend never got the chance to
+ * read the two missing reps — which priced his squat that day at 212.7kg against the
+ * 230kg the load came from. A client filter stricter than the rule it stands in for does
+ * not save a request, it deletes the feature.
+ */
+export function shouldAskForAdjustment(set: {
+  rpe: string;
+  reps: string;
+  targetRpe?: number;
+  targetReps?: number;
+}): boolean {
+  if (set.targetRpe == null || !set.rpe) return false;
+  const rated = parseFloat(set.rpe);
+  if (!Number.isFinite(rated)) return false;
+
+  const over = rated - set.targetRpe;
+  if (over >= ADJUST_RPE_OVERSHOOT) return true;
+
+  // Reps short is only evidence about the LOAD when the effort was at least what was
+  // asked for. A set stopped early and rated EASY was not too heavy.
+  if (over < 0 || set.targetReps == null) return false;
+  const reps = set.reps ? parseInt(set.reps) : NaN;
+  if (!Number.isFinite(reps)) return false;
+  return set.targetReps - reps >= ADJUST_REPS_SHORTFALL;
+}
