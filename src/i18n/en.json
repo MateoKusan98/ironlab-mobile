@@ -611,7 +611,7 @@
     "questionCompDate": "Competition or PR test date",
     "questionCompDateSubtitle": "Set a target date and M-7EO will size your training blocks to peak you for it. Leave as None if you're not prepping for one.",
     "questionOffseason": "Offseason mode",
-    "questionOffseasonSubtitle": "Build for as long as you want. Your blocks wave between volume and heavy work, with a recovery week closing each one, and you never get pushed into a max attempt — you decide when to test from the plan screen.",
+    "questionOffseasonSubtitle": "Build for as long as you want — one accumulation block after another, each closing with a recovery week, with reps opening high again every block so the bar keeps climbing. Nothing switches you to heavy work and nothing pushes you into a max attempt: you decide when to test, from the plan screen.",
     "optionOffseasonOn": "Yes — I'm building",
     "optionOffseasonOff": "No — cycle me to a peak",
     "compDateNone": "None",
