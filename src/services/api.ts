@@ -119,15 +119,17 @@ api.interceptors.response.use(
       }
 
       if (isRefreshing) {
+        // Mark the parked request as retried BEFORE it goes back out. Without this
+        // a queued request that still 401s re-enters this branch — and by then the
+        // mutex has been released, so it fires a SECOND refresh. Concurrent
+        // refreshes each rotate the server's single stored hash (auth.service.ts
+        // updateRefreshToken), so whichever response lands last wins the store and
+        // the others are dead tokens — the next refresh 403s and logs the athlete out.
+        originalRequest._retry = true;
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return api(originalRequest);
-          })
+          .then(() => api(originalRequest))
           .catch((err) => Promise.reject(err));
       }
 
@@ -175,12 +177,14 @@ api.interceptors.response.use(
         const newAccessToken = data.data.accessToken as string;
         const newRefreshToken = data.data.refreshToken as string;
 
+        // Must land in the store BEFORE anything is re-sent: the request
+        // interceptor above re-stamps Authorization from the store on every
+        // request, so the store — not a header set here — is what the retry
+        // actually carries. setTokens updates memory synchronously for exactly
+        // this reason; see the note on persistTokens in auth.store.ts.
         useAuthStore.getState().setTokens(newAccessToken, newRefreshToken);
         processQueue(null, newAccessToken);
 
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        }
         return api(originalRequest);
       } catch (refreshError) {
         logService.capture({

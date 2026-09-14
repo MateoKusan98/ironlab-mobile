@@ -284,6 +284,11 @@ export const HomeScreen: React.FC = () => {
   };
 
   const loadDevTime = useCallback(async () => {
+    // Dev builds only. The endpoint is ForbiddenException-guarded on a production
+    // NODE_ENV, so in a release build this fired on every resume purely to be 403'd
+    // and logged — 604 rows in client_error_logs by 2026-09-14, the noisiest entry
+    // in the table and squarely in the way of reading real auth failures.
+    if (!__DEV__) return;
     try {
       const status = await devTimeService.getStatus();
       setDevTime(status.virtual ? status : null);
