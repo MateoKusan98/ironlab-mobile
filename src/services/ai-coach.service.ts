@@ -16,7 +16,7 @@ const PLAN_GEN_TIMEOUT_MS = 120000;
 export interface LoadBasisView {
   /** The 1RM (or e1RM) the weight was priced from, before the role discount. */
   anchor: number;
-  anchorSource: 'stored-1rm' | 'own-e1rm' | 'variation-ratio';
+  anchorSource: 'stored-1rm' | 'own-e1rm' | 'variation-ratio' | 'earned-step';
   /** 'heavy' | 'secondary' | 'volume' | 'technique', or null on a day with no role. */
   role: string | null;
   roleMultiplier: number;

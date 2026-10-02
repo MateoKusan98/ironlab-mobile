@@ -272,6 +272,7 @@
     "sourceStored": "your stored 1RM",
     "sourceOwn": "your own logged best on this movement",
     "sourceRatio": "estimated from your competition lift (first time doing this one)",
+    "sourceEarned": "earned: your last heavy days moved easier than asked",
     "rpeBlock": "RPE {{rpe}} for this block",
     "rpeRamp": "+{{amount}} this week",
     "rpeFrequency": "−{{amount}} for training it often",
