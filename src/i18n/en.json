@@ -220,6 +220,7 @@
   "activeWorkout": {
     "watchTutorial": "Watch exercise tutorial",
     "substituteExercise": "Substitute exercise",
+    "substituteWorkUp": "No history on this movement yet — work up to the target reps and log what you used. Next time it is loaded from your own numbers.",
     "removeExercise": "Remove exercise",
     "removeSet": "Remove set",
     "time": "TIME",

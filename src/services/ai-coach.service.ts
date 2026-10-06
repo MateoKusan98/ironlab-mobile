@@ -35,6 +35,14 @@ export interface LoadBasisView {
  * A mid-session load cut. Downward only, by construction — the backend has no branch
  * that raises a weight inside a workout, because one good set is one observation.
  */
+export interface SubstituteTarget {
+  name: string;
+  reps: number;
+  rpe: number;
+  weight: number | null;
+  source: string;
+}
+
 export interface InSessionAdjustment {
   exercise: string;
   currentWeight: number;
@@ -570,6 +578,19 @@ export const aiCoachService = {
       { params: { sessionId, exercise } },
     );
     return data.data.adjustment;
+  },
+
+  /**
+   * Fresh reps and load for a movement swapped in mid-workout, priced from the athlete's
+   * own history by the same rules as the plan. `weight` is null for a movement never
+   * performed — the athlete works up and logs it. Free and LLM-free.
+   */
+  getSubstituteTarget: async (exercise: string, reps: number, rpe?: number): Promise<SubstituteTarget> => {
+    const { data } = await api.get<{ data: SubstituteTarget }>(
+      '/ai-coach/substitute-target',
+      { params: { exercise, reps, ...(rpe != null ? { rpe } : {}) } },
+    );
+    return data.data;
   },
 
   getPlan: async (): Promise<{

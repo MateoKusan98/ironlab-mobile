@@ -3,6 +3,7 @@ import type { SessionSet } from '../../../services/session.service';
 import {
   Exercise,
   WorkoutDraft,
+  applySubstitution,
   buildFromPlan,
   clearDraft,
   loadDraft,
@@ -279,5 +280,49 @@ describe('shouldAskForAdjustment', () => {
     expect(set({ rpe: '', reps: '4' })).toBe(false);
     expect(set({ rpe: 'x', reps: '4' })).toBe(false);
     expect(set({ rpe: '8', reps: '', targetRpe: 8, targetReps: 8 })).toBe(false);
+  });
+});
+
+describe('applySubstitution — a swap gets its own numbers (2026-10-06)', () => {
+  // Good Morning 3×6 @ 120 RPE 7, the first set already logged.
+  const goodMorning = (): Exercise => ({
+    name: 'Good Morning',
+    order: 4,
+    isExpanded: true,
+    cue: 'Hips back, soft knees',
+    barLoaded: true,
+    sets: [
+      { uid: 'a', id: 'srv-1', setNumber: 1, reps: '6', weight: '120', rpe: '7', targetReps: 6, targetWeight: 120, targetRpe: 7, isCompleted: true },
+      { uid: 'b', setNumber: 2, reps: '6', weight: '120', rpe: '', targetReps: 6, targetWeight: 120, targetRpe: 7, isCompleted: false },
+      { uid: 'c', setNumber: 3, reps: '6', weight: '120', rpe: '', targetReps: 6, targetWeight: 120, targetRpe: 7, isCompleted: false },
+    ],
+  });
+
+  it('does not carry Good Morning\'s 120×6 onto Leg Press', () => {
+    const ex = applySubstitution(goodMorning(), 'Leg Press', { name: 'Leg Press', reps: 10, rpe: 7, weight: 180, source: 'own-e1rm' });
+    expect(ex.sets[1]).toMatchObject({ reps: '10', weight: '180', targetReps: 10, targetWeight: 180, targetRpe: 7 });
+    expect(ex.substitutedFor).toBe('Good Morning');
+    // The cue and the plate drawing described the old movement.
+    expect(ex.cue).toBeUndefined();
+    expect(ex.barLoaded).toBeUndefined();
+  });
+
+  it('leaves a set already logged exactly as it was', () => {
+    const ex = applySubstitution(goodMorning(), 'Leg Press', { name: 'Leg Press', reps: 10, rpe: 7, weight: 180, source: 'own-e1rm' });
+    expect(ex.sets[0]).toEqual(goodMorning().sets[0]);
+  });
+
+  it('shows NO weight while pricing is in flight, or for a movement never done', () => {
+    const pending = applySubstitution(goodMorning(), 'Hack Squat', null);
+    expect(pending.sets[1]).toMatchObject({ weight: '', targetWeight: undefined, targetReps: 6 });
+    const unknown = applySubstitution(goodMorning(), 'Hack Squat', { name: 'Hack Squat', reps: 6, rpe: 7, weight: null, source: 'first-exposure' });
+    expect(unknown.sets[2]).toMatchObject({ weight: '', targetWeight: undefined });
+  });
+
+  it('remembers the PRESCRIBED movement across a second swap, and forgets it on a swap back', () => {
+    const twice = applySubstitution(applySubstitution(goodMorning(), 'Leg Press', null), 'Hack Squat', null);
+    expect(twice.substitutedFor).toBe('Good Morning');
+    const back = applySubstitution(twice, 'Good Morning', null);
+    expect(back.substitutedFor).toBeUndefined();
   });
 });

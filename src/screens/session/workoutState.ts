@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { PRResult, SessionSet } from '../../services/session.service';
+import type { SubstituteTarget } from '../../services/ai-coach.service';
 
 /**
  * The in-progress workout's state model, plus the local persistence that keeps it
@@ -69,6 +70,12 @@ export interface Exercise {
   // weights can be drawn as a loaded bar. Set from the plan; absent on exercises
   // added or substituted mid-workout, which simply get no drawing.
   barLoaded?: boolean;
+  /**
+   * The PRESCRIBED movement this one was swapped in for, sent with every set so the server
+   * credits the work to the slot it replaced. Kept across repeated swaps (Good Morning →
+   * Leg Press → Hack Squat still replaced Good Morning) and cleared on a swap back.
+   */
+  substitutedFor?: string;
 }
 
 export interface PlannedExercise {
@@ -312,6 +319,41 @@ export function reconcileDraft(draft: WorkoutDraft, serverSets: SessionSet[]): E
 export function unresolvedDeletions(draft: WorkoutDraft, serverSets: SessionSet[]): string[] {
   const removed = new Set(draft.removedSetIds ?? []);
   return serverSets.filter((s) => removed.has(s.id)).map((s) => s.id);
+}
+
+/**
+ * Swap an exercise for another, mid-workout.
+ *
+ * 2026-10-06: this used to be a rename — `{ ...ex, name }` — so every number stayed with
+ * the slot. Leg Press swapped in for Good Morning was asked for Good Morning's 3×6, and a
+ * block earlier a Good Morning card carried Leg Press's 200kg×10. The athlete's words: "it
+ * keeps old data which is wtf". The cue and the plate drawing described the old movement
+ * too.
+ *
+ * Only sets not yet done are re-targeted; anything logged is history and stays as it was.
+ * Called twice per swap: first with `target` null, the instant the athlete picks — the old
+ * weight is cleared immediately rather than shown while the request is in flight — and
+ * again when the server's numbers arrive. A null target (never done, or offline) leaves the
+ * weight EMPTY: no number is better than the wrong movement's number.
+ */
+export function applySubstitution(ex: Exercise, newName: string, target: SubstituteTarget | null): Exercise {
+  const original = ex.substitutedFor ?? ex.name;
+  return {
+    ...ex,
+    name: newName,
+    substitutedFor: original === newName ? undefined : original,
+    cue: undefined,
+    barLoaded: undefined,
+    sets: ex.sets.map((s) => (s.isCompleted || s.id ? s : {
+      ...s,
+      reps: String(target?.reps ?? s.targetReps ?? s.reps),
+      weight: target?.weight != null ? String(target.weight) : '',
+      targetReps: target?.reps ?? s.targetReps,
+      targetWeight: target?.weight ?? undefined,
+      targetRpe: target?.rpe ?? s.targetRpe,
+      adjustedWeight: undefined,
+    })),
+  };
 }
 
 // How far over the prescribed RPE a set has to land before the app asks the coach whether

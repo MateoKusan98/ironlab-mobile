@@ -7,7 +7,7 @@ export interface PRResult {
   label: string;
   value: number;
   previous: number | null;
-  // 'pr' = crossed your estimated 1RM; 'mini' = rep-count record only.
+  // 'pr' = a new heaviest single; 'mini' = a new heaviest weight at 2–12 reps.
   tier: 'pr' | 'mini';
   e1rm?: number;
   prevE1rm?: number | null;
@@ -29,6 +29,7 @@ export interface SessionSet {
   isPR: boolean;
   techniqueNotes: string | null;
   techniqueRating: number | null;
+  substitutedFor?: string | null;
   loggedAt: string;
   prs?: PRResult[];
 }
@@ -93,6 +94,8 @@ export interface AddSetInput {
   isCompleted?: boolean;
   techniqueNotes?: string;
   techniqueRating?: number;
+  /** The prescribed movement this set was swapped in for, when the athlete substituted it. */
+  substitutedFor?: string;
 }
 
 export interface ExerciseSummary {

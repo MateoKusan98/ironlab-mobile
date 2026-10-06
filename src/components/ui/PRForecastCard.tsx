@@ -92,10 +92,12 @@ const LiftDetail: React.FC<{ lift: PrLiftForecast }> = ({ lift }) => {
         </Text>
       )}
 
-      {/* The actionability gap: only singles and triples can set a record. */}
+      {/* The actionability gap: the FORECAST record is a single or triple. Any rep count up
+          to 12 can set a mini PR now (2026-10-06), so this says the forecast one is not on
+          today's card — not that no record can be set. */}
       {!lift.attemptScheduled && (lift.verdict === 'primed' || lift.verdict === 'on_track') && (
         <Text style={s.gapNote}>
-          Today's session doesn't have a single or triple on {lift.label.toLowerCase()}, so no record can be set in it —
+          Today's session doesn't have a single or triple on {lift.label.toLowerCase()}, so this record isn't on the card today —
           this is what you're carrying into your next heavy day.
         </Text>
       )}
