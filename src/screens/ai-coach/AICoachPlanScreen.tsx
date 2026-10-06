@@ -921,8 +921,8 @@ export const AICoachPlanScreen: React.FC = () => {
         `PR test in ${weeksOut} weeks`,
         `Your build is done. The next ${weeksOut} weeks ramp into the attempt, then you drop straight back into the offseason. Regenerate your plan to start.`,
       );
-    } catch (e: any) {
-      Alert.alert('Not yet', e?.response?.data?.message ?? 'Could not schedule the test.');
+    } catch (e) {
+      Alert.alert('Not yet', apiErrorMessage(e, 'Could not schedule the test.'));
     } finally {
       setPeakBusy(false);
     }

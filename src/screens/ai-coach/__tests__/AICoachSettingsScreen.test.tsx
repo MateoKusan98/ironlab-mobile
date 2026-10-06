@@ -30,8 +30,8 @@ const navigation = {
   addListener: jest.fn(() => jest.fn()),
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const open = (params?: { focusSection?: string }) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial navigation/route mocks
   render(<AICoachSettingsScreen navigation={navigation as any} route={{ params } as any} />);
 
 describe('AICoachSettingsScreen', () => {
