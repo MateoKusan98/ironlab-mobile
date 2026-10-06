@@ -1,0 +1,328 @@
+import { StyleSheet } from 'react-native';
+import { theme, palette, alpha } from '../../theme';
+
+/** Styles shared by ActiveWorkoutScreen and the workout components split out of it. */
+export const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.colors.background },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: palette.gray[900],
+    borderBottomWidth: 1,
+    borderBottomColor: palette.gray[800],
+  },
+  timerBlock: { flex: 1 },
+  timerLabel: { fontSize: 10, color: palette.gray[400], fontWeight: '700', letterSpacing: 1 },
+  timerLabelPaused: { color: palette.warning[500] },
+  timer: { fontSize: 22, fontWeight: '800', color: theme.colors.text, fontVariant: ['tabular-nums'] },
+  timerPaused: { color: palette.gray[500] },
+  progressBlock: { flex: 1, alignItems: 'center' },
+  progressLabel: { fontSize: 10, color: palette.gray[400], fontWeight: '700', letterSpacing: 1 },
+  progressValue: { fontSize: 22, fontWeight: '800', color: theme.colors.text },
+  finishBtn: {
+    backgroundColor: palette.brand[600],
+    borderRadius: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  finishBtnText: { fontSize: 15, fontWeight: '700', color: palette.white },
+  cancelBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: palette.gray[700],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  cancelBtnText: { fontSize: 15, color: palette.gray[400], fontWeight: '700' },
+
+  progressBar: { height: 3, backgroundColor: palette.gray[800] },
+  progressFill: { height: 3, backgroundColor: palette.brand[500] },
+  minimizeHint: { fontSize: 10, color: palette.gray[600], textAlign: 'center', paddingVertical: 4 },
+
+  pausedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: alpha(palette.warning[900], 0.2),
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: palette.warning[500],
+    borderBottomWidth: 1,
+    borderBottomColor: palette.gray[800],
+  },
+  pausedTitle: { fontSize: 13, fontWeight: '800', color: palette.warning[500], marginBottom: 2 },
+  pausedText: { fontSize: 11, color: palette.gray[300], lineHeight: 15 },
+  resumeBtn: {
+    backgroundColor: palette.brand[600],
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  resumeBtnText: { fontSize: 14, fontWeight: '700', color: palette.white },
+
+
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 40 },
+
+  emptyState: { alignItems: 'center', paddingTop: 60, paddingBottom: 20 },
+  emptyText: { fontSize: 15, color: palette.gray[400], textAlign: 'center' },
+
+  exerciseCard: {
+    backgroundColor: palette.gray[800],
+    borderRadius: 16,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  exerciseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  exerciseLeft: { flex: 1 },
+  exerciseName: { fontSize: 16, fontWeight: '700', color: theme.colors.text },
+  exerciseMeta: { fontSize: 12, color: palette.gray[400], marginTop: 2 },
+  exerciseCue: {
+    fontSize: 12,
+    color: palette.gray[400],
+    fontStyle: 'italic',
+    marginHorizontal: 12,
+    marginTop: 6,
+    marginBottom: 2,
+  },
+  removeBtn: { padding: 8 },
+  removeBtnText: { fontSize: 13, color: palette.gray[500] },
+  chevron: { fontSize: 12, color: palette.gray[400], marginLeft: 4 },
+
+  // Exercise cues (the athlete's own + form-check verdicts) + inline add form
+  personalCuesBlock: { marginHorizontal: 12, marginTop: 6, marginBottom: 4, gap: 6 },
+  personalCueRow: {
+    flexDirection: 'row',
+    // Top-aligned, not centred: a form-check cue carries an origin line under it,
+    // and the ✕ on a neighbouring manual cue should not drift to its middle.
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+    backgroundColor: alpha(palette.warning[900], 0.133),
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  personalCueBody: { flex: 1 },
+  personalCueText: { fontSize: 13, color: palette.warning[400] },
+  personalCueOrigin: { fontSize: 11, color: palette.gray[500], marginTop: 2 },
+  personalCueDelete: { fontSize: 12, color: palette.gray[500] },
+  addCueBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
+  addCueBtnText: { fontSize: 12, color: palette.brand[400], fontWeight: '600' },
+  addCueForm: { gap: 8 },
+  addCueInput: {
+    backgroundColor: palette.gray[900],
+    borderWidth: 1,
+    borderColor: palette.gray[700],
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: theme.colors.text,
+    fontSize: 14,
+    minHeight: 40,
+  },
+  addCueActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 16 },
+  addCueCancel: { fontSize: 13, color: palette.gray[400], fontWeight: '600' },
+  addCueSave: {
+    backgroundColor: palette.brand[600],
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minWidth: 64,
+    alignItems: 'center',
+  },
+  addCueSaveDisabled: { opacity: 0.5 },
+  addCueSaveText: { fontSize: 13, color: palette.white, fontWeight: '700' },
+
+  // Cue reminder modal rows
+
+  colHeaders: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.gray[700],
+    alignItems: 'center',
+    gap: 8,
+  },
+  colHeader: { fontSize: 10, color: palette.gray[500], fontWeight: '700', letterSpacing: 0.8 },
+
+  setRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.gray[700],
+  },
+  setRowDone: { backgroundColor: palette.brand[600] + '15' },
+  setRowPR: { backgroundColor: palette.warning[900] + '40', borderLeftWidth: 2, borderLeftColor: palette.warning[500] },
+  setNum: { width: 30, fontSize: 14, fontWeight: '700', color: palette.gray[400] },
+  setNumDone: { color: palette.brand[400] },
+  setNumPR: { color: palette.warning[500] },
+
+  prBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, paddingHorizontal: 16, paddingVertical: 6, backgroundColor: palette.warning[900] + '25' },
+  prBadgeRowMini: { backgroundColor: palette.gray[800] },
+  prBadge: { backgroundColor: palette.warning[800], borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  prBadgeText: { fontSize: 11, color: palette.warning[300], fontWeight: '700' },
+  prBadgeMini: { backgroundColor: palette.gray[700] },
+  prBadgeMiniText: { color: palette.gray[300] },
+  setInput: {
+    backgroundColor: palette.gray[700],
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  setInputDone: { backgroundColor: palette.gray[900], color: palette.gray[300] },
+
+  setActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  removeSetBtn: { width: 28, height: 36, alignItems: 'center', justifyContent: 'center' },
+  removeSetBtnText: { fontSize: 15, color: palette.gray[500], fontWeight: '700' },
+  logBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: palette.brand[600],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logBtnText: { fontSize: 16, color: palette.white, fontWeight: '700' },
+  doneCheck: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: palette.brand[600],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  doneCheckText: { fontSize: 16, color: palette.white, fontWeight: '700' },
+
+  addSetBtn: {
+    margin: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: palette.gray[600],
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  addSetBtnText: { fontSize: 13, color: palette.gray[400], fontWeight: '600' },
+
+  addExerciseBtn: {
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: palette.brand[600],
+    borderStyle: 'dashed',
+    paddingVertical: 18,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  addExerciseBtnText: { fontSize: 15, fontWeight: '700', color: palette.brand[400] },
+
+  resetPlanBtn: { paddingVertical: 14, alignItems: 'center', marginTop: 4 },
+  resetPlanBtnText: { fontSize: 13, fontWeight: '600', color: palette.gray[500] },
+
+  // Modal
+
+  // Tutorial & Substitute buttons
+  tutorialBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: alpha(palette.error[600], 0.133),
+    borderWidth: 1,
+    borderColor: alpha(palette.error[600], 0.267),
+    marginRight: 4,
+  },
+  tutorialBtnText: { fontSize: 12, color: palette.error[500], fontWeight: '700' },
+
+  substituteBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: palette.gray[700],
+    marginRight: 4,
+  },
+  substituteBtnText: { fontSize: 14, color: palette.brand[400], fontWeight: '700' },
+
+  // Substitute modal
+
+
+
+
+  // Per-exercise review section
+  exerciseReview: {
+    marginHorizontal: 12,
+    marginBottom: 12,
+    padding: 14,
+    backgroundColor: palette.gray[900],
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.gray[700],
+  },
+  reviewLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: palette.brand[400],
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  reviewCueRow: {
+    marginBottom: 10,
+    paddingLeft: 8,
+    borderLeftWidth: 2,
+    borderLeftColor: palette.brand[600],
+  },
+  reviewCueLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: palette.gray[500],
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  reviewCueText: { fontSize: 13, color: palette.gray[300], fontStyle: 'italic' },
+  techRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  techCaption: { fontSize: 13, color: palette.gray[400], fontWeight: '600' },
+  techDots: { flexDirection: 'row', gap: 6 },
+  techDot: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: palette.gray[700],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  techDotActive: { backgroundColor: palette.brand[600] },
+  techDotText: { fontSize: 13, fontWeight: '700', color: palette.gray[400] },
+  techDotTextActive: { color: palette.white },
+  reviewNotes: {
+    backgroundColor: palette.gray[800],
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: theme.colors.text,
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+});
