@@ -266,7 +266,15 @@
     "adjustKeepA11y": "Keep {{weight}} kilograms",
     "minimize": "Minimize workout",
     "minimizeHint": "Double tap and hold to cancel the workout",
-    "uncompleteSet": "Mark set not done"
+    "uncompleteSet": "Mark set not done",
+    "lastTime": "Last time",
+    "lastTimeWhen": "Last time ({{when}})",
+    "lastTimeToday": "today",
+    "lastTimeYesterday": "yesterday",
+    "lastTimeDaysAgo_one": "{{count}} day ago",
+    "lastTimeDaysAgo_other": "{{count}} days ago",
+    "warmup": "Warm-up",
+    "emptyBar": "Bar"
   },
   "loadDerivation": {
     "title": "WHY {{weight}}KG",
@@ -450,7 +458,8 @@
     "decreaseCompoundRest": "Less rest between compound sets",
     "increaseCompoundRest": "More rest between compound sets",
     "decreaseIsolationRest": "Less rest between isolation sets",
-    "increaseIsolationRest": "More rest between isolation sets"
+    "increaseIsolationRest": "More rest between isolation sets",
+    "notificationsSub": "Choose what IronLab tells you about"
   },
   "workouts": {
     "category": "Workout Category",
@@ -1595,5 +1604,46 @@
     "saveFailed": "Could not save your changes.",
     "approveFailed": "Could not approve that session.",
     "rejectFailed": "Could not send that session back."
+  },
+  "notificationSettings": {
+    "title": "Notifications",
+    "loadFailed": "Couldn't load your settings — tap to retry",
+    "osBlockedTitle": "Notifications are off in your phone settings",
+    "osBlockedBody": "Nothing below can reach you until you allow them. Tap to open settings.",
+    "allEnabled": "All notifications",
+    "allEnabledBody": "Pause everything without losing your choices below.",
+    "sectionTraining": "Training",
+    "sectionProgress": "Progress",
+    "sectionCoach": "Coach & messages",
+    "dailyMotivation": "Morning coach nudge",
+    "dailyMotivationBody": "One message at 8:00 — training day, rest day, deload or comeback.",
+    "workoutReady": "Session ready",
+    "workoutReadyBody": "When your coach signs off on or adjusts your next session.",
+    "restTimer": "Rest timer sound",
+    "restTimerBody": "Plays when rest ends, even with the app closed. The in-app countdown always runs.",
+    "prAlerts": "New records",
+    "prAlertsBody": "The moment you set a PR.",
+    "weeklySummary": "Week in review",
+    "weeklySummaryBody": "Sunday evening: sessions, gains and bodyweight trend.",
+    "competitionDay": "Meet & test day",
+    "competitionDayBody": "The morning of your competition or PR test.",
+    "coachSuggestions": "Coach suggestions",
+    "coachSuggestionsBody": "A new block, a deload, or a max worth updating.",
+    "messages": "Messages",
+    "messagesBody": "Direct messages from your coach and friends.",
+    "coachReviews": "Sessions to review",
+    "coachReviewsBody": "An athlete's session is waiting for your sign-off."
+  },
+  "shareCard": {
+    "open": "Share as story image",
+    "share": "Share image",
+    "failed": "Couldn't create the image. Try again.",
+    "headline": "Session complete",
+    "prHeadline_one": "🏆 {{count}} new PR",
+    "prHeadline_other": "🏆 {{count}} new PRs",
+    "duration": "Time",
+    "sets": "Sets",
+    "volume": "Volume",
+    "footer": "Trained with IronLab"
   }
 }

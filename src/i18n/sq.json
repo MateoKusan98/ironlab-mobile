@@ -160,7 +160,15 @@
     "confirmCancel": "Jeni i/e sigurt që doni ta anuloni stërvitjen? Të gjitha të dhënat do të humbasin.",
     "techniqueNotes": "Dhimbje, shënime teknikë, vërejtje...",
     "pr": "RR",
-    "coachFocus": "FOKUSOHU TE"
+    "coachFocus": "FOKUSOHU TE",
+    "lastTime": "Herën e fundit",
+    "lastTimeWhen": "Herën e fundit ({{when}})",
+    "lastTimeToday": "sot",
+    "lastTimeYesterday": "dje",
+    "lastTimeDaysAgo_one": "{{count}} ditë më parë",
+    "lastTimeDaysAgo_other": "{{count}} ditë më parë",
+    "warmup": "Ngrohja",
+    "emptyBar": "Shufra"
   },
   "sessionSummary": {
     "greatWork": "Punë e shkëlqyer!",
@@ -273,7 +281,8 @@
     "aiCoachSettingsSub": "Kontrollo çfarë të dhënash përdor M-7EO gjatë gjenerimit të planeve dhe këshillave.",
     "foodTrackingSub": "AI lexon regjistrat tuaj ushqimorë për paralajmërime mbi ndikimin në stërvitje",
     "trainingDaysSub": "Zgjidhni numrin e seancave javore, pastaj rregulloni ditët që ju përshtaten.",
-    "trainingDaysHint": "Klikoni në një ditë poshtë për të rregulluar manualisht orarin."
+    "trainingDaysHint": "Klikoni në një ditë poshtë për të rregulluar manualisht orarin.",
+    "notificationsSub": "Zgjidh për çfarë të njofton IronLab"
   },
   "workouts": {
     "category": "Kategoria e stërvitjes",
@@ -1016,5 +1025,46 @@
     "title": "ANALIZA E TRAJNERIT",
     "coachsRead": "VLERËSIMI I TRAJNERIT",
     "writing": "Po analizoj stërvitjen tënde…"
+  },
+  "notificationSettings": {
+    "title": "Njoftimet",
+    "loadFailed": "Cilësimet nuk u ngarkuan — prek për të provuar përsëri",
+    "osBlockedTitle": "Njoftimet janë të fikura në cilësimet e telefonit",
+    "osBlockedBody": "Asgjë nga këto nuk të arrin derisa t’i lejosh. Prek për të hapur cilësimet.",
+    "allEnabled": "Të gjitha njoftimet",
+    "allEnabledBody": "Ndalo gjithçka pa humbur zgjedhjet më poshtë.",
+    "sectionTraining": "Stërvitja",
+    "sectionProgress": "Progresi",
+    "sectionCoach": "Trajneri dhe mesazhet",
+    "dailyMotivation": "Mesazhi i mëngjesit nga trajneri",
+    "dailyMotivationBody": "Një mesazh në 8:00 — ditë stërvitjeje, pushimi, deload ose rikthim.",
+    "workoutReady": "Seanca gati",
+    "workoutReadyBody": "Kur trajneri miraton ose përshtat seancën tënde të radhës.",
+    "restTimer": "Tingulli i fundit të pushimit",
+    "restTimerBody": "Bie kur mbaron pushimi, edhe kur aplikacioni është i mbyllur. Numërimi në aplikacion funksionon gjithmonë.",
+    "prAlerts": "Rekorde të reja",
+    "prAlertsBody": "Sapo vendos një PR.",
+    "weeklySummary": "Përmbledhja e javës",
+    "weeklySummaryBody": "E diel në mbrëmje: seancat, progresi dhe trendi i peshës.",
+    "competitionDay": "Dita e garës dhe testit",
+    "competitionDayBody": "Mëngjesi i garës ose testit tënd PR.",
+    "coachSuggestions": "Sugjerimet e trajnerit",
+    "coachSuggestionsBody": "Një bllok i ri, një deload ose një max që ia vlen të përditësohet.",
+    "messages": "Mesazhet",
+    "messagesBody": "Mesazhe direkte nga trajneri dhe miqtë.",
+    "coachReviews": "Seanca për rishikim",
+    "coachReviewsBody": "Seanca e një atleti pret miratimin tënd."
+  },
+  "shareCard": {
+    "open": "Shpërndaje si imazh për story",
+    "share": "Shpërndaj imazhin",
+    "failed": "Imazhi nuk u krijua. Provo përsëri.",
+    "headline": "Seanca përfundoi",
+    "prHeadline_one": "🏆 {{count}} PR i ri",
+    "prHeadline_other": "🏆 {{count}} PR të rinj",
+    "duration": "Koha",
+    "sets": "Seritë",
+    "volume": "Volumi",
+    "footer": "Stërvitur me IronLab"
   }
 }

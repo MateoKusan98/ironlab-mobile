@@ -169,7 +169,16 @@
     "coachFocus": "FOKUS NA",
     "minimize": "Smanji trening",
     "minimizeHint": "Dvaput dodirni i drži za otkazivanje treninga",
-    "uncompleteSet": "Označi seriju nezavršenom"
+    "uncompleteSet": "Označi seriju nezavršenom",
+    "lastTime": "Prošli put",
+    "lastTimeWhen": "Prošli put ({{when}})",
+    "lastTimeToday": "danas",
+    "lastTimeYesterday": "jučer",
+    "lastTimeDaysAgo_one": "prije {{count}} dan",
+    "lastTimeDaysAgo_few": "prije {{count}} dana",
+    "lastTimeDaysAgo_other": "prije {{count}} dana",
+    "warmup": "Zagrijavanje",
+    "emptyBar": "Šipka"
   },
   "sessionSummary": {
     "greatWork": "Odličan rad!",
@@ -295,7 +304,8 @@
     "decreaseCompoundRest": "Manje odmora između složenih serija",
     "increaseCompoundRest": "Više odmora između složenih serija",
     "decreaseIsolationRest": "Manje odmora između izolacijskih serija",
-    "increaseIsolationRest": "Više odmora između izolacijskih serija"
+    "increaseIsolationRest": "Više odmora između izolacijskih serija",
+    "notificationsSub": "Odaberi o čemu te IronLab obavještava"
   },
   "workouts": {
     "category": "Kategorija treninga",
@@ -1140,5 +1150,47 @@
     "viewScan": "Pogledaj skeniranje",
     "previousMonth": "Prethodni mjesec",
     "nextMonth": "Sljedeći mjesec"
+  },
+  "notificationSettings": {
+    "title": "Obavijesti",
+    "loadFailed": "Učitavanje postavki nije uspjelo — dodirni za ponovni pokušaj",
+    "osBlockedTitle": "Obavijesti su isključene u postavkama mobitela",
+    "osBlockedBody": "Ništa od ovoga ne može doći do tebe dok ih ne dopustiš. Dodirni za otvaranje postavki.",
+    "allEnabled": "Sve obavijesti",
+    "allEnabledBody": "Pauziraj sve bez gubitka odabira ispod.",
+    "sectionTraining": "Trening",
+    "sectionProgress": "Napredak",
+    "sectionCoach": "Trener i poruke",
+    "dailyMotivation": "Jutarnja poruka trenera",
+    "dailyMotivationBody": "Jedna poruka u 8:00 — dan treninga, odmora, deload ili povratak.",
+    "workoutReady": "Trening spreman",
+    "workoutReadyBody": "Kad trener odobri ili prilagodi tvoj sljedeći trening.",
+    "restTimer": "Zvuk kraja odmora",
+    "restTimerBody": "Svira kad odmor završi, i kad je aplikacija zatvorena. Odbrojavanje u aplikaciji uvijek radi.",
+    "prAlerts": "Novi rekordi",
+    "prAlertsBody": "Čim postaviš PR.",
+    "weeklySummary": "Pregled tjedna",
+    "weeklySummaryBody": "Nedjelja navečer: treninzi, napredak i trend tjelesne težine.",
+    "competitionDay": "Dan natjecanja i testa",
+    "competitionDayBody": "Jutro tvog natjecanja ili PR testa.",
+    "coachSuggestions": "Prijedlozi trenera",
+    "coachSuggestionsBody": "Novi blok, deload ili max koji vrijedi ažurirati.",
+    "messages": "Poruke",
+    "messagesBody": "Izravne poruke od trenera i prijatelja.",
+    "coachReviews": "Treninzi za pregled",
+    "coachReviewsBody": "Trening sportaša čeka tvoje odobrenje."
+  },
+  "shareCard": {
+    "open": "Podijeli kao sliku za story",
+    "share": "Podijeli sliku",
+    "failed": "Slika nije napravljena. Pokušaj ponovno.",
+    "headline": "Trening završen",
+    "prHeadline_one": "🏆 {{count}} novi PR",
+    "prHeadline_few": "🏆 {{count}} nova PR-a",
+    "prHeadline_other": "🏆 {{count}} novih PR-ova",
+    "duration": "Vrijeme",
+    "sets": "Serije",
+    "volume": "Volumen",
+    "footer": "Trenirano uz IronLab"
   }
 }

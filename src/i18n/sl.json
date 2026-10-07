@@ -160,7 +160,17 @@
     "confirmCancel": "Ste prepričani, da želite preklicati trening? Vsi podatki bodo izgubljeni.",
     "techniqueNotes": "Bolečina, napotki za tehniko, opombe...",
     "pr": "RR",
-    "coachFocus": "OSREDOTOČI SE NA"
+    "coachFocus": "OSREDOTOČI SE NA",
+    "lastTime": "Zadnjič",
+    "lastTimeWhen": "Zadnjič ({{when}})",
+    "lastTimeToday": "danes",
+    "lastTimeYesterday": "včeraj",
+    "lastTimeDaysAgo_one": "pred {{count}} dnem",
+    "lastTimeDaysAgo_two": "pred {{count}} dnevoma",
+    "lastTimeDaysAgo_few": "pred {{count}} dnevi",
+    "lastTimeDaysAgo_other": "pred {{count}} dnevi",
+    "warmup": "Ogrevanje",
+    "emptyBar": "Palica"
   },
   "sessionSummary": {
     "greatWork": "Odlično delo!",
@@ -280,7 +290,8 @@
     "aiCoachSettingsSub": "Nastavi, katere podatke M-7EO uporablja pri ustvarjanju načrtov in nasvetov.",
     "foodTrackingSub": "AI bere tvoje dnevnike prehrane za opozorila o vplivu na trening",
     "trainingDaysSub": "Izberi število sej na teden, nato natančno nastavi katere dni ti ustrezajo.",
-    "trainingDaysHint": "Tapni dan spodaj za ročno nastavitev urnika."
+    "trainingDaysHint": "Tapni dan spodaj za ročno nastavitev urnika.",
+    "notificationsSub": "Izberi, o čem te IronLab obvešča"
   },
   "workouts": {
     "category": "Kategorija treninga",
@@ -1030,5 +1041,48 @@
     "title": "TRENERJEVA ANALIZA",
     "coachsRead": "TRENERJEV POGLED",
     "writing": "Pregledujem tvoj trening…"
+  },
+  "notificationSettings": {
+    "title": "Obvestila",
+    "loadFailed": "Nastavitev ni bilo mogoče naložiti — tapni za ponovni poskus",
+    "osBlockedTitle": "Obvestila so izklopljena v nastavitvah telefona",
+    "osBlockedBody": "Nič od spodnjega te ne doseže, dokler jih ne dovoliš. Tapni za odpiranje nastavitev.",
+    "allEnabled": "Vsa obvestila",
+    "allEnabledBody": "Začasno ustavi vse, ne da bi izgubil izbire spodaj.",
+    "sectionTraining": "Trening",
+    "sectionProgress": "Napredek",
+    "sectionCoach": "Trener in sporočila",
+    "dailyMotivation": "Jutranje sporočilo trenerja",
+    "dailyMotivationBody": "Eno sporočilo ob 8:00 — dan treninga, počitka, deload ali vrnitev.",
+    "workoutReady": "Trening pripravljen",
+    "workoutReadyBody": "Ko trener odobri ali prilagodi tvoj naslednji trening.",
+    "restTimer": "Zvok konca počitka",
+    "restTimerBody": "Zaigra, ko se počitek konča, tudi ko je aplikacija zaprta. Odštevanje v aplikaciji vedno teče.",
+    "prAlerts": "Novi rekordi",
+    "prAlertsBody": "Takoj ko postaviš PR.",
+    "weeklySummary": "Pregled tedna",
+    "weeklySummaryBody": "Nedelja zvečer: treningi, napredek in trend telesne teže.",
+    "competitionDay": "Dan tekmovanja in testa",
+    "competitionDayBody": "Jutro tvojega tekmovanja ali PR testa.",
+    "coachSuggestions": "Predlogi trenerja",
+    "coachSuggestionsBody": "Nov blok, deload ali max, ki ga je vredno posodobiti.",
+    "messages": "Sporočila",
+    "messagesBody": "Neposredna sporočila trenerja in prijateljev.",
+    "coachReviews": "Treningi za pregled",
+    "coachReviewsBody": "Trening športnika čaka na tvojo odobritev."
+  },
+  "shareCard": {
+    "open": "Deli kot sliko za zgodbo",
+    "share": "Deli sliko",
+    "failed": "Slike ni bilo mogoče ustvariti. Poskusi znova.",
+    "headline": "Trening končan",
+    "prHeadline_one": "🏆 {{count}} nov PR",
+    "prHeadline_two": "🏆 {{count}} nova PR-ja",
+    "prHeadline_few": "🏆 {{count}} novi PR-ji",
+    "prHeadline_other": "🏆 {{count}} novih PR-jev",
+    "duration": "Čas",
+    "sets": "Serije",
+    "volume": "Volumen",
+    "footer": "Trenirano z IronLab"
   }
 }
