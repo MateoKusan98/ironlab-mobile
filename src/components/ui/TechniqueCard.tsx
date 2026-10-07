@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { palette, alpha } from '../../theme';
 import { aiCoachService, TechniqueLift } from '../../services/ai-coach.service';
@@ -99,13 +99,18 @@ export const TechniqueCard: React.FC = () => {
   const [lifts, setLifts] = useState<TechniqueLift[] | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    aiCoachService.technique()
-      .then((d) => { if (!cancelled) setLifts(d.lifts); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
+  // On focus, not on mount: the Workouts tab stays mounted while the athlete films, so a
+  // mount-only fetch kept showing the pre-check score after he came back from Form Check
+  // (2026-10-07: a sumo deadlift 8/10 that the backend had already counted).
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      aiCoachService.technique()
+        .then((d) => { if (!cancelled) setLifts(d.lifts); })
+        .catch(() => {});
+      return () => { cancelled = true; };
+    }, []),
+  );
 
   const goFilm = useCallback(() => navigation.navigate('FormCheck'), [navigation]);
 
