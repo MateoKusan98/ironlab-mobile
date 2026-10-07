@@ -659,10 +659,17 @@ export const ProfileScreen: React.FC = () => {
               <Text style={styles.exportSub}>Your direct conversations</Text>
             </View>
           </TouchableOpacity>
-          <View style={styles.menuItem}>
-            <Bell size={20} weight="bold" color={palette.gray[400]} />
-            <Text style={styles.menuText}>{t('profile.notifications')}</Text>
-          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('NotificationSettings')}
+          >
+            <Bell size={20} weight="fill" color={palette.brand[400]} />
+            <View style={styles.exportTextWrap}>
+              <Text style={styles.menuText}>{t('profile.notifications')}</Text>
+              <Text style={styles.exportSub}>{t('profile.notificationsSub', { defaultValue: 'Choose what IronLab tells you about' })}</Text>
+            </View>
+          </TouchableOpacity>
           <View style={styles.menuItem}>
             <Lock size={20} weight="bold" color={palette.gray[400]} />
             <Text style={styles.menuText}>{t('profile.privacy')}</Text>

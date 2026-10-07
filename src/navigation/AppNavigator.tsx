@@ -27,6 +27,9 @@ import { AICoachWelcomeScreen } from '../screens/ai-coach/AICoachWelcomeScreen';
 import { AICoachSetupScreen } from '../screens/ai-coach/AICoachSetupScreen';
 import { AICoachExtendedSetupScreen } from '../screens/ai-coach/AICoachExtendedSetupScreen';
 import { AICoachSettingsScreen } from '../screens/ai-coach/AICoachSettingsScreen';
+import { NotificationSettingsScreen } from '../screens/client/NotificationSettingsScreen';
+import { navigationRef } from './navigationRef';
+import { useNotificationTapRouting } from './useNotificationTapRouting';
 import { AICoachChatScreen } from '../screens/ai-coach/AICoachChatScreen';
 import { AICoachPlanScreen } from '../screens/ai-coach/AICoachPlanScreen';
 import { DailyCheckInScreen } from '../screens/client/DailyCheckInScreen';
@@ -133,6 +136,7 @@ export type RootStackParamList = {
   SessionSummary: { sessionId: string; durationMinutes: number; prs?: { type: string; label: string; value: number; previous: number | null; exerciseName: string; tier: 'pr' | 'mini'; e1rm?: number; prevE1rm?: number | null }[] };
   CardioLog: undefined;
   SupportChat: undefined;
+  NotificationSettings: undefined;
   FormCheck: undefined;
   AdminUsers: undefined;
   AdminAILab: { userId?: string; userName?: string };
@@ -168,9 +172,10 @@ export const AppNavigator: React.FC = () => {
       registerPushToken();
     }
   }, [isAuthenticated]);
+  useNotificationTapRouting(isAuthenticated);
 
   return (
-    <NavigationContainer theme={navTheme}>
+    <NavigationContainer theme={navTheme} ref={navigationRef}>
       <View style={{ flex: 1 }}>
         {/* Sits in normal flow above the navigator so it pushes screens down. */}
         <ImpersonationBanner />
@@ -191,7 +196,10 @@ export const AppNavigator: React.FC = () => {
                   {!isAuthenticated ? (
                     <Stack.Screen name="Auth" component={AuthStack} />
                   ) : user?.role === UserRole.ROLE_COACH ? (
-                    <Stack.Screen name="CoachApp" component={CoachTabs} />
+                    <>
+                      <Stack.Screen name="CoachApp" component={CoachTabs} />
+                      <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+                    </>
                   ) : (
                     <>
                       <Stack.Group>
@@ -246,6 +254,7 @@ export const AppNavigator: React.FC = () => {
                       </Stack.Group>
 
                       <Stack.Screen name="SupportChat" component={SupportChatScreen} />
+                      <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
                       <Stack.Screen name="FormCheck" component={FormCheckScreen} />
                       <Stack.Screen name="Quiz" component={QuizScreen} />
                       <Stack.Screen name="Badges" component={BadgesScreen} />

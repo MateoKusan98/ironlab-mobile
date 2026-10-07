@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { api } from './api';
+import { isRestTimerAlertEnabled } from './notificationPrefs.service';
 
 import { palette } from '../theme';
 // How notifications are displayed while app is in foreground.
@@ -46,6 +47,8 @@ async function ensureRestChannel(): Promise<string | undefined> {
 export async function scheduleRestTimerAlert(seconds: number): Promise<string | null> {
   try {
     if (!Number.isFinite(seconds) || seconds <= 0) return null;
+    // Turned off in Notification settings: the in-app countdown and vibration still run.
+    if (!(await isRestTimerAlertEnabled())) return null;
 
     const { status: existing } = await Notifications.getPermissionsAsync();
     let granted = existing === 'granted';
