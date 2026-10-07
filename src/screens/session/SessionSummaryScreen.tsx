@@ -25,7 +25,9 @@ import { projectSessionPoints } from '../../services/badges.service';
 import { aiCoachService, SessionDebrief } from '../../services/ai-coach.service';
 import { useBadgeCelebration } from '../../contexts/BadgeCelebrationContext';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, Check, Sparkle, Copy, ShareNetwork } from 'phosphor-react-native';
-import { LANGUAGES } from '../../i18n';
+import { LANGUAGES, LANGUAGE_LOCALES, safeLocaleDateString } from '../../i18n';
+import { ShareCardModal } from './share/ShareCardModal';
+import { isImageShareAvailable } from './share/viewShot';
 
 import { Card, SessionDebriefCard } from '../../components/ui';
 type SummaryRouteProp = RouteProp<RootStackParamList, 'SessionSummary'>;
@@ -113,6 +115,9 @@ export const SessionSummaryScreen: React.FC = () => {
   // (e.g. the workout was left open). Seeded from the active screen's value.
   const [duration, setDuration] = useState(durationMinutes);
   const [editingDuration, setEditingDuration] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
+  // Fixed for the screen's life: whether this build has the native module at all.
+  const [canShareImage] = useState(isImageShareAvailable);
   const [editH, setEditH] = useState('');
   const [editM, setEditM] = useState('');
 
@@ -446,6 +451,17 @@ export const SessionSummaryScreen: React.FC = () => {
         <Card background={palette.gray[800]} bordered={false} style={styles.cardSpacing}>
           <Text style={styles.cardLabel}>SHARE TO SOCIALS</Text>
 
+          {canShareImage && session?.sessionType === 'strength' && session.sets.some((st) => st.isCompleted) && (
+            <TouchableOpacity
+              accessibilityRole="button"
+              style={[styles.shareGenBtn, styles.shareImageBtn]}
+              onPress={() => setShowShareCard(true)}
+            >
+              <ShareNetwork size={18} weight="bold" color={palette.white} />
+              <Text style={styles.shareGenText}>{t('shareCard.open', { defaultValue: 'Share as story image' })}</Text>
+            </TouchableOpacity>
+          )}
+
           {!captions && !captionLoading && (
             <>
               <Text style={styles.shareHint}>
@@ -640,6 +656,18 @@ export const SessionSummaryScreen: React.FC = () => {
           </Card>
         </TouchableOpacity>
       </Modal>
+
+      {session && (
+        <ShareCardModal
+          visible={showShareCard}
+          onClose={() => setShowShareCard(false)}
+          sets={session.sets}
+          date={safeLocaleDateString(new Date(`${session.date.slice(0, 10)}T12:00:00`), LANGUAGE_LOCALES[i18n.language] ?? 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+          durationMinutes={duration}
+          prs={prs ?? []}
+          exName={exName}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -718,6 +746,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   shareGenText: { fontSize: 15, fontWeight: '700', color: palette.white },
+  shareImageBtn: { backgroundColor: palette.gray[700], marginBottom: 14 },
   shareLoading: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
   styleTabs: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   styleTab: {
