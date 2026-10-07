@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { palette } from '../../../theme';
 import { ExerciseCue } from '../../../services/exerciseCue.service';
 import { InSessionAdjustment } from '../../../services/ai-coach.service';
+import type { LastPerformance } from '../../../services/session.service';
 import { Exercise, LocalSet } from '../workoutState';
 import { openTutorial } from '../exerciseCatalog';
 import { styles } from '../ActiveWorkoutScreen.styles';
@@ -11,10 +12,13 @@ import { ExerciseCueList } from './ExerciseCueList';
 import { SetRow } from './SetRow';
 import { ExerciseReview } from './ExerciseReview';
 import { LoadAdjustCard } from './LoadAdjustCard';
+import { LastTimeLine } from './LastTimeLine';
+import { WarmupStrip } from './WarmupStrip';
 
 /** The handlers an exercise card needs, all addressed by this card's exercise index. */
 export interface ExerciseCardActions {
   toggleExpand: (exIdx: number) => void;
+  toggleWarmup: (exIdx: number, weight: number) => void;
   openSubstitute: (exIdx: number) => void;
   removeExercise: (exIdx: number) => void;
   openRpeGuide: () => void;
@@ -49,6 +53,8 @@ export interface ExerciseCardProps {
   barLoading: { barKg: number; plates: number[] } | null | undefined;
   /** The live load cut, when it belongs to this exercise. */
   adjustment: InSessionAdjustment | null;
+  /** What the athlete did the previous time they trained this movement, if ever. */
+  lastTime?: LastPerformance;
   cueForm: ExerciseCardCueForm;
   actions: ExerciseCardActions;
 }
@@ -60,7 +66,7 @@ export interface ExerciseCardProps {
  * Split out of ActiveWorkoutScreen (2026-10-06, a move with no behaviour change).
  */
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({
-  exercise: ex, exIdx, exName, barLoading, adjustment, cueForm, actions,
+  exercise: ex, exIdx, exName, barLoading, adjustment, lastTime, cueForm, actions,
 }) => {
   const { t } = useTranslation();
   return (
@@ -72,6 +78,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
           <Text style={styles.exerciseMeta}>
             {ex.sets.filter((s) => s.isCompleted).length}/{ex.sets.length} sets
           </Text>
+          {lastTime && <LastTimeLine lastTime={lastTime} />}
         </View>
         <TouchableOpacity
           onPress={() => openTutorial(ex.name)}
@@ -118,6 +125,12 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             onCloseForm={cueForm.closeForm}
             onSave={cueForm.save}
             onDelete={cueForm.remove}
+          />
+
+          <WarmupStrip
+            exercise={ex}
+            barLoading={barLoading ?? null}
+            onToggle={(weight) => actions.toggleWarmup(exIdx, weight)}
           />
 
           {/* Column Headers */}

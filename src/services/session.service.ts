@@ -301,7 +301,26 @@ export interface AthleteStats {
   bodyweight: { date: string; weight: number }[];
 }
 
+/** One set from the last time a movement was trained (POST /sessions/last-performance). */
+export interface LastPerformanceSet {
+  reps: number;
+  weight: number | null;
+  rpe: number | null;
+}
+
+/** What the athlete did the most recent time they trained a movement. Display only. */
+export interface LastPerformance {
+  completedAt: string;
+  sets: LastPerformanceSet[];
+}
+
 export const sessionService = {
+  /** "Last time" per movement, keyed by the names sent. Movements never logged are absent. */
+  getLastPerformance: async (names: string[]): Promise<Record<string, LastPerformance>> => {
+    const { data } = await api.post<{ data: Record<string, LastPerformance> }>('/sessions/last-performance', { names });
+    return data.data;
+  },
+
   createSession: async (input: CreateSessionInput): Promise<WorkoutSession> => {
     const { data } = await api.post<{ data: WorkoutSession }>('/sessions', input);
     return data.data;

@@ -41,6 +41,14 @@ export function useExerciseEditing(deps: ExerciseEditingDeps) {
     );
   };
 
+  const toggleWarmup = (exIdx: number, weight: number) => {
+    setExercises((prev) => prev.map((ex, i) => {
+      if (i !== exIdx) return ex;
+      const done = ex.warmupsDone ?? [];
+      return { ...ex, warmupsDone: done.includes(weight) ? done.filter((w) => w !== weight) : [...done, weight] };
+    }));
+  };
+
   const substituteExercise = (exIdx: number, newName: string) => {
     const ex = exercises[exIdx];
     if (!ex) return;
@@ -92,6 +100,6 @@ export function useExerciseEditing(deps: ExerciseEditingDeps) {
 
   return {
     showAddExercise, setShowAddExercise, substituteIdx, setSubstituteIdx,
-    addExercise, toggleExpand, substituteExercise, removeExercise,
+    addExercise, toggleExpand, toggleWarmup, substituteExercise, removeExercise,
   };
 }

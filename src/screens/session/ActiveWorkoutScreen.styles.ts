@@ -87,6 +87,7 @@ export const styles = StyleSheet.create({
   exerciseLeft: { flex: 1 },
   exerciseName: { fontSize: 16, fontWeight: '700', color: theme.colors.text },
   exerciseMeta: { fontSize: 12, color: palette.gray[400], marginTop: 2 },
+  lastTime: { fontSize: 12, color: palette.brand[300], marginTop: 3 },
   exerciseCue: {
     fontSize: 12,
     color: palette.gray[400],

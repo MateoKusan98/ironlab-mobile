@@ -76,6 +76,11 @@ export interface Exercise {
    * Leg Press → Hack Squat still replaced Good Morning) and cleared on a swap back.
    */
   substitutedFor?: string;
+  /**
+   * Warm-up weights the athlete has ticked off (see warmup.ts). Local only — warm-ups
+   * are never logged as sets — but kept on the exercise so the draft carries them.
+   */
+  warmupsDone?: number[];
 }
 
 export interface PlannedExercise {
@@ -344,6 +349,7 @@ export function applySubstitution(ex: Exercise, newName: string, target: Substit
     substitutedFor: original === newName ? undefined : original,
     cue: undefined,
     barLoaded: undefined,
+    warmupsDone: undefined,
     sets: ex.sets.map((s) => (s.isCompleted || s.id ? s : {
       ...s,
       reps: String(target?.reps ?? s.targetReps ?? s.reps),

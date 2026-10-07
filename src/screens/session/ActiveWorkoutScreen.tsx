@@ -39,6 +39,7 @@ import { useSetEditing } from './hooks/useSetEditing';
 import { useExerciseEditing } from './hooks/useExerciseEditing';
 import { useCueForm } from './hooks/useCueForm';
 import { useRpeGuide } from './hooks/useRpeGuide';
+import { useLastPerformance } from './hooks/useLastPerformance';
 import { sessionService } from '../../services/session.service';
 
 type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
@@ -89,6 +90,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const exerciseEditing = useExerciseEditing({ exercises, setExercises, removedSetIdsRef, sentReviewsRef });
   const cueForm = useCueForm(exercises, saveCue, deleteCue);
   const { rpeGuideVisible, setRpeGuideVisible, handleRpeFocus } = useRpeGuide();
+  const lastTimeByName = useLastPerformance(exercises.map((ex) => ex.name), !resumeLoading);
 
   const handleMinimize = () => {
     navigation.navigate('ClientApp');
@@ -161,6 +163,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
 
   const cardActions = {
     toggleExpand: exerciseEditing.toggleExpand,
+    toggleWarmup: exerciseEditing.toggleWarmup,
     openSubstitute: exerciseEditing.setSubstituteIdx,
     removeExercise: exerciseEditing.removeExercise,
     openRpeGuide: () => setRpeGuideVisible(true),
@@ -215,6 +218,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
               exName={exName}
               barLoading={barLoading}
               adjustment={adjustment?.exIdx === exIdx ? adjustment.data : null}
+              lastTime={lastTimeByName[ex.name]}
               cueForm={{
                 cues: cuesByKey.get(exerciseCueKey(ex.name)) ?? [],
                 open: cueForm.addCueFor === exIdx,
