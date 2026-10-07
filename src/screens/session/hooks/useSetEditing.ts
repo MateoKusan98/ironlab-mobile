@@ -4,9 +4,11 @@ import { sessionService } from '../../../services/session.service';
 import { useSettingsStore } from '../../../stores/settings.store';
 import { classifyExercise } from '../../../utils/exerciseType';
 import { Exercise, LocalSet, nextSetUid } from '../workoutState';
+import { loggedAsOf, newClientSetId, patchSetByUid, rememberRemoval } from '../setSync';
+import type { PushResult } from './useSetSync';
+import { LiftingUnit, unitLabel } from '../../../units/weight';
 
 export interface SetEditingDeps {
-  sessionId: string;
   exercises: Exercise[];
   setExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
   removedSetIdsRef: React.MutableRefObject<Set<string>>;
@@ -15,6 +17,10 @@ export interface SetEditingDeps {
   stopRest: () => void;
   maybeSuggestAdjustment: (exIdx: number, ex: Exercise, set: LocalSet) => Promise<void>;
   exName: (name: string) => string;
+  pushSet: (located: { exIdx: number; ex: Exercise; set: LocalSet }) => Promise<PushResult>;
+  flushPending: () => Promise<boolean>;
+  unsyncedCount: number;
+  unit: LiftingUnit;
 }
 
 /**
@@ -24,7 +30,10 @@ export interface SetEditingDeps {
  * Split out of ActiveWorkoutScreen (2026-10-06, a move with no behaviour change).
  */
 export function useSetEditing(deps: SetEditingDeps) {
-  const { sessionId, exercises, setExercises, removedSetIdsRef, markActivity, startRest, stopRest, maybeSuggestAdjustment, exName } = deps;
+  const {
+    exercises, setExercises, removedSetIdsRef, markActivity, startRest, stopRest, maybeSuggestAdjustment, exName,
+    pushSet, flushPending, unsyncedCount, unit,
+  } = deps;
   // Remembers which (exercise, field, value) prefill prompts we've already shown,
   // so blurring the same field repeatedly doesn't re-ask for the same value.
   const prefillAskedRef = useRef<Set<string>>(new Set());
@@ -72,19 +81,10 @@ export function useSetEditing(deps: SetEditingDeps) {
     });
   };
 
-  // Patch a set by its stable uid rather than its index. Use this from async
-  // callbacks (e.g. after a save resolves): by the time the promise settles the
-  // set may have shifted position — or been removed — so an index would be stale
-  // and could clobber the wrong row.
-  const patchSetByUid = (exIdx: number, uid: string, patch: Partial<LocalSet>) => {
-    setExercises((prev) => {
-      const updated = [...prev];
-      const ex = { ...updated[exIdx] };
-      ex.sets = ex.sets.map((s) => s.uid === uid ? { ...s, ...patch } : s);
-      updated[exIdx] = ex;
-      return updated;
-    });
-  };
+  // Patch a set by its stable uid rather than its index: an index read before an
+  // await can point at a different row by the time the promise settles.
+  const patchSet = (uid: string, patch: Partial<LocalSet>) =>
+    setExercises((prev) => patchSetByUid(prev, uid, patch));
 
   // After editing one set's weight/RPE, offer to copy that value into the
   // exercise's other not-yet-completed sets (e.g. bump Squat 120→125 and apply
@@ -103,7 +103,7 @@ export function useSetEditing(deps: SetEditingDeps) {
     prefillAskedRef.current.add(key);
 
     const isWeight = field === 'weight';
-    const display = isWeight ? `${value}kg` : `RPE ${value}`;
+    const display = isWeight ? `${value}${unitLabel(unit)}` : `RPE ${value}`;
     Alert.alert(
       'Apply to other sets?',
       `Use ${display} for the other ${targets.length} ${targets.length > 1 ? 'sets' : 'set'} of ${ex.name}?`,
@@ -126,6 +126,11 @@ export function useSetEditing(deps: SetEditingDeps) {
     );
   };
 
+  /**
+   * Tick a set. It is ticked NOW, whatever the signal: the save runs behind it, and a save
+   * that fails for want of signal leaves the set ticked and queued (useSetSync) instead of
+   * un-ticking it and asking the athlete to try again — see setSync.ts.
+   */
   const completeSet = async (exIdx: number, setIdx: number) => {
     const ex = exercises[exIdx];
     const set = ex.sets[setIdx];
@@ -142,66 +147,49 @@ export function useSetEditing(deps: SetEditingDeps) {
     markActivity();
     const restDuration = classifyExercise(ex.name) === 'compound' ? compoundRestSecs : isolationRestSecs;
     startRest(restDuration);
-    patchSetByUid(exIdx, set.uid, { isCompleted: true, isSaving: true });
 
-    try {
-      if (set.id) {
-        await sessionService.updateSet(set.id, {
-          repsCompleted: set.reps ? parseInt(set.reps) : undefined,
-          weightUsed: set.weight ? parseFloat(set.weight) : undefined,
-          rpe: set.rpe ? parseFloat(set.rpe) : undefined,
-          isCompleted: true,
-        });
-        patchSetByUid(exIdx, set.uid, { isSaving: false });
-      } else {
-        const saved = await sessionService.addSet(sessionId, {
-          exerciseName: ex.name,
-          exerciseOrder: ex.order,
-          setNumber: set.setNumber,
-          ...(ex.substitutedFor ? { substitutedFor: ex.substitutedFor } : {}),
-          targetReps: set.targetReps,
-          targetWeight: set.targetWeight,
-          targetRpe: set.targetRpe,
-          repsCompleted: set.reps ? parseInt(set.reps) : undefined,
-          weightUsed: set.weight ? parseFloat(set.weight) : undefined,
-          rpe: set.rpe ? parseFloat(set.rpe) : undefined,
-          isCompleted: true,
-        });
-        if (saved.prs && saved.prs.length > 0) {
-          Vibration.vibrate([0, 60, 40, 60]);
-        }
-        patchSetByUid(exIdx, set.uid, { id: saved.id, prs: saved.prs, isSaving: false });
-      }
+    const ticked: LocalSet = {
+      ...set,
+      isCompleted: true,
+      clientSetId: set.clientSetId ?? newClientSetId(),
+      // A row the server already holds keeps the name and time it was saved with.
+      ...(set.id ? {} : { performedAt: new Date().toISOString(), loggedAs: loggedAsOf(ex) }),
+    };
+    patchSet(set.uid, ticked);
+
+    const result = await pushSet({ exIdx, ex, set: ticked });
+    if (result.status === 'saved') {
+      if (result.prs && result.prs.length > 0) Vibration.vibrate([0, 60, 40, 60]);
       // After the set is safely on the server, never before: the suggestion reads the set
-      // log server-side, and asking about a set that failed to save would recompute
+      // log server-side, and asking about a set that has not landed would recompute
       // against the previous one.
-      maybeSuggestAdjustment(exIdx, ex, set);
-    } catch {
-      patchSetByUid(exIdx, set.uid, { isCompleted: false, isSaving: false });
-      Alert.alert('Error', 'Could not save set. Check connection.');
+      maybeSuggestAdjustment(exIdx, ex, ticked);
+      // This one got through, so the signal is back — send anything still waiting.
+      if (unsyncedCount > 0) flushPending();
+    } else if (result.status === 'rejected') {
+      Alert.alert('Error', result.message ? `Could not save set: ${result.message}` : 'Could not save set.');
     }
   };
 
   const uncompleteSet = async (exIdx: number, setIdx: number) => {
-    const set = exercises[exIdx].sets[setIdx];
+    const ex = exercises[exIdx];
+    const set = ex.sets[setIdx];
     // Don't let an un-complete race an in-flight save of the same set.
     if (set.isSaving) return;
-    const prevPrs = set.prs;
 
     Vibration.vibrate(30);
     stopRest();
     // Un-completing also clears any PR this set earned — the backend drops the
     // PR flag, so mirror that locally to hide the trophy (and keep it out of the
-    // end-of-session summary).
-    patchSetByUid(exIdx, set.uid, { isCompleted: false, prs: undefined });
+    // end-of-session summary). A set the server never heard of has nothing to undo.
+    const everSent = !!(set.id || set.clientSetId);
+    const unticked: LocalSet = { ...set, isCompleted: false, prs: undefined, unsynced: everSent && set.unsynced };
+    patchSet(set.uid, unticked);
+    if (!everSent) return;
 
-    if (set.id) {
-      try {
-        await sessionService.updateSet(set.id, { isCompleted: false });
-      } catch {
-        patchSetByUid(exIdx, set.uid, { isCompleted: true, prs: prevPrs });
-        Alert.alert('Error', 'Could not update set. Check connection.');
-      }
+    const result = await pushSet({ exIdx, ex, set: unticked });
+    if (result.status === 'rejected') {
+      Alert.alert('Error', result.message ? `Could not update set: ${result.message}` : 'Could not update set.');
     }
   };
 
@@ -213,12 +201,10 @@ export function useSetEditing(deps: SetEditingDeps) {
 
     const doRemove = () => {
       // Delete the persisted row if this set was already saved; ignore failures
-      // so the local UI still updates. Remember the id either way — that's what
+      // so the local UI still updates. Remember it either way — that's what
       // stops a failed delete from resurrecting the set on the next resume.
-      if (set.id) {
-        removedSetIdsRef.current.add(set.id);
-        sessionService.deleteSet(set.id).catch(() => {});
-      }
+      const serverId = rememberRemoval(set, removedSetIdsRef.current);
+      if (serverId) sessionService.deleteSet(serverId).catch(() => {});
       // If we're deleting the set that kicked off the current rest countdown,
       // stop the rest — there's no set left to rest from.
       if (set.isCompleted) stopRest();

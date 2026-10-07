@@ -4,12 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { sessionService } from '../../../services/session.service';
 import { aiCoachService } from '../../../services/ai-coach.service';
 import { Exercise, applySubstitution, nextSetUid } from '../workoutState';
+import { rememberRemoval } from '../setSync';
+import type { LiftingUnit } from '../../../units/weight';
 
 export interface ExerciseEditingDeps {
   exercises: Exercise[];
   setExercises: React.Dispatch<React.SetStateAction<Exercise[]>>;
   removedSetIdsRef: React.MutableRefObject<Set<string>>;
   sentReviewsRef: React.MutableRefObject<Map<string, string>>;
+  unit: LiftingUnit;
 }
 
 /**
@@ -19,7 +22,7 @@ export interface ExerciseEditingDeps {
  * Split out of ActiveWorkoutScreen (2026-10-06, a move with no behaviour change).
  */
 export function useExerciseEditing(deps: ExerciseEditingDeps) {
-  const { exercises, setExercises, removedSetIdsRef, sentReviewsRef } = deps;
+  const { exercises, setExercises, removedSetIdsRef, sentReviewsRef, unit } = deps;
   const { t } = useTranslation();
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [substituteIdx, setSubstituteIdx] = useState<number | null>(null);
@@ -73,7 +76,7 @@ export function useExerciseEditing(deps: ExerciseEditingDeps) {
           ? t('activeWorkout.substituteWorkUp', { defaultValue: 'No history on this movement yet — work up to the target reps and log what you used. Next time it is loaded from your own numbers.' })
           : undefined;
         setExercises((prev) => prev.map((e, i) =>
-          i === exIdx && e.name === newName ? { ...applySubstitution(e, newName, target), cue: workUp } : e));
+          i === exIdx && e.name === newName ? { ...applySubstitution(e, newName, target, unit), cue: workUp } : e));
       })
       // A swap must never fail on a pricing call: offline, the weight simply stays empty.
       .catch(() => {});
@@ -86,11 +89,10 @@ export function useExerciseEditing(deps: ExerciseEditingDeps) {
         text: 'Remove',
         style: 'destructive',
         onPress: () => {
-          const toDelete = exercises[exIdx].sets.filter((s) => s.id);
-          toDelete.forEach((s) => {
-            removedSetIdsRef.current.add(s.id!);
-            sessionService.deleteSet(s.id!).catch(() => {});
-          });
+          for (const s of exercises[exIdx].sets) {
+            const serverId = rememberRemoval(s, removedSetIdsRef.current);
+            if (serverId) sessionService.deleteSet(serverId).catch(() => {});
+          }
           sentReviewsRef.current.delete(exercises[exIdx].name);
           setExercises((prev) => prev.filter((_, i) => i !== exIdx));
         },

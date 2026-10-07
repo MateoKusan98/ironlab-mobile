@@ -168,7 +168,13 @@
     "lastTimeDaysAgo_one": "{{count}} ditë më parë",
     "lastTimeDaysAgo_other": "{{count}} ditë më parë",
     "warmup": "Ngrohja",
-    "emptyBar": "Shufra"
+    "emptyBar": "Shufra",
+    "weightIn": "PESHA ({{unit}})",
+    "notSynced": "Ende e pasinkronizuar · ruajtur në telefon",
+    "notSyncedA11y": "Ende e pasinkronizuar. Ruajtur në telefon, do të provojmë përsëri.",
+    "unsyncedFinishTitle": "Disa seri ende nuk janë sinkronizuar",
+    "unsyncedFinishBody": "Janë ruajtur në telefon. Përfundoje stërvitjen kur të kesh sinjal — asgjë nuk humbet ndërkohë.",
+    "unsyncedRetry": "Provo përsëri"
   },
   "sessionSummary": {
     "greatWork": "Punë e shkëlqyer!",
@@ -1066,5 +1072,26 @@
     "sets": "Seritë",
     "volume": "Volumi",
     "footer": "Stërvitur me IronLab"
+  },
+  "units": {
+    "kilograms": "kilogramë",
+    "pounds": "paund"
+  },
+  "exerciseHistory": {
+    "openHint": "Hap të gjitha seancat e këtij ushtrimi",
+    "sessionCount_one": "{{count}} seancë e regjistruar",
+    "sessionCount_other": "{{count}} seanca të regjistruara",
+    "loadFailed": "Historiku nuk u ngarkua. Kontrollo lidhjen.",
+    "empty": "Ende asgjë e regjistruar për këtë ushtrim.",
+    "bests": "MË E MIRA E NGRITUR",
+    "trend": "1RM I VLERËSUAR"
+  },
+  "liftingUnit": {
+    "title": "PESHAT NË SHUFËR",
+    "sub": "Njësia me të cilën ngarkon shufrën. Historiku konvertohet me të.",
+    "saveFailed": "Njësia nuk u ndryshua dot. Provo përsëri."
+  },
+  "loadDerivation": {
+    "roundedLb": "rrumbullakosur në 5lb që mund të ngarkohen"
   }
 }

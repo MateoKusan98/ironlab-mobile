@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Vibration } from 'react-native';
 import { aiCoachService, InSessionAdjustment } from '../../../services/ai-coach.service';
 import { Exercise, LocalSet, shouldAskForAdjustment } from '../workoutState';
+import { LiftingUnit, prescribedInUnit } from '../../../units/weight';
 
 /**
  * The live in-session load cut: asked for after an overshoot, offered under the
@@ -12,6 +13,7 @@ import { Exercise, LocalSet, shouldAskForAdjustment } from '../workoutState';
 export function useLoadAdjustment(
   sessionId: string,
   setExercises: React.Dispatch<React.SetStateAction<Exercise[]>>,
+  unit: LiftingUnit,
 ) {
   // The live in-session load cut, and the exercise it belongs to. At most one is on
   // screen at a time — a workout is not the place for a queue of decisions.
@@ -59,7 +61,7 @@ export function useLoadAdjustment(
       ...ex,
       sets: ex.sets.map((s) => s.isCompleted
         ? s
-        : { ...s, weight: String(data.suggestedWeight), adjustedWeight: data.suggestedWeight }),
+        : { ...s, weight: String(prescribedInUnit(data.suggestedWeight, unit)), adjustedWeight: data.suggestedWeight }),
     }));
     setAdjustment(null);
     Vibration.vibrate(30);

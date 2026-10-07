@@ -86,6 +86,8 @@ export interface NextSessionExercise {
 export interface BarLoading {
   barKg: number;
   plates: number[];
+  /** The same venue in pounds — a 45lb bar and pound plates (see units/weight.ts). */
+  lb?: { bar: number; plates: number[] };
 }
 
 /** Schedule + big-3 frequency the coach infers from recent logged sessions. */

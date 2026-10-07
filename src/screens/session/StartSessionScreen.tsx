@@ -29,6 +29,8 @@ import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy, ChartBar } from 'phosph
 import { Card, PRForecastCard } from '../../components/ui';
 import { LoadDerivation } from './components/LoadDerivation';
 import { apiErrorMessage } from '../../utils/apiError';
+import { formatWeight } from '../../units/weight';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
 // Tracks which generated workout a readiness check was already submitted for.
 // Keyed per-user; value pins the plan's `generatedAt` so the readiness step is
 // skipped until a NEW workout is generated (e.g. after completing a session).
@@ -103,6 +105,7 @@ const CompCountdown: React.FC<{ date: string; type: string | null }> = ({ date, 
 export const StartSessionScreen: React.FC = () => {
   const { t } = useTranslation();
   const { exName } = useExerciseName();
+  const unit = useLiftingUnit();
   const locale = LANGUAGE_LOCALES[useSettingsStore((s) => s.language)] ?? 'en-US';
   const MOODS = MOOD_VALUES.map((v) => ({ icon: MOOD_ICONS[v], value: v, name: t(`session.moods.${v}`) }));
   const ENERGY_LABELS = ['', t('session.energyLabels.1'), t('session.energyLabels.2'), t('session.energyLabels.3'), t('session.energyLabels.4'), t('session.energyLabels.5')];
@@ -605,7 +608,7 @@ export const StartSessionScreen: React.FC = () => {
                   <View key={i} style={styles.planRow}>
                     <Text style={styles.planExName}>{exName(ex.name)}</Text>
                     <Text style={styles.planExDetail}>
-                      {ex.sets}×{ex.reps} @ {ex.weight > 0 ? `${ex.weight}kg` : 'BW'}{ex.weightPerc ? ` · ${ex.weightPerc}% 1RM` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}
+                      {ex.sets}×{ex.reps} @ {ex.weight > 0 ? formatWeight(ex.weight, unit, { prescribed: true }) : 'BW'}{ex.weightPerc ? ` · ${ex.weightPerc}% 1RM` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}
                     </Text>
                     {ex.cue ? <Text style={styles.planExCue}>"{ex.cue}"</Text> : null}
                     {/* The derivation behind the number above, for the movements whose

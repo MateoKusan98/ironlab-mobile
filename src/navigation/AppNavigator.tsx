@@ -45,6 +45,7 @@ import { ProgressScreen } from '../screens/client/ProgressScreen';
 import { StatsScreen } from '../screens/client/StatsScreen';
 import { PRScreen } from '../screens/client/PRScreen';
 import { SessionDetailScreen } from '../screens/client/SessionDetailScreen';
+import { ExerciseHistoryScreen } from '../screens/client/exercise-history/ExerciseHistoryScreen';
 
 // Program Creator Screens
 import { ProgramCreatorStartScreen } from '../screens/client/program-builder/ProgramCreatorStartScreen';
@@ -131,8 +132,10 @@ export type RootStackParamList = {
   Stats: undefined;
   PRs: undefined;
   SessionDetail: { sessionId: string };
+  /** Every logged session of one movement — `name` as logged or prescribed. */
+  ExerciseHistory: { name: string };
   StartSession: { plan?: string; nextSessionJson?: import('../services/ai-coach.service').NextSession | null; freeSession?: boolean; makeUp?: boolean; skipNext?: boolean; trainAhead?: boolean };
-  ActiveWorkout: { sessionId: string; plannedExercises?: { name: string; sets: number; reps: number; weight: number; rpe?: number; weightPerc?: number; cue?: string; barLoaded?: boolean; loadBasis?: LoadBasisView }[]; barLoading?: { barKg: number; plates: number[] } | null };
+  ActiveWorkout: { sessionId: string; plannedExercises?: { name: string; sets: number; reps: number; weight: number; rpe?: number; weightPerc?: number; cue?: string; barLoaded?: boolean; loadBasis?: LoadBasisView }[]; barLoading?: import('../services/ai-coach.service').BarLoading | null };
   SessionSummary: { sessionId: string; durationMinutes: number; prs?: { type: string; label: string; value: number; previous: number | null; exerciseName: string; tier: 'pr' | 'mini'; e1rm?: number; prevE1rm?: number | null }[] };
   CardioLog: undefined;
   SupportChat: undefined;
@@ -245,6 +248,7 @@ export const AppNavigator: React.FC = () => {
                       <Stack.Screen name="Stats" component={StatsScreen} />
                       <Stack.Screen name="PRs" component={PRScreen} />
                       <Stack.Screen name="SessionDetail" component={SessionDetailScreen} />
+                      <Stack.Screen name="ExerciseHistory" component={ExerciseHistoryScreen} />
 
                       <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
                         <Stack.Screen name="ProgramCreatorStart" component={ProgramCreatorStartScreen} />

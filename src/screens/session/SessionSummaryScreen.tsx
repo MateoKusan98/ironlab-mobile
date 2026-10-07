@@ -30,6 +30,8 @@ import { ShareCardModal } from './share/ShareCardModal';
 import { isImageShareAvailable } from './share/viewShot';
 
 import { Card, SessionDebriefCard } from '../../components/ui';
+import { formatGain, formatWeight, loggedInUnit, unitLabel } from '../../units/weight';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
 type SummaryRouteProp = RouteProp<RootStackParamList, 'SessionSummary'>;
 
 // ── Post-workout debrief ────────────────────────────────────────────────────
@@ -90,6 +92,7 @@ const MOOD_ICONS: Record<string, React.ReactElement> = {
 export const SessionSummaryScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { exName } = useExerciseName();
+  const unit = useLiftingUnit();
   const MOODS = MOOD_VALUES.map((v) => ({ icon: MOOD_ICONS[v], value: v, name: t(`session.moods.${v}`) }));
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<SummaryRouteProp>();
@@ -304,8 +307,8 @@ export const SessionSummaryScreen: React.FC = () => {
             <Text style={styles.statLabel}>{t('sessionSummary.exercises').toUpperCase()}</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.totalVolume > 0 ? `${Math.round(stats.totalVolume / 1000)}k` : '—'}</Text>
-            <Text style={styles.statLabel}>VOL (kg)</Text>
+            <Text style={styles.statValue}>{stats.totalVolume > 0 ? `${Math.round(loggedInUnit(stats.totalVolume, unit) / 1000)}k` : '—'}</Text>
+            <Text style={styles.statLabel}>VOL ({unitLabel(unit)})</Text>
           </View>
         </View>
 
@@ -358,9 +361,9 @@ export const SessionSummaryScreen: React.FC = () => {
                     <Text style={styles.prLabel}>{pr.label}</Text>
                   </View>
                   <View style={styles.prRowRight}>
-                    <Text style={styles.prValue}>{newE1rm}kg</Text>
+                    <Text style={styles.prValue}>{formatWeight(newE1rm, unit)}</Text>
                     <Text style={styles.prDelta}>
-                      {pr.prevE1rm ? `+${(newE1rm - pr.prevE1rm).toFixed(1)} from ${pr.prevE1rm}kg` : 'First ever! 🎉'}
+                      {pr.prevE1rm ? `+${formatGain(newE1rm, pr.prevE1rm, unit)} from ${formatWeight(pr.prevE1rm, unit)}` : 'First ever! 🎉'}
                     </Text>
                   </View>
                 </View>
@@ -379,9 +382,9 @@ export const SessionSummaryScreen: React.FC = () => {
                   <Text style={styles.miniPrLabel}>{pr.label}</Text>
                 </View>
                 <View style={styles.prRowRight}>
-                  <Text style={styles.miniPrValue}>{pr.value}kg</Text>
+                  <Text style={styles.miniPrValue}>{formatWeight(pr.value, unit)}</Text>
                   <Text style={styles.miniPrDelta}>
-                    {pr.previous ? `+${(pr.value - pr.previous).toFixed(1)} from ${pr.previous}kg` : 'First ever! 🎉'}
+                    {pr.previous ? `+${formatGain(pr.value, pr.previous, unit)} from ${formatWeight(pr.previous, unit)}` : 'First ever! 🎉'}
                   </Text>
                 </View>
               </View>
@@ -405,7 +408,7 @@ export const SessionSummaryScreen: React.FC = () => {
                   <Text style={styles.exName}>{exName(name)}</Text>
                   <Text style={styles.exDetail}>
                     {exSets.length} sets
-                    {topSet?.weightUsed ? ` · Top: ${topSet.weightUsed}kg × ${topSet.repsCompleted}` : ''}
+                    {topSet?.weightUsed ? ` · Top: ${formatWeight(topSet.weightUsed, unit)} × ${topSet.repsCompleted}` : ''}
                     {topSet?.rpe ? ` @ RPE ${topSet.rpe}` : ''}
                   </Text>
                 </View>

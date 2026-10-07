@@ -131,3 +131,25 @@ describe('summarizeAnswer', () => {
     expect(summary).toBe('aiCoachExtendedSetup.optionMonday, aiCoachExtendedSetup.optionFriday');
   });
 });
+
+describe('maxes for a pound lifter (2026-10-07)', () => {
+  const MAXES = new Set(['squatMax', 'benchMax', 'deadliftMax']);
+
+  it('never sends a typed 405 to the engine as a 405kg squat', () => {
+    expect(buildProfilePatch(['squatMax'], { squatMax: '405' }, MAXES, 'lb')).toEqual({ squatMax: 183.7 });
+  });
+
+  it('shows the stored kg max back in pounds, round-tripping to what was typed', () => {
+    expect(hydrateAnswers({ squatMax: '183.7' }, null, MAXES, 'lb').squatMax).toBe('405');
+  });
+
+  it('leaves a kg lifter\'s numbers exactly as they were', () => {
+    expect(buildProfilePatch(['squatMax'], { squatMax: '180' }, MAXES)).toEqual({ squatMax: 180 });
+    expect(hydrateAnswers({ squatMax: '180.0' }, null, MAXES).squatMax).toBe('180.0');
+  });
+
+  it('labels and bounds the question in pounds', () => {
+    const squat = getSections(t, 'lb').flatMap((s) => s.questions).find((q) => q.id === 'squatMax')!;
+    expect(squat).toMatchObject({ unit: 'lb', max: 1102 });
+  });
+});

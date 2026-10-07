@@ -169,7 +169,13 @@
     "lastTimeDaysAgo_few": "pre {{count}} dana",
     "lastTimeDaysAgo_other": "pre {{count}} dana",
     "warmup": "Zagrevanje",
-    "emptyBar": "Šipka"
+    "emptyBar": "Šipka",
+    "weightIn": "TEŽINA ({{unit}})",
+    "notSynced": "Još nije sinhronizovano · sačuvano na telefonu",
+    "notSyncedA11y": "Još nije sinhronizovano. Sačuvano na telefonu, pokušaćemo ponovo.",
+    "unsyncedFinishTitle": "Neke serije još nisu sinhronizovane",
+    "unsyncedFinishBody": "Sačuvane su na telefonu. Završi trening kad imaš signal — ništa se u međuvremenu ne gubi.",
+    "unsyncedRetry": "Pokušaj ponovo"
   },
   "sessionSummary": {
     "greatWork": "Odličan rad!",
@@ -1082,5 +1088,27 @@
     "sets": "Serije",
     "volume": "Volumen",
     "footer": "Trenirano uz IronLab"
+  },
+  "units": {
+    "kilograms": "kilograma",
+    "pounds": "funti"
+  },
+  "exerciseHistory": {
+    "openHint": "Otvara sve treninge ove vežbe",
+    "sessionCount_one": "{{count}} zabeležen trening",
+    "sessionCount_few": "{{count}} zabeležena treninga",
+    "sessionCount_other": "{{count}} zabeleženih treninga",
+    "loadFailed": "Istorija nije mogla da se učita. Proveri vezu.",
+    "empty": "Za ovu vežbu još ništa nije zabeleženo.",
+    "bests": "NAJBOLJE PODIGNUTO",
+    "trend": "PROCENJENI 1RM"
+  },
+  "liftingUnit": {
+    "title": "TEŽINA NA ŠIPCI",
+    "sub": "Jedinica u kojoj slažeš šipku. Istorija se pretvara sa njom.",
+    "saveFailed": "Jedinica nije mogla da se promeni. Pokušaj ponovo."
+  },
+  "loadDerivation": {
+    "roundedLb": "zaokruženo na 5lb koje mogu da se slože"
   }
 }

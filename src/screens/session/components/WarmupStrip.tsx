@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { palette } from '../../../theme';
-import type { BarLoading } from '../../../services/ai-coach.service';
+import type { PlateSet } from '../../../utils/plateMath';
+import { prescribedInUnit } from '../../../units/weight';
+import { useLiftingUnit } from '../../../units/useLiftingUnit';
 import { Exercise } from '../workoutState';
 import { warmupRamp } from '../warmup';
 
@@ -16,15 +18,19 @@ import { warmupRamp } from '../warmup';
  */
 export const WarmupStrip: React.FC<{
   exercise: Exercise;
-  barLoading: BarLoading | null;
+  /** The venue in the athlete's unit; warm-ups are built and shown in it. */
+  plateSet: PlateSet | null;
   onToggle: (weight: number) => void;
-}> = ({ exercise, barLoading, onToggle }) => {
+}> = ({ exercise, plateSet, onToggle }) => {
   const { t } = useTranslation();
+  const unit = useLiftingUnit();
   if (!exercise.barLoaded || exercise.sets.some((s) => s.isCompleted)) return null;
   const first = exercise.sets[0];
-  const topKg = first?.adjustedWeight ?? first?.targetWeight ?? parseFloat(first?.weight ?? '');
+  // Prescribed loads are kg; what the athlete typed is already in their unit.
+  const prescribedKg = first?.adjustedWeight ?? first?.targetWeight;
+  const top = prescribedKg != null ? prescribedInUnit(prescribedKg, unit) : parseFloat(first?.weight ?? '');
   const workReps = first?.targetReps ?? parseInt(first?.reps ?? '', 10);
-  const ramp = warmupRamp(topKg, Number.isFinite(workReps) ? workReps : 5, barLoading);
+  const ramp = warmupRamp(top, Number.isFinite(workReps) ? workReps : 5, plateSet, unit);
   if (ramp.length < 2) return null;
 
   const done = new Set(exercise.warmupsDone ?? []);

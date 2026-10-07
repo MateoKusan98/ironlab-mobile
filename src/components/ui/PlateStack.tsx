@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { palette, alpha } from '../../theme';
-import type { BarLoading } from '../../services/ai-coach.service';
-import { platesPerSide, formatPlates } from '../../utils/plateMath';
+import { platesPerSide, formatPlates, PlateSet } from '../../utils/plateMath';
+import type { LiftingUnit } from '../../units/weight';
 
 /**
  * The prescribed weight, drawn as the bar that makes it.
@@ -14,6 +14,7 @@ import { platesPerSide, formatPlates } from '../../utils/plateMath';
  *
  * Renders nothing at all when:
  *   - the venue has no barbell (`bar` is null — the athlete presses dumbbells),
+ *     or the athlete lifts in pounds and no pound plate set came with the plan,
  *   - the movement is not bar-loaded (the caller gates on `barLoaded`),
  *   - the plates on hand cannot make the weight exactly (see `platesPerSide`).
  */
@@ -36,55 +37,76 @@ const PLATE_COLORS: Record<string, string> = {
   '0.25': palette.gray[500],
 };
 
+/**
+ * Pound bumpers carry their own code (45 blue, 35 yellow, 25 green, 10 white); iron is
+ * black anyway, so as with kilos the colour is a size code first.
+ */
+const LB_PLATE_COLORS: Record<string, string> = {
+  '45': palette.info[600],
+  '35': palette.warning[500],
+  '25': palette.success[600],
+  '10': palette.gray[100],
+  '5': palette.error[800],
+  '2.5': palette.gray[300],
+  '1.25': palette.gray[400],
+};
+
+/** A 45lb plate is a 20kg plate; heights are drawn on the kilo scale for both units. */
+const LB_TO_HEIGHT_SCALE = 0.4536;
+
 /** Plate height scales with weight, floored so a change plate is still visible. */
 const plateHeight = (kg: number) => Math.max(10, Math.min(24, 10 + kg * 0.58));
 
 export interface PlateStackProps {
-  /** The prescribed total bar weight, in kg. */
-  weightKg: number;
-  /** The athlete's bar and plates, from the plan payload. Null = nothing to draw. */
-  bar: BarLoading | null | undefined;
+  /** The prescribed total bar weight, in `unit` — the number printed beside it. */
+  weight: number;
+  /** The athlete's bar and plates in that same unit (units/weight.ts plateSetFor). Null = nothing to draw. */
+  bar: PlateSet | null | undefined;
+  unit: LiftingUnit;
   /** Word for "per side", supplied by the caller so this stays translation-free. */
   perSideLabel: string;
 }
 
-export const PlateStack: React.FC<PlateStackProps> = ({ weightKg, bar, perSideLabel }) => {
+export const PlateStack: React.FC<PlateStackProps> = ({ weight, bar, unit, perSideLabel }) => {
   if (!bar) return null;
 
-  const plates = platesPerSide(weightKg, bar);
+  const plates = platesPerSide(weight, bar);
   if (!plates) return null;
 
   // An empty bar is a real prescription (technique work, a first warm-up), and
   // "just the bar" is the whole instruction — there is no stack to draw.
   const barOnly = plates.length === 0;
+  const isLb = unit === 'lb';
+  const u = isLb ? 'lb' : 'kg';
+  const colors = isLb ? LB_PLATE_COLORS : PLATE_COLORS;
 
   const label = barOnly
-    ? `${weightKg} kg: the empty ${bar.barKg} kg bar`
-    : `${weightKg} kg: a ${bar.barKg} kg bar plus ${formatPlates(plates)} kilos per side`;
+    ? `${weight} ${u}: the empty ${bar.bar} ${u} bar`
+    : `${weight} ${u}: a ${bar.bar} ${u} bar plus ${formatPlates(plates)} ${isLb ? 'pounds' : 'kilos'} per side`;
 
   return (
     <View style={styles.row} accessible accessibilityLabel={label}>
       <View style={styles.barStub} />
       <View style={styles.collar}>
-        <Text style={styles.collarText}>{bar.barKg}</Text>
+        <Text style={styles.collarText}>{bar.bar}</Text>
       </View>
 
       {/* Largest first — the order they actually go on the sleeve. */}
-      {plates.map((kg, i) => (
+      {plates.map((plate, i) => (
         <View
-          key={`${kg}-${i}`}
+          key={`${plate}-${i}`}
           style={[
             styles.plate,
             {
-              height: plateHeight(kg),
-              backgroundColor: PLATE_COLORS[String(kg)] ?? palette.gray[300],
+              height: plateHeight(isLb ? plate * LB_TO_HEIGHT_SCALE : plate),
+              backgroundColor: colors[String(plate)] ?? palette.gray[300],
             },
           ]}
         />
       ))}
 
       <Text style={styles.legend} numberOfLines={1}>
-        {barOnly ? `${bar.barKg} kg bar` : `${formatPlates(plates)} ${perSideLabel}`}
+        {barOnly ? `${bar.bar} ${u} bar` : `${formatPlates(plates)} ${perSideLabel}`}
       </Text>
     </View>
   );

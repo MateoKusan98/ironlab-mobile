@@ -18,6 +18,7 @@ import {
   isAnswered, summarizeAnswer, visibleQuestions,
 } from './questionnaire/questions';
 import { QuestionField } from './questionnaire/QuestionField';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AICoachSettings'>;
@@ -61,7 +62,8 @@ const sectionHaystack = (section: Section): string => norm(`${section.title} ${s
 
 export const AICoachSettingsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
-  const SECTIONS = useMemo(() => getSections(t), [t]);
+  const unit = useLiftingUnit();
+  const SECTIONS = useMemo(() => getSections(t, unit), [t, unit]);
 
   const [savedAnswers, setSavedAnswers] = useState<FormValues>({});
   const [answers, setAnswers] = useState<FormValues>({});
@@ -85,7 +87,7 @@ export const AICoachSettingsScreen: React.FC<Props> = ({ navigation, route }) =>
         // rest of the settings from loading.
         aiCoachService.getPlan().catch(() => null),
       ]);
-      const loaded = hydrateAnswers(profile as FormValues | null, plan ?? null, QUESTION_KEYS);
+      const loaded = hydrateAnswers(profile as FormValues | null, plan ?? null, QUESTION_KEYS, unit);
       setSavedAnswers(loaded);
       setAnswers(loaded);
     } catch {
@@ -189,7 +191,7 @@ export const AICoachSettingsScreen: React.FC<Props> = ({ navigation, route }) =>
 
     setSaving(true);
     try {
-      const payload = buildProfilePatch(dirtyKeys, answers, QUESTION_KEYS);
+      const payload = buildProfilePatch(dirtyKeys, answers, QUESTION_KEYS, unit);
 
       // The questionnaire is config-driven, so its answers are keyed by string and no
       // static type can line them up with the DTO's fixed shape. QUESTION_KEYS is the

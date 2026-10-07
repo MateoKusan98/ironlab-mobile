@@ -6,6 +6,8 @@ import { palette } from '../../../theme';
 import type { SessionSet } from '../../../services/session.service';
 import { buildShareCard, formatVolume } from './shareCard';
 import { captureToFile } from './viewShot';
+import { formatWeight } from '../../../units/weight';
+import { useLiftingUnit } from '../../../units/useLiftingUnit';
 
 /** A story is 9:16; anything else gets cropped by Instagram. */
 const STORY_RATIO = 16 / 9;
@@ -33,6 +35,7 @@ export const ShareCardModal: React.FC<{
   exName: (name: string) => string;
 }> = ({ visible, onClose, sets, date, durationMinutes, prs, exName }) => {
   const { t } = useTranslation();
+  const unit = useLiftingUnit();
   const { width, height } = useWindowDimensions();
   const cardRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
@@ -72,14 +75,14 @@ export const ShareCardModal: React.FC<{
           <View style={styles.stats}>
             <Stat value={`${durationMinutes}′`} label={t('shareCard.duration', { defaultValue: 'Time' })} />
             <Stat value={String(card.setCount)} label={t('shareCard.sets', { defaultValue: 'Sets' })} />
-            <Stat value={formatVolume(card.volumeKg)} label={t('shareCard.volume', { defaultValue: 'Volume' })} />
+            <Stat value={formatVolume(card.volumeKg, unit)} label={t('shareCard.volume', { defaultValue: 'Volume' })} />
           </View>
 
           <View style={styles.lifts}>
             {card.lifts.map((lift) => (
               <View key={lift.name} style={styles.liftRow}>
                 <Text style={styles.liftName} numberOfLines={1}>{exName(lift.name)}</Text>
-                <Text style={styles.liftTop}>{lift.weight}kg × {lift.reps}</Text>
+                <Text style={styles.liftTop}>{formatWeight(lift.weight, unit)} × {lift.reps}</Text>
               </View>
             ))}
           </View>
@@ -88,7 +91,7 @@ export const ShareCardModal: React.FC<{
             <View style={styles.prs}>
               {prs.slice(0, 3).map((pr) => (
                 <Text key={`${pr.exerciseName}-${pr.label}`} style={styles.prText} numberOfLines={1}>
-                  ★ {exName(pr.exerciseName)} · {pr.label} {pr.value}kg
+                  ★ {exName(pr.exerciseName)} · {pr.label} {formatWeight(pr.value, unit)}
                 </Text>
               ))}
             </View>

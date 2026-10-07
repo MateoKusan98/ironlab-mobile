@@ -1,7 +1,7 @@
 import { platesPerSide, formatPlates } from '../plateMath';
 
-const commercial = { barKg: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25] };
-const home = { barKg: 20, plates: [20, 15, 10, 5, 2.5, 1.25] };
+const commercial = { bar: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25] };
+const home = { bar: 20, plates: [20, 15, 10, 5, 2.5, 1.25] };
 
 describe('platesPerSide', () => {
   it('builds the 152.5kg the athlete is actually asked to load', () => {
@@ -43,7 +43,7 @@ describe('platesPerSide', () => {
   it('backtracks off a greedy dead end instead of stranding a remainder', () => {
     // Greedy takes the 1.25 first and strands 0.75, which no plate here can close.
     // The exact answer is 0.5 × 4.
-    const oddSet = { barKg: 20, plates: [1.25, 0.5] };
+    const oddSet = { bar: 20, plates: [1.25, 0.5] };
     expect(platesPerSide(24, oddSet)).toEqual([0.5, 0.5, 0.5, 0.5]);
   });
 
@@ -55,13 +55,13 @@ describe('platesPerSide', () => {
 
   it('is exact on the quarter-kilo change plates that float-arithmetic strands', () => {
     // 0.25 + 0.25 + 0.25 has no exact float sum; the fill works in hundredths.
-    const meet = { barKg: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25, 0.5, 0.25] };
+    const meet = { bar: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25, 0.5, 0.25] };
     expect(platesPerSide(20.5, meet)).toEqual([0.25]);
     expect(platesPerSide(21.5, meet)).toEqual([0.5, 0.25]);
   });
 
   it('draws nothing when there is no bar to draw', () => {
-    expect(platesPerSide(100, { barKg: 20, plates: [] })).toBeNull();
+    expect(platesPerSide(100, { bar: 20, plates: [] })).toBeNull();
     expect(platesPerSide(NaN, commercial)).toBeNull();
   });
 });

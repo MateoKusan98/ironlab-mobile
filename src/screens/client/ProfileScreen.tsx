@@ -39,6 +39,7 @@ import { Medallion, TIERS } from '../../components/ui/Medallion';
 import { UserRole } from '@shared';
 
 import { apiErrorMessage } from '../../utils/apiError';
+import { LiftingUnitSection } from '../../units/LiftingUnitSection';
 const CREATINE_ENABLED_KEY = '@ironlab_creatine_enabled';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -541,6 +542,8 @@ export const ProfileScreen: React.FC = () => {
             })}
           </View>
         </View>
+
+        <LiftingUnitSection />
 
         {/* AI Integrations */}
         <View style={styles.section}>

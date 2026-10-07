@@ -17,9 +17,10 @@ import { apiErrorMessage } from '../../utils/apiError';
 import { FormValues, asNumber, asStringList } from '@shared';
 import {
   DEDICATED_ENDPOINT_KEYS, DONT_KNOW, EXPRESS_LAYOUT, NUMERIC_PROFILE_FIELDS, QUESTION_KEYS,
-  getSections, hydrateAnswers, isAnswered, visibleQuestions,
+  getSections, hydrateAnswers, liftAnswerToKg, isAnswered, visibleQuestions,
 } from './questionnaire/questions';
 import { QuestionField } from './questionnaire/QuestionField';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
 const { width } = Dimensions.get('window');
 
 type Props = {
@@ -34,7 +35,8 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
   const { t } = useTranslation();
   const express = route.params?.express ?? false;
   const forkedExperience = route.params?.experienceLevel;
-  const ALL_SECTIONS = getSections(t);
+  const unit = useLiftingUnit();
+  const ALL_SECTIONS = getSections(t, unit);
   const SECTIONS = express
     ? EXPRESS_LAYOUT.map(({ sectionId, questionIds }) => {
         const sec = ALL_SECTIONS.find((s) => s.id === sectionId)!;
@@ -66,7 +68,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
       aiCoachService.getProfile().catch(() => null),
       aiCoachService.getPlan().catch(() => null),
     ]).then(([profile, plan]) => {
-      const loaded = hydrateAnswers(profile as FormValues | null, plan ?? null, EDITABLE_KEYS);
+      const loaded = hydrateAnswers(profile as FormValues | null, plan ?? null, EDITABLE_KEYS, unit);
       setAnswers((prev) => ({ ...prev, ...loaded }));
     });
   }, [editMode]);
@@ -163,7 +165,7 @@ export const AICoachExtendedSetupScreen: React.FC<Props> = ({ navigation, route 
         if (!EDITABLE_KEYS.has(key)) return; // never send internal/non-DTO columns
         if (val !== '' && val !== null && val !== undefined && val !== DONT_KNOW) {
           dynamic[key] = NUMERIC_PROFILE_FIELDS.includes(key)
-            ? (typeof val === 'number' ? val : asNumber(val))
+            ? liftAnswerToKg(key, typeof val === 'number' ? val : asNumber(val), unit)
             : val;
         }
       });

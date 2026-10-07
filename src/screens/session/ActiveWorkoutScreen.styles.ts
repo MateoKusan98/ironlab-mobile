@@ -179,6 +179,8 @@ export const styles = StyleSheet.create({
   prBadgeText: { fontSize: 11, color: palette.warning[300], fontWeight: '700' },
   prBadgeMini: { backgroundColor: palette.gray[700] },
   prBadgeMiniText: { color: palette.gray[300] },
+  unsyncedRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 4 },
+  unsyncedText: { fontSize: 11, color: palette.gray[400] },
   setInput: {
     backgroundColor: palette.gray[700],
     borderRadius: 8,

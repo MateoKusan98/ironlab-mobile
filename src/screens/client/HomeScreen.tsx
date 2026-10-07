@@ -52,6 +52,8 @@ import {
 } from 'phosphor-react-native';
 
 import { Card } from '../../components/ui';
+import { formatNumber, formatVolume, formatWeight, loggedInUnit } from '../../units/weight';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
 const CREATINE_ENABLED_KEY = '@ironlab_creatine_enabled';
 const CREATINE_DATE_KEY = '@ironlab_creatine_date';
 const STEPS_DATE_KEY = '@ironlab_steps_date';
@@ -131,6 +133,7 @@ function useStepCounter() {
 }
 
 export const HomeScreen: React.FC = () => {
+  const unit = useLiftingUnit();
   const { t } = useTranslation();
   const { exName } = useExerciseName();
   const locale = LANGUAGE_LOCALES[useSettingsStore((s) => s.language)] ?? 'en-US';
@@ -366,7 +369,7 @@ export const HomeScreen: React.FC = () => {
           <View key={i} style={[styles.previewRow, i === exercises.length - 1 && styles.previewRowLast]}>
             <Text style={styles.previewExName} numberOfLines={1}>{exName(ex.name)}</Text>
             <Text style={styles.previewExDetail}>
-              {ex.sets}×{ex.reps} @ {ex.weight > 0 ? `${ex.weight}kg` : 'BW'}{ex.weightPerc ? ` · ${ex.weightPerc}% 1RM` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}
+              {ex.sets}×{ex.reps} @ {ex.weight > 0 ? formatWeight(ex.weight, unit, { prescribed: true }) : 'BW'}{ex.weightPerc ? ` · ${ex.weightPerc}% 1RM` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}
             </Text>
           </View>
         ))}
@@ -751,20 +754,20 @@ export const HomeScreen: React.FC = () => {
                   <Barbell size={13} weight="bold" color={palette.gray[500]} />
                   <Text style={styles.recapSectionLabel}>STRENGTH</Text>
                   <Text style={styles.recapSectionMeta}>
-                    {todaySummary.strength.totalVolumeKg.toLocaleString()} kg
+                    {formatVolume(todaySummary.strength.totalVolumeKg, unit)}
                     {todaySummary.strength.durationMinutes ? `  ·  ${todaySummary.strength.durationMinutes} min` : ''}
                   </Text>
                 </View>
                 {todaySummary.strength.exercises.map((ex) => (
                   <View key={ex.name} style={styles.exerciseRow}>
                     <Text style={styles.exerciseName} numberOfLines={1}>{ex.name}</Text>
-                    <Text style={styles.exerciseSet}>{ex.bestWeight} kg × {ex.bestReps}</Text>
+                    <Text style={styles.exerciseSet}>{formatWeight(ex.bestWeight, unit)} × {ex.bestReps}</Text>
                     {ex.deltaKg !== null ? (
                       <Text style={[
                         styles.exerciseDelta,
                         ex.deltaKg > 0 ? styles.deltaUp : ex.deltaKg < 0 ? styles.deltaDown : styles.deltaFlat,
                       ]}>
-                        {ex.deltaKg > 0 ? `↑ +${ex.deltaKg}` : ex.deltaKg < 0 ? `↓ ${ex.deltaKg}` : '→'}
+                        {ex.deltaKg > 0 ? `↑ +${formatNumber(loggedInUnit(ex.deltaKg, unit))}` : ex.deltaKg < 0 ? `↓ ${formatNumber(loggedInUnit(ex.deltaKg, unit))}` : '→'}
                       </Text>
                     ) : (
                       <Text style={styles.deltaNew}>new</Text>

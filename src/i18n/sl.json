@@ -170,7 +170,13 @@
     "lastTimeDaysAgo_few": "pred {{count}} dnevi",
     "lastTimeDaysAgo_other": "pred {{count}} dnevi",
     "warmup": "Ogrevanje",
-    "emptyBar": "Palica"
+    "emptyBar": "Palica",
+    "weightIn": "TEŽA ({{unit}})",
+    "notSynced": "Še ni sinhronizirano · shranjeno na telefonu",
+    "notSyncedA11y": "Še ni sinhronizirano. Shranjeno na telefonu, poskusili bomo znova.",
+    "unsyncedFinishTitle": "Nekatere serije še niso sinhronizirane",
+    "unsyncedFinishBody": "Shranjene so na telefonu. Trening zaključi, ko imaš signal — medtem se nič ne izgubi.",
+    "unsyncedRetry": "Poskusi znova"
   },
   "sessionSummary": {
     "greatWork": "Odlično delo!",
@@ -1084,5 +1090,28 @@
     "sets": "Serije",
     "volume": "Volumen",
     "footer": "Trenirano z IronLab"
+  },
+  "units": {
+    "kilograms": "kilogramov",
+    "pounds": "funtov"
+  },
+  "exerciseHistory": {
+    "openHint": "Odpre vse treninge te vaje",
+    "sessionCount_one": "{{count}} zabeležen trening",
+    "sessionCount_two": "{{count}} zabeležena treninga",
+    "sessionCount_few": "{{count}} zabeleženi treningi",
+    "sessionCount_other": "{{count}} zabeleženih treningov",
+    "loadFailed": "Zgodovine ni bilo mogoče naložiti. Preveri povezavo.",
+    "empty": "Za to vajo še ni nič zabeleženo.",
+    "bests": "NAJBOLJŠE DVIGNJENO",
+    "trend": "OCENJENI 1RM"
+  },
+  "liftingUnit": {
+    "title": "TEŽA NA DROGU",
+    "sub": "Enota, v kateri obremeniš drog. Zgodovina se pretvori z njo.",
+    "saveFailed": "Enote ni bilo mogoče spremeniti. Poskusi znova."
+  },
+  "loadDerivation": {
+    "roundedLb": "zaokroženo na 5lb, ki se dajo naložiti"
   }
 }

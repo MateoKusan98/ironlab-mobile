@@ -23,6 +23,8 @@ import { useAuthStore } from '../../stores/auth.store';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
 import { UserAvatar } from '../../components/ui/UserAvatar';
 import { Trophy, PersonSimpleRun } from 'phosphor-react-native';
+import { formatWeight, loggedInUnit, unitLabel } from '../../units/weight';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
 
 const DAYS_KEYS = ['history.monday', 'history.tuesday', 'history.wednesday', 'history.thursday', 'history.friday', 'history.saturday', 'history.sunday'] as const;
 
@@ -79,6 +81,7 @@ function sessionStats(session: WorkoutSession) {
 }
 
 export const WorkoutHistoryScreen: React.FC = () => {
+  const unit = useLiftingUnit();
   const { t } = useTranslation();
   const { exName } = useExerciseName();
   const locale = LANGUAGE_LOCALES[useSettingsStore((s) => s.language)] ?? 'en-US';
@@ -206,8 +209,8 @@ export const WorkoutHistoryScreen: React.FC = () => {
             <Text style={styles.weekStatLabel}>{t('common.sets').toUpperCase()}</Text>
           </View>
           <View style={styles.weekStat}>
-            <Text style={styles.weekStatValue}>{totalVolThisWeek > 0 ? `${Math.round(totalVolThisWeek / 1000)}k` : '—'}</Text>
-            <Text style={styles.weekStatLabel}>{t('history.vol')} (kg)</Text>
+            <Text style={styles.weekStatValue}>{totalVolThisWeek > 0 ? `${Math.round(loggedInUnit(totalVolThisWeek, unit) / 1000)}k` : '—'}</Text>
+            <Text style={styles.weekStatLabel}>{t('history.vol')} ({unitLabel(unit)})</Text>
           </View>
           <View style={styles.weekStat}>
             <Text style={styles.weekStatValue}>{prDays > 0 ? `${prDays}` : '—'}</Text>
@@ -309,7 +312,7 @@ export const WorkoutHistoryScreen: React.FC = () => {
                       {stats.volume > 0 && (
                         <>
                           <Text style={styles.cardStatDot}>·</Text>
-                          <Text style={styles.cardStat}>{Math.round(stats.volume).toLocaleString()}kg total</Text>
+                          <Text style={styles.cardStat}>{Math.round(loggedInUnit(stats.volume, unit)).toLocaleString()}{unitLabel(unit)} total</Text>
                         </>
                       )}
                     </View>
@@ -328,7 +331,7 @@ export const WorkoutHistoryScreen: React.FC = () => {
                         <View style={styles.prSetList}>
                           {prSets.map((s) => (
                             <Text key={s.id} style={styles.prSetText}>
-                              {exName(s.exerciseName)}: {s.weightUsed}kg × {s.repsCompleted} ({s.repsCompleted}RM) · PR
+                              {exName(s.exerciseName)}: {s.weightUsed != null ? formatWeight(s.weightUsed, unit) : '—'} × {s.repsCompleted} ({s.repsCompleted}RM) · PR
                             </Text>
                           ))}
                         </View>

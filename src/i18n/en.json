@@ -260,10 +260,10 @@
     "adjustDetail": "For the remaining {{count}} set of {{exercise}}.",
     "adjustDetail_other": "For the remaining {{count}} sets of {{exercise}}.",
     "adjustCapped": "Capped — the full recomputation was larger. If this was a bad day rather than a mistyped RPE, cut further or end the lift here.",
-    "adjustApply": "Drop to {{weight}}kg",
-    "adjustApplyA11y": "Drop the remaining sets to {{weight}} kilograms",
+    "adjustApply": "Drop to {{weight}}",
+    "adjustApplyA11y": "Drop the remaining sets to {{weight}}",
     "adjustKeep": "Keep",
-    "adjustKeepA11y": "Keep {{weight}} kilograms",
+    "adjustKeepA11y": "Keep {{weight}}",
     "minimize": "Minimize workout",
     "minimizeHint": "Double tap and hold to cancel the workout",
     "uncompleteSet": "Mark set not done",
@@ -274,10 +274,16 @@
     "lastTimeDaysAgo_one": "{{count}} day ago",
     "lastTimeDaysAgo_other": "{{count}} days ago",
     "warmup": "Warm-up",
-    "emptyBar": "Bar"
+    "emptyBar": "Bar",
+    "weightIn": "WEIGHT ({{unit}})",
+    "notSynced": "Not synced yet · saved on this phone",
+    "notSyncedA11y": "Not synced yet. Saved on this phone, will retry.",
+    "unsyncedFinishTitle": "Some sets haven't synced yet",
+    "unsyncedFinishBody": "They are saved on this phone. Finish the workout once you have signal — nothing is lost in the meantime.",
+    "unsyncedRetry": "Try again"
   },
   "loadDerivation": {
-    "title": "WHY {{weight}}KG",
+    "title": "WHY {{weight}}",
     "sourceStored": "your stored 1RM",
     "sourceOwn": "your own logged best on this movement",
     "sourceRatio": "estimated from your competition lift (first time doing this one)",
@@ -288,7 +294,8 @@
     "rounded": "rounded to the nearest {{increment}}kg",
     "stale": "Your logged sets estimate {{demonstrated}} — {{pct}}% above the {{stored}} this was priced from.",
     "staleCta": "Update your max →",
-    "staleA11y": "Update your stored one rep max"
+    "staleA11y": "Update your stored one rep max",
+    "roundedLb": "rounded to a loadable 5lb"
   },
   "sessionSummary": {
     "greatWork": "Great Work!",
@@ -1645,5 +1652,23 @@
     "sets": "Sets",
     "volume": "Volume",
     "footer": "Trained with IronLab"
+  },
+  "units": {
+    "kilograms": "kilograms",
+    "pounds": "pounds"
+  },
+  "exerciseHistory": {
+    "openHint": "Opens every session of this exercise",
+    "sessionCount_one": "{{count}} session logged",
+    "sessionCount_other": "{{count}} sessions logged",
+    "loadFailed": "Could not load the history. Check your connection.",
+    "empty": "Nothing logged on this exercise yet.",
+    "bests": "BEST LIFTED",
+    "trend": "ESTIMATED 1RM"
+  },
+  "liftingUnit": {
+    "title": "BAR WEIGHTS",
+    "sub": "The unit you load the bar in. Your history converts with it.",
+    "saveFailed": "Could not change the unit. Try again."
   }
 }

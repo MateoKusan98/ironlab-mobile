@@ -38,6 +38,8 @@ export interface UserResponse {
   gender: string | null;
   weight: number | null;
   weightUnit: string | null;
+  /** Unit for bar weights (display and input only — loads are stored in kg). */
+  liftingUnit: 'kg' | 'lb';
   height: number | null;
   heightUnit: string | null;
   fitnessLevel: number | null;
@@ -63,6 +65,7 @@ export interface UpdateProfilePayload {
   gender?: string;
   weight?: number;
   weightUnit?: string;
+  liftingUnit?: 'kg' | 'lb';
   height?: number;
   heightUnit?: string;
   fitnessLevel?: number;

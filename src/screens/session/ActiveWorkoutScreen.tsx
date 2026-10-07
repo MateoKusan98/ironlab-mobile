@@ -36,11 +36,13 @@ import { styles } from './ActiveWorkoutScreen.styles';
 import { useWorkoutSession } from './hooks/useWorkoutSession';
 import { useLoadAdjustment } from './hooks/useLoadAdjustment';
 import { useSetEditing } from './hooks/useSetEditing';
+import { useSetSync } from './hooks/useSetSync';
 import { useExerciseEditing } from './hooks/useExerciseEditing';
 import { useCueForm } from './hooks/useCueForm';
 import { useRpeGuide } from './hooks/useRpeGuide';
 import { useLastPerformance } from './hooks/useLastPerformance';
 import { sessionService } from '../../services/session.service';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
 
 type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
 
@@ -58,12 +60,13 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<ActiveWorkoutRouteProp>();
   const { sessionId, plannedExercises, barLoading } = route.params;
+  const unit = useLiftingUnit();
 
   const { elapsedSeconds, isPaused, resume: resumeTimer, markActivity, syncStart } = useWorkoutTimer();
   const { restSecs, startRest, stopRest, adjustRest } = useRestTimer(sessionId);
   const {
     exercises, setExercises, resumeLoading, removedSetIdsRef, sentReviewsRef, resetToPlan,
-  } = useWorkoutSession(sessionId, plannedExercises, syncStart);
+  } = useWorkoutSession(sessionId, plannedExercises, syncStart, unit);
 
   // The exercise the athlete is about to do — the first with an incomplete set.
   // Drives which saved cue gets reminded.
@@ -83,11 +86,21 @@ export const ActiveWorkoutScreen: React.FC = () => {
     sessionId, currentExerciseName, !resumeLoading && !cueReminder,
   );
 
-  const { adjustment, maybeSuggestAdjustment, applyAdjustment, dismissAdjustment } = useLoadAdjustment(sessionId, setExercises);
-  const setEditing = useSetEditing({
-    sessionId, exercises, setExercises, removedSetIdsRef, markActivity, startRest, stopRest, maybeSuggestAdjustment, exName,
+  const { adjustment, maybeSuggestAdjustment, applyAdjustment, dismissAdjustment } = useLoadAdjustment(sessionId, setExercises, unit);
+  const setSync = useSetSync({
+    sessionId, exercises, setExercises, removedSetIdsRef, unit,
+    enabled: !resumeLoading,
+    // A set that sat in the queue still gets its overshoot question — but only while the
+    // exercise has sets left for the answer to change.
+    onLateSave: ({ exIdx, ex, set }) => {
+      if (ex.sets.some((s) => !s.isCompleted)) maybeSuggestAdjustment(exIdx, ex, set);
+    },
   });
-  const exerciseEditing = useExerciseEditing({ exercises, setExercises, removedSetIdsRef, sentReviewsRef });
+  const setEditing = useSetEditing({
+    exercises, setExercises, removedSetIdsRef, markActivity, startRest, stopRest, maybeSuggestAdjustment, exName,
+    pushSet: setSync.pushSet, flushPending: setSync.flushPending, unsyncedCount: setSync.unsyncedCount, unit,
+  });
+  const exerciseEditing = useExerciseEditing({ exercises, setExercises, removedSetIdsRef, sentReviewsRef, unit });
   const cueForm = useCueForm(exercises, saveCue, deleteCue);
   const { rpeGuideVisible, setRpeGuideVisible, handleRpeFocus } = useRpeGuide();
   const lastTimeByName = useLastPerformance(exercises.map((ex) => ex.name), !resumeLoading);
@@ -120,10 +133,26 @@ export const ActiveWorkoutScreen: React.FC = () => {
     );
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const completedSets = exercises.reduce((acc, ex) => acc + ex.sets.filter((s) => s.isCompleted).length, 0);
     if (completedSets === 0) {
       Alert.alert('No sets logged', 'Complete at least one set before finishing.');
+      return;
+    }
+    // The summary completes the session on the server and the debrief reads its sets, so
+    // every queued set has to land first. If one cannot, the workout stays open — and its
+    // draft stays on the phone — rather than finishing without it.
+    if (!(await setSync.flushPending())) {
+      Alert.alert(
+        t('activeWorkout.unsyncedFinishTitle', { defaultValue: 'Some sets haven\'t synced yet' }),
+        t('activeWorkout.unsyncedFinishBody', {
+          defaultValue: 'They are saved on this phone. Finish the workout once you have signal — nothing is lost in the meantime.',
+        }),
+        [
+          { text: t('common.ok', { defaultValue: 'OK' }), style: 'cancel' },
+          { text: t('activeWorkout.unsyncedRetry', { defaultValue: 'Try again' }), onPress: () => { handleFinish(); } },
+        ],
+      );
       return;
     }
     // The workout is over — drop any lingering rest beep/countdown, and the draft
@@ -258,7 +287,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
       {/* Substitute Exercise Modal */}
       <SubstituteExerciseModal
         exerciseName={substituteFor?.name ?? null}
-        loggedSetCount={substituteFor ? substituteFor.sets.filter((set) => set.isCompleted && set.id).length : 0}
+        loggedSetCount={substituteFor ? substituteFor.sets.filter((set) => set.isCompleted).length : 0}
         isKeyLift={substituteFor ? KEY_EXERCISE_PATTERN.test(substituteFor.name) : false}
         suggestions={substituteFor ? getSubstitutes(substituteFor.name) : []}
         catalogue={COMMON_EXERCISES}

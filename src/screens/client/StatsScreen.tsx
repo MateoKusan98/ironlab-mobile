@@ -22,13 +22,11 @@ import {
 } from 'phosphor-react-native';
 
 import { Card } from '../../components/ui';
+import { formatNumber, formatVolume, formatWeight, loggedInUnit, unitLabel } from '../../units/weight';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
+import { useOpenExerciseHistory } from './exercise-history/useOpenExerciseHistory';
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const fmtVol = (kg: number): string => {
-  if (kg >= 1_000_000) return `${(kg / 1_000_000).toFixed(1)}kt`;
-  if (kg >= 1000) return `${(kg / 1000).toFixed(1)}t`;
-  return `${Math.round(kg)}kg`;
-};
 
 const fmtNum = (n: number): string => n.toLocaleString();
 
@@ -96,6 +94,7 @@ const HeroStat: React.FC<{ label: string; value: string | number; sub?: string; 
 );
 
 const WeeklyBarChart: React.FC<{ data: AthleteStats['weeklyVolume'] }> = ({ data }) => {
+  const unit = useLiftingUnit();
   const maxVol = Math.max(...data.map(w => w.volumeKg), 1);
   return (
     <View>
@@ -105,7 +104,7 @@ const WeeklyBarChart: React.FC<{ data: AthleteStats['weeklyVolume'] }> = ({ data
           return (
             <View key={i} style={styles.barCol}>
               {week.sessions > 0 && (
-                <Text style={styles.barVolLabel}>{fmtVol(week.volumeKg)}</Text>
+                <Text style={styles.barVolLabel}>{formatVolume(week.volumeKg, unit)}</Text>
               )}
               <View style={[
                 styles.bar,
@@ -135,6 +134,7 @@ const WeeklyBarChart: React.FC<{ data: AthleteStats['weeklyVolume'] }> = ({ data
 };
 
 const MuscleGroupBar: React.FC<MuscleGroup> = ({ name, volumeKg, sets, percentage }) => {
+  const unit = useLiftingUnit();
   const color = MUSCLE_COLORS[name] ?? palette.brand[500];
   return (
     <View style={styles.muscleRow}>
@@ -143,7 +143,7 @@ const MuscleGroupBar: React.FC<MuscleGroup> = ({ name, volumeKg, sets, percentag
           <View style={[styles.muscleColorDot, { backgroundColor: color }]} />
           <Text style={styles.muscleName}>{name}</Text>
         </View>
-        <Text style={styles.muscleDetail}>{percentage}% · {sets} sets · {fmtVol(volumeKg)}</Text>
+        <Text style={styles.muscleDetail}>{percentage}% · {sets} sets · {formatVolume(volumeKg, unit)}</Text>
       </View>
       <View style={styles.muscleBarBg}>
         <View style={[styles.muscleBarFill, { width: `${percentage}%`, backgroundColor: color }]} />
@@ -153,6 +153,7 @@ const MuscleGroupBar: React.FC<MuscleGroup> = ({ name, volumeKg, sets, percentag
 };
 
 const MainLiftCard: React.FC<{ liftKey: string; data: MainLiftData | null }> = ({ liftKey, data }) => {
+  const unit = useLiftingUnit();
   const { t } = useTranslation();
   const { exName } = useExerciseName();
   const meta = LIFT_META[liftKey];
@@ -163,13 +164,13 @@ const MainLiftCard: React.FC<{ liftKey: string; data: MainLiftData | null }> = (
       <Text style={styles.liftName}>{exName(meta.label)}</Text>
       {data ? (
         <>
-          <Text style={styles.liftEst1RM}>{data.coach1RM ?? data.est1RM}<Text style={styles.liftUnit}>kg</Text></Text>
+          <Text style={styles.liftEst1RM}>{formatNumber(loggedInUnit(data.coach1RM ?? data.est1RM, unit))}<Text style={styles.liftUnit}>{unitLabel(unit)}</Text></Text>
           <Text style={styles.liftSub}>{data.coach1RM != null ? t('stats.coachEst') : t('stats.epleyEst')}</Text>
           {data.coach1RM != null && (
-            <Text style={styles.liftAltEst}>{t('stats.epleyEst')} · {data.est1RM}kg</Text>
+            <Text style={styles.liftAltEst}>{t('stats.epleyEst')} · {formatWeight(data.est1RM, unit)}</Text>
           )}
           {data.weight != null && data.reps != null && (
-            <Text style={styles.liftDetail}>{data.weight}kg × {data.reps}</Text>
+            <Text style={styles.liftDetail}>{formatWeight(data.weight, unit)} × {data.reps}</Text>
           )}
         </>
       ) : (
@@ -180,24 +181,28 @@ const MainLiftCard: React.FC<{ liftKey: string; data: MainLiftData | null }> = (
 };
 
 const ExerciseRow: React.FC<{ exercise: TopExercise; rank: number }> = ({ exercise, rank }) => {
+  const openHistory = useOpenExerciseHistory();
+  const unit = useLiftingUnit();
   const { t } = useTranslation();
   const { exName } = useExerciseName();
   return (
-    <View style={styles.exRow}>
+    <TouchableOpacity style={styles.exRow} onPress={() => openHistory(exercise.name)} accessibilityRole="button">
       <Text style={styles.exRank}>#{rank}</Text>
       <View style={styles.exInfo}>
         <Text style={styles.exName}>{exName(exercise.name)}</Text>
-        <Text style={styles.exMeta}>{exercise.muscleGroup} · {exercise.totalSets} {t('stats.sets')} · {t('stats.best')} {exercise.bestWeight}kg</Text>
+        <Text style={styles.exMeta}>{exercise.muscleGroup} · {exercise.totalSets} {t('stats.sets')} · {t('stats.best')} {formatWeight(exercise.bestWeight, unit)}</Text>
       </View>
       <View style={styles.exRight}>
-        <Text style={styles.ex1RM}>{exercise.best1RM}kg</Text>
+        <Text style={styles.ex1RM}>{formatWeight(exercise.best1RM, unit)}</Text>
         <Text style={styles.ex1RMLabel}>{t('stats.est1RM')}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const ProgressionRow: React.FC<{ progression: ExerciseProgression }> = ({ progression }) => {
+  const openHistory = useOpenExerciseHistory();
+  const unit = useLiftingUnit();
   const { t } = useTranslation();
   const { exName } = useExerciseName();
   const first = progression.points[0].estimated1RM;
@@ -208,11 +213,11 @@ const ProgressionRow: React.FC<{ progression: ExerciseProgression }> = ({ progre
   const minVal = Math.min(...progression.points.map(p => p.estimated1RM));
   const range = maxVal - minVal || 1;
   return (
-    <View style={styles.progRow}>
+    <TouchableOpacity style={styles.progRow} onPress={() => openHistory(progression.name)} accessibilityRole="button">
       <View style={{ flex: 1 }}>
         <Text style={styles.progName}>{exName(progression.name)}</Text>
         <Text style={styles.progSub}>
-          {first}kg → {last}kg {t('stats.est1RM')} · {t('stats.sessionCount', { count: progression.points.length })}
+          {formatWeight(first, unit)} → {formatWeight(last, unit)} {t('stats.est1RM')} · {t('stats.sessionCount', { count: progression.points.length })}
         </Text>
         <View style={styles.sparkline}>
           {progression.points.slice(-12).map((p, i) => {
@@ -230,7 +235,7 @@ const ProgressionRow: React.FC<{ progression: ExerciseProgression }> = ({ progre
       <Text style={[styles.progChange, { color: isUp ? palette.success[500] : palette.error[500] }]}>
         {isUp ? '+' : ''}{pct.toFixed(1)}%
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -245,6 +250,7 @@ const EnergyDots: React.FC<{ value: number }> = ({ value }) => (
 // ── Strength Standards ─────────────────────────────────────────────────────────
 
 const StrengthLiftRow: React.FC<{ liftKey: string; lift: StrengthLift }> = ({ liftKey, lift }) => {
+  const unit = useLiftingUnit();
   const { exName } = useExerciseName();
   const meta = LIFT_META[liftKey];
   const color = LEVEL_COLOR[lift.level] ?? palette.brand[500];
@@ -257,7 +263,7 @@ const StrengthLiftRow: React.FC<{ liftKey: string; lift: StrengthLift }> = ({ li
         </View>
       </View>
       <View style={styles.ssMetaRow}>
-        <Text style={styles.ssMeta}>{lift.e1RM}kg · {lift.ratio}× BW</Text>
+        <Text style={styles.ssMeta}>{formatWeight(lift.e1RM, unit)} · {lift.ratio}× BW</Text>
         {lift.nextLevel && <Text style={styles.ssMetaDim}>→ {lift.nextLevel}</Text>}
       </View>
       <View style={styles.ssBarBg}>
@@ -270,6 +276,7 @@ const StrengthLiftRow: React.FC<{ liftKey: string; lift: StrengthLift }> = ({ li
 // ── PR Timeline ────────────────────────────────────────────────────────────────
 
 const PRRow: React.FC<{ pr: PRTimelineEntry }> = ({ pr }) => {
+  const unit = useLiftingUnit();
   const { exName } = useExerciseName();
   const isTrue = pr.tier === 'pr';
   return (
@@ -281,10 +288,10 @@ const PRRow: React.FC<{ pr: PRTimelineEntry }> = ({ pr }) => {
       </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.prName}>{exName(pr.exerciseName)}</Text>
-        <Text style={styles.prMeta}>{pr.weight}kg × {pr.reps} · {fmtDay(pr.date)}</Text>
+        <Text style={styles.prMeta}>{formatWeight(pr.weight, unit)} × {pr.reps} · {fmtDay(pr.date)}</Text>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
-        <Text style={[styles.prValue, { color: isTrue ? palette.yellow[500] : palette.gray[200] }]}>{pr.weight}kg</Text>
+        <Text style={[styles.prValue, { color: isTrue ? palette.yellow[500] : palette.gray[200] }]}>{formatWeight(pr.weight, unit)}</Text>
         <Text style={styles.prTier}>{isTrue ? 'PR' : 'Mini PR'}</Text>
       </View>
     </View>
@@ -292,6 +299,7 @@ const PRRow: React.FC<{ pr: PRTimelineEntry }> = ({ pr }) => {
 };
 
 const RepMaxTable: React.FC<{ record: RepMaxRecord }> = ({ record }) => {
+  const unit = useLiftingUnit();
   const { exName } = useExerciseName();
   return (
     <View style={styles.rmCard}>
@@ -300,7 +308,7 @@ const RepMaxTable: React.FC<{ record: RepMaxRecord }> = ({ record }) => {
         {record.maxes.map(m => (
           <View key={m.reps} style={styles.rmCell}>
             <Text style={styles.rmReps}>{m.reps}RM</Text>
-            <Text style={styles.rmWeight}>{m.weight}kg</Text>
+            <Text style={styles.rmWeight}>{formatWeight(m.weight, unit)}</Text>
           </View>
         ))}
       </View>
@@ -424,6 +432,7 @@ const BodyCompMiniChart: React.FC<{ series: BodyCompositionPoint[]; pick: (p: Bo
 type Tab = 'performance' | 'records' | 'body' | 'wellbeing';
 
 export const StatsScreen: React.FC = () => {
+  const unit = useLiftingUnit();
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const [stats, setStats] = useState<AthleteStats | null>(null);
@@ -487,7 +496,7 @@ export const StatsScreen: React.FC = () => {
         {/* ── Hero Stats Grid ─────────────────────────────────────────────── */}
         <View style={styles.heroGrid}>
           <HeroStat label={t('stats.sessions')} value={overview.totalSessions} />
-          <HeroStat label={t('stats.allTimeVolume')} value={fmtVol(overview.totalVolumeKg)} accent />
+          <HeroStat label={t('stats.allTimeVolume')} value={formatVolume(overview.totalVolumeKg, unit)} accent />
           <HeroStat label={t('stats.weekStreak')} value={`${overview.currentWeekStreak}w`} sub={overview.currentWeekStreak > 0 ? '🔥' : undefined} />
           <HeroStat label={t('stats.prsThisMonth')} value={overview.truePrsThisMonth} />
         </View>
@@ -558,7 +567,7 @@ export const StatsScreen: React.FC = () => {
                 })}
                 <View style={styles.ssTotals}>
                   <View style={styles.ssTotalItem}>
-                    <Text style={styles.ssTotalVal}>{strengthStandards.total}kg</Text>
+                    <Text style={styles.ssTotalVal}>{strengthStandards.total != null ? formatWeight(strengthStandards.total, unit) : '—'}</Text>
                     <Text style={styles.ssTotalLabel}>{t('stats.big3Total')}</Text>
                   </View>
                   <View style={styles.ssTotalItem}>
@@ -577,7 +586,7 @@ export const StatsScreen: React.FC = () => {
               <WeeklyBarChart data={weeklyVolume} />
               <View style={styles.weekSummaryRow}>
                 <View style={styles.weekSummaryItem}>
-                  <Text style={styles.weekSummaryVal}>{fmtVol(weeklyVolume.reduce((s, w) => s + w.volumeKg, 0))}</Text>
+                  <Text style={styles.weekSummaryVal}>{formatVolume(weeklyVolume.reduce((s, w) => s + w.volumeKg, 0), unit)}</Text>
                   <Text style={styles.weekSummaryLabel}>{t('stats.weekTotal')}</Text>
                 </View>
                 <View style={styles.weekSummaryItem}>
@@ -585,7 +594,7 @@ export const StatsScreen: React.FC = () => {
                   <Text style={styles.weekSummaryLabel}>{t('history.sessions').toLowerCase()}</Text>
                 </View>
                 <View style={styles.weekSummaryItem}>
-                  <Text style={styles.weekSummaryVal}>{fmtVol(weeklyVolume[weeklyVolume.length - 1]?.volumeKg ?? 0)}</Text>
+                  <Text style={styles.weekSummaryVal}>{formatVolume(weeklyVolume[weeklyVolume.length - 1]?.volumeKg ?? 0, unit)}</Text>
                   <Text style={styles.weekSummaryLabel}>{t('stats.thisWeek').toLowerCase()}</Text>
                 </View>
               </View>
@@ -634,8 +643,8 @@ export const StatsScreen: React.FC = () => {
                 </View>
                 <View style={styles.densityItem}>
                   <Gauge size={20} weight="regular" color={palette.success[500]} />
-                  <Text style={styles.densityVal}>{density.avgDensityKgPerMin != null ? `${density.avgDensityKgPerMin}` : '—'}</Text>
-                  <Text style={styles.densityLabel}>{t('stats.kgPerMin')}</Text>
+                  <Text style={styles.densityVal}>{density.avgDensityKgPerMin != null ? formatNumber(Math.round(loggedInUnit(density.avgDensityKgPerMin, unit))) : '—'}</Text>
+                  <Text style={styles.densityLabel}>{unit === 'lb' ? 'lb / min' : t('stats.kgPerMin')}</Text>
                 </View>
                 <View style={styles.densityItem}>
                   <Barbell size={20} weight="regular" color={palette.violet[400]} />
@@ -691,7 +700,7 @@ export const StatsScreen: React.FC = () => {
 
             <SectionCard title={t('stats.milestones')}>
               {([
-                { key: 'volume', icon: <Barbell size={18} weight="fill" color={palette.brand[400]} />, label: t('stats.weightMoved'), value: fmtVol(milestones.volume.value), next: milestones.volume.next ? fmtVol(milestones.volume.next) : null },
+                { key: 'volume', icon: <Barbell size={18} weight="fill" color={palette.brand[400]} />, label: t('stats.weightMoved'), value: formatVolume(milestones.volume.value, unit), next: milestones.volume.next ? formatVolume(milestones.volume.next, unit) : null },
                 { key: 'sessions', icon: <Fire size={18} weight="fill" color={palette.error[500]} />, label: t('stats.sessions'), value: fmtNum(milestones.sessions.value), next: milestones.sessions.next ? fmtNum(milestones.sessions.next) : null },
                 { key: 'reps', icon: <Lightning size={18} weight="fill" color={palette.yellow[500]} />, label: t('stats.totalReps'), value: fmtNum(milestones.reps.value), next: milestones.reps.next ? fmtNum(milestones.reps.next) : null },
                 { key: 'prs', icon: <Trophy size={18} weight="fill" color={palette.yellow[500]} />, label: t('stats.totalPRs'), value: fmtNum(milestones.prs.value), next: milestones.prs.next ? fmtNum(milestones.prs.next) : null },
@@ -903,7 +912,7 @@ export const StatsScreen: React.FC = () => {
             <SectionCard title={t('stats.allTimeTotals')}>
               <View style={styles.totalsGrid}>
                 <View style={styles.totalItem}>
-                  <Text style={styles.totalVal}>{fmtVol(overview.totalVolumeKg)}</Text>
+                  <Text style={styles.totalVal}>{formatVolume(overview.totalVolumeKg, unit)}</Text>
                   <Text style={styles.totalLabel}>{t('stats.weightMoved')}</Text>
                 </View>
                 <View style={styles.totalItem}>

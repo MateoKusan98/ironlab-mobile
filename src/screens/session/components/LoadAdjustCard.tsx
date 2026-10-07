@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { theme, palette, alpha } from '../../../theme';
 import { InSessionAdjustment } from '../../../services/ai-coach.service';
+import { formatNumber, prescribedInUnit, unitLabel } from '../../../units/weight';
+import { useLiftingUnit } from '../../../units/useLiftingUnit';
 
 export interface LoadAdjustCardProps {
   adjustment: InSessionAdjustment | null;
@@ -32,9 +34,17 @@ export const LoadAdjustCard: React.FC<LoadAdjustCardProps> = ({
   onDismiss,
 }) => {
   const { t } = useTranslation();
+  const unit = useLiftingUnit();
   if (!adjustment) return null;
 
-  const { currentWeight, suggestedWeight, observedRpe, targetRpe, remainingSets, capped } = adjustment;
+  const { observedRpe, targetRpe, remainingSets, capped } = adjustment;
+  // Both are engine loads: shown on the step the athlete would load, in their unit.
+  const currentWeight = formatNumber(prescribedInUnit(adjustment.currentWeight, unit));
+  const suggestedWeight = formatNumber(prescribedInUnit(adjustment.suggestedWeight, unit));
+  const u = unitLabel(unit);
+  const spokenUnit = unit === 'lb'
+    ? t('units.pounds', { defaultValue: 'pounds' })
+    : t('units.kilograms', { defaultValue: 'kilograms' });
 
   return (
     <View style={styles.card}>
@@ -47,9 +57,9 @@ export const LoadAdjustCard: React.FC<LoadAdjustCardProps> = ({
         })}
       </Text>
       <View style={styles.weights}>
-        <Text style={styles.from}>{currentWeight}kg</Text>
+        <Text style={styles.from}>{currentWeight}{u}</Text>
         <Text style={styles.arrow}>→</Text>
-        <Text style={styles.to}>{suggestedWeight}kg</Text>
+        <Text style={styles.to}>{suggestedWeight}{u}</Text>
       </View>
       <Text style={styles.detail}>
         {t('activeWorkout.adjustDetail', {
@@ -70,19 +80,19 @@ export const LoadAdjustCard: React.FC<LoadAdjustCardProps> = ({
           onPress={onApply}
           accessibilityRole="button"
           accessibilityLabel={t('activeWorkout.adjustApplyA11y', {
-            weight: suggestedWeight,
-            defaultValue: 'Drop the remaining sets to {{weight}} kilograms',
+            weight: `${suggestedWeight} ${spokenUnit}`,
+            defaultValue: 'Drop the remaining sets to {{weight}}',
           })}
         >
-          <Text style={styles.applyText}>{t('activeWorkout.adjustApply', { weight: suggestedWeight, defaultValue: 'Drop to {{weight}}kg' })}</Text>
+          <Text style={styles.applyText}>{t('activeWorkout.adjustApply', { weight: `${suggestedWeight}${u}`, defaultValue: 'Drop to {{weight}}' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.keepBtn}
           onPress={onDismiss}
           accessibilityRole="button"
           accessibilityLabel={t('activeWorkout.adjustKeepA11y', {
-            weight: currentWeight,
-            defaultValue: 'Keep {{weight}} kilograms',
+            weight: `${currentWeight} ${spokenUnit}`,
+            defaultValue: 'Keep {{weight}}',
           })}
         >
           <Text style={styles.keepText}>{t('activeWorkout.adjustKeep', { defaultValue: 'Keep' })}</Text>

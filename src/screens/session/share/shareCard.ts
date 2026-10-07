@@ -1,4 +1,5 @@
 import type { SessionSet } from '../../../services/session.service';
+import { LiftingUnit, formatVolume as formatVolumeInUnit } from '../../../units/weight';
 
 /**
  * What goes on the shareable session image. Pure, so the numbers on the picture are
@@ -47,7 +48,7 @@ export function buildShareCard(sets: SessionSet[]): ShareCardData {
   return { setCount: done.length, volumeKg: Math.round(volumeKg), lifts };
 }
 
-/** "12,450 kg" → "12.4 t" past a tonne, where the exact kilo stops meaning anything. */
-export function formatVolume(kg: number): string {
-  return kg >= 1000 ? `${(Math.floor(kg / 100) / 10).toFixed(1)} t` : `${kg} kg`;
+/** "12,450 kg" → "12.4 t" past a tonne — see units/weight.ts formatVolume. */
+export function formatVolume(kg: number, unit: LiftingUnit = 'kg'): string {
+  return formatVolumeInUnit(kg, unit);
 }

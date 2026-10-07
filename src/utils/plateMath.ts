@@ -1,6 +1,9 @@
 /**
  * Turning a prescribed weight into the plates that make it.
  *
+ * Unit-blind: the bar, the plates and the total are all in ONE unit — kilos for a kg
+ * lifter, pounds for a pound lifter (units/weight.ts `plateSetFor` picks the venue).
+ *
  * The one place an athlete still does mental arithmetic between our number and
  * the thing in front of them is at the bar: "152.5 — so that's a 25, a 10, a 5
  * and a 2.5 a side, right?" This computes that, and only that.
@@ -16,18 +19,23 @@
  * silently-off drawing is worse than no drawing at all.
  */
 
-import type { BarLoading } from '../services/ai-coach.service';
+/** A bar and the plates that load it, in the same unit as the weight being built. */
+export interface PlateSet {
+  bar: number;
+  /** Plate sizes available. Unbounded count of each. */
+  plates: number[];
+}
 
 /**
  * Plate weights carry quarter-kilo change plates, and 0.1 + 0.2 arithmetic strands
  * exact matches that are exact in reality. Everything below works in integer
- * hundredths of a kilo.
+ * hundredths of the unit.
  */
-const toHundredths = (kg: number) => Math.round(kg * 100);
+const toHundredths = (w: number) => Math.round(w * 100);
 
 /**
- * A side of the bar this deep is ~500kg of total load — past any real lift, and
- * the bound that keeps a pathological plate set from searching forever.
+ * A side of the bar this deep is ~500kg (or ~1000lb) of total load — past any real
+ * lift, and the bound that keeps a pathological plate set from searching forever.
  */
 const MAX_PLATES_PER_SIDE = 20;
 
@@ -39,21 +47,21 @@ const MAX_PLATES_PER_SIDE = 20;
  * from this venue's plates — including anything at or below the bar, and any
  * odd remainder the plate set cannot close.
  */
-export function platesPerSide(totalKg: number, bar: BarLoading): number[] | null {
-  if (!Number.isFinite(totalKg) || !bar?.plates?.length) return null;
+export function platesPerSide(total: number, set: PlateSet): number[] | null {
+  if (!Number.isFinite(total) || !set?.plates?.length) return null;
 
-  const total = toHundredths(totalKg);
-  const barWeight = toHundredths(bar.barKg);
-  if (total < barWeight) return null;
+  const totalH = toHundredths(total);
+  const barWeight = toHundredths(set.bar);
+  if (totalH < barWeight) return null;
 
   // An odd number of hundredths per pair can never be split evenly across two
   // sides, so it is unbuildable before a single plate is considered.
-  const remainder = total - barWeight;
+  const remainder = totalH - barWeight;
   if (remainder % 2 !== 0) return null;
   const perSide = remainder / 2;
   if (perSide === 0) return [];
 
-  const sizes = [...bar.plates].map(toHundredths).sort((a, b) => b - a);
+  const sizes = [...set.plates].map(toHundredths).sort((a, b) => b - a);
 
   // Descending order means the first path explored is the greedy one, which is
   // the stack a human loads (and almost always exact). `dead` remembers the

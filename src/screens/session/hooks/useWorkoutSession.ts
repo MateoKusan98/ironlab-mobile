@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { sessionService } from '../../../services/session.service';
+import type { LiftingUnit } from '../../../units/weight';
 import {
   Exercise,
   PlannedExercise,
@@ -10,6 +11,7 @@ import {
   loadDraft,
   pruneOtherDrafts,
   reconcileDraft,
+  restoreDraftOffline,
   saveDraft,
   unresolvedDeletions,
 } from '../workoutState';
@@ -32,6 +34,7 @@ export function useWorkoutSession(
   sessionId: string,
   plannedExercises: PlannedExercise[] | undefined,
   syncStart: (startedAtMs: number) => void,
+  unit: LiftingUnit,
 ) {
   const { t } = useTranslation();
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -75,9 +78,9 @@ export function useWorkoutSession(
           for (const id of unresolvedDeletions(draft, serverSets)) {
             sessionService.deleteSet(id).catch(() => {});
           }
-          setExercises(reconcileDraft(draft, serverSets));
+          setExercises(reconcileDraft(draft, serverSets, unit));
         } else {
-          setExercises(buildFromPlan(plannedExercises, serverSets));
+          setExercises(buildFromPlan(plannedExercises, serverSets, unit));
         }
       } catch {
         // Offline or the fetch failed: fall back to whatever we have locally so the
@@ -86,9 +89,9 @@ export function useWorkoutSession(
         if (cancelled) return;
         if (draft) {
           removedSetIdsRef.current = new Set(draft.removedSetIds ?? []);
-          setExercises(reconcileDraft(draft, []));
+          setExercises(restoreDraftOffline(draft, unit));
         } else if (plannedExercises?.length) {
-          setExercises(buildFromPlan(plannedExercises, []));
+          setExercises(buildFromPlan(plannedExercises, [], unit));
         }
       } finally {
         if (!cancelled) setResumeLoading(false);
@@ -106,10 +109,10 @@ export function useWorkoutSession(
   useEffect(() => {
     if (resumeLoading) return;
     const timer = setTimeout(() => {
-      saveDraft(sessionId, exercises, [...removedSetIdsRef.current]);
+      saveDraft(sessionId, exercises, [...removedSetIdsRef.current], unit);
     }, DRAFT_SAVE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [exercises, resumeLoading, sessionId]);
+  }, [exercises, resumeLoading, sessionId, unit]);
 
   /**
    * Push the "HOW DID IT GO?" self-report to the server.
@@ -172,9 +175,9 @@ export function useWorkoutSession(
             sentReviewsRef.current = new Map();
             try {
               const session = await sessionService.getSession(sessionId);
-              setExercises(buildFromPlan(plannedExercises, session.sets ?? []));
+              setExercises(buildFromPlan(plannedExercises, session.sets ?? [], unit));
             } catch {
-              setExercises(buildFromPlan(plannedExercises, []));
+              setExercises(buildFromPlan(plannedExercises, [], unit));
             }
             setResumeLoading(false);
           },

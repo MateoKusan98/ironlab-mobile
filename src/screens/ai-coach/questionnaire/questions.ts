@@ -6,6 +6,7 @@
 
 import { AICoachProfileData } from '../../../services/ai-coach.service';
 import { FormValue, FormValues, asNumber, asStringList, asText } from '@shared';
+import { LiftingUnit, loggedInUnit, prescribedInUnit, toKg, unitLabel } from '../../../units/weight';
 
 export type QuestionType = 'single' | 'multi' | 'number' | 'text' | 'slider' | 'bool' | 'longtext' | 'focus_slider' | 'comp_date';
 
@@ -43,7 +44,29 @@ export const EXPRESS_LAYOUT: { sectionId: string; questionIds: string[] }[] = [
   { sectionId: 'recovery', questionIds: ['injuryHistory'] },
 ];
 
-export const getSections = (t: TFunction): Section[] => [
+/**
+ * Answers that are BAR weights: shown and typed in the athlete's lifting unit, stored in
+ * kg. Converted exactly twice — kg → unit in hydrateAnswers, unit → kg on save — so a
+ * pound lifter's "405" can never reach the engine as a 405kg squat.
+ */
+export const LIFT_LOAD_FIELDS = ['squatMax', 'benchMax', 'deadliftMax'];
+
+/** A max question in the athlete's unit; its bounds are the kg bounds converted. */
+const maxQuestion = (
+  id: Question['id'], label: string, maxKg: number, placeholderKg: number, unit: LiftingUnit,
+): Question => ({
+  id, label, type: 'number', min: 0,
+  max: Math.round(loggedInUnit(maxKg, unit)),
+  unit: unitLabel(unit),
+  placeholder: String(prescribedInUnit(placeholderKg, unit)),
+  optional: true,
+});
+
+/** The answer as kg for the profile, when it is a bar weight typed in pounds. */
+export const liftAnswerToKg = (key: string, value: number | undefined, unit: LiftingUnit) =>
+  value != null && unit === 'lb' && LIFT_LOAD_FIELDS.includes(key) ? toKg(value, unit) : value;
+
+export const getSections = (t: TFunction, unit: LiftingUnit = 'kg'): Section[] => [
   {
     id: 'goal', title: t('aiCoachExtendedSetup.sectionGoalTitle'), icon: '🎯',
     subtitle: t('aiCoachExtendedSetup.sectionGoalSubtitle'),
@@ -133,9 +156,9 @@ export const getSections = (t: TFunction): Section[] => [
     id: 'maxes', title: t('aiCoachExtendedSetup.sectionMaxesTitle'), icon: '⚖️',
     subtitle: t('aiCoachExtendedSetup.sectionMaxesSubtitle'),
     questions: [
-      { id: 'squatMax', label: t('aiCoachExtendedSetup.questionSquatMax'), type: 'number', min: 0, max: 500, unit: 'kg', placeholder: '140', optional: true },
-      { id: 'benchMax', label: t('aiCoachExtendedSetup.questionBenchMax'), type: 'number', min: 0, max: 400, unit: 'kg', placeholder: '100', optional: true },
-      { id: 'deadliftMax', label: t('aiCoachExtendedSetup.questionDeadliftMax'), type: 'number', min: 0, max: 600, unit: 'kg', placeholder: '180', optional: true },
+      maxQuestion('squatMax', t('aiCoachExtendedSetup.questionSquatMax'), 500, 140, unit),
+      maxQuestion('benchMax', t('aiCoachExtendedSetup.questionBenchMax'), 400, 100, unit),
+      maxQuestion('deadliftMax', t('aiCoachExtendedSetup.questionDeadliftMax'), 600, 180, unit),
     ],
   },
   {
@@ -555,6 +578,7 @@ export const hydrateAnswers = (
   profile: FormValues | null,
   competition: { competitionDate?: string | null; competitionType?: string | null; blockIntent?: string | null } | null,
   editableKeys: Set<string>,
+  unit: LiftingUnit = 'kg',
 ): FormValues => {
   const loaded: FormValues = {};
   Object.entries(profile ?? {}).forEach(([key, value]) => {
@@ -566,6 +590,12 @@ export const hydrateAnswers = (
   // padded ('0.50', '1.00', '2.50'), so normalise through Number → String to
   // match an option and highlight the saved choice on the edit screen.
   if (loaded.minPlateKg != null) loaded.minPlateKg = String(Number(loaded.minPlateKg));
+  if (unit === 'lb') {
+    for (const key of LIFT_LOAD_FIELDS) {
+      const kg = asNumber(loaded[key]);
+      if (kg != null) loaded[key] = String(loggedInUnit(kg, unit));
+    }
+  }
   if (competition?.competitionDate) {
     loaded.competitionDate = String(competition.competitionDate).split('T')[0];
     loaded.competitionType = competition.competitionType === 'pr_test' ? 'pr_test' : 'meet';
@@ -614,6 +644,7 @@ export const buildProfilePatch = (
   keys: string[],
   answers: FormValues,
   editableKeys: Set<string>,
+  unit: LiftingUnit = 'kg',
 ): FormValues => {
   const patch: FormValues = {};
   keys
@@ -625,7 +656,7 @@ export const buildProfilePatch = (
         return;
       }
       patch[key] = NUMERIC_PROFILE_FIELDS.includes(key)
-        ? (typeof value === 'number' ? value : asNumber(value) ?? null)
+        ? liftAnswerToKg(key, typeof value === 'number' ? value : asNumber(value), unit) ?? null
         : value;
     });
   return patch;

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { PRResult, SessionSet } from '../../services/session.service';
 import type { SubstituteTarget } from '../../services/ai-coach.service';
+import { LiftingUnit, convertTyped, deliveredPrescriptionKg, loggedInUnit, prescribedInUnit } from '../../units/weight';
 
 /**
  * The in-progress workout's state model, plus the local persistence that keeps it
@@ -33,6 +34,7 @@ export interface LocalSet {
   uid: string;
   setNumber: number;
   reps: string;
+  /** What the athlete reads and types — in their lifting unit, not necessarily kg. */
   weight: string;
   rpe: string;
   // What the plan prescribed for this set — sent to the API so the coach can
@@ -53,6 +55,26 @@ export interface LocalSet {
   isCompleted: boolean;
   isSaving?: boolean;
   prs?: PRResult[];
+  /**
+   * The phone's id for this set, sent with every save so a retry lands on the row it
+   * already created instead of logging the set twice. Assigned at the first tick and
+   * kept for the life of the row (unlike `uid`, which is regenerated on every resume).
+   */
+  clientSetId?: string;
+  /** When the athlete ticked it — sent so a set that syncs late keeps its real time. */
+  performedAt?: string;
+  /**
+   * The server does not have the athlete's latest word on this set yet: a save failed for
+   * want of signal and is queued for retry (see setSync.ts). Persisted with the draft, so
+   * the queue survives the app being closed.
+   */
+  unsynced?: boolean;
+  /**
+   * The exercise this set was DONE as, frozen at the tick. A set still queued when the
+   * athlete swaps the exercise must be saved as the movement they actually lifted, not
+   * the one the card says now.
+   */
+  loggedAs?: { exerciseName: string; exerciseOrder: number; substitutedFor?: string };
 }
 
 export interface Exercise {
@@ -109,17 +131,21 @@ export interface WorkoutDraft {
    * resume would faithfully "recover" a set they meant to throw away.
    */
   removedSetIds: string[];
+  /** The unit the typed weights are in. Absent on drafts from before pounds: kg. */
+  unit?: LiftingUnit;
 }
 
 export async function saveDraft(
   sessionId: string,
   exercises: Exercise[],
   removedSetIds: string[],
+  unit: LiftingUnit = 'kg',
 ): Promise<void> {
   const draft: WorkoutDraft = {
     version: 1,
     sessionId,
     savedAt: Date.now(),
+    unit,
     // uid is regenerated on load and isSaving/prs are server-derived, so neither
     // is worth persisting.
     exercises: exercises.map((ex) => ({
@@ -175,18 +201,19 @@ export async function pruneOtherDrafts(keepSessionId: string): Promise<void> {
 
 const renumber = (sets: LocalSet[]): LocalSet[] => sets.map((s, i) => ({ ...s, setNumber: i + 1 }));
 
-const fromServerSet = (s: SessionSet, setNumber: number): LocalSet => ({
+const fromServerSet = (s: SessionSet, setNumber: number, unit: LiftingUnit): LocalSet => ({
   id: s.id,
   uid: nextSetUid(),
   setNumber,
   reps: s.repsCompleted != null ? String(s.repsCompleted) : '',
-  weight: s.weightUsed != null ? String(s.weightUsed) : '',
+  weight: s.weightUsed != null ? String(loggedInUnit(s.weightUsed, unit)) : '',
   rpe: s.rpe != null ? String(s.rpe) : '',
   targetReps: s.targetReps ?? undefined,
   targetWeight: s.targetWeight ?? undefined,
   targetRpe: s.targetRpe ?? undefined,
   isCompleted: s.isCompleted,
   prs: s.prs,
+  clientSetId: s.clientSetId ?? undefined,
 });
 
 /**
@@ -197,6 +224,7 @@ const fromServerSet = (s: SessionSet, setNumber: number): LocalSet => ({
 export function buildFromPlan(
   planned: PlannedExercise[] | undefined,
   serverSets: SessionSet[],
+  unit: LiftingUnit = 'kg',
 ): Exercise[] {
   const loggedByName = new Map<string, { order: number; sets: SessionSet[] }>();
   for (const s of serverSets) {
@@ -208,7 +236,7 @@ export function buildFromPlan(
   // Renumber to a contiguous 1..N so a set removed earlier doesn't leave a gap
   // that confuses the display or a later add.
   const mapLogged = (sets: SessionSet[]): LocalSet[] =>
-    [...sets].sort((a, b) => a.setNumber - b.setNumber).map((s, i) => fromServerSet(s, i + 1));
+    [...sets].sort((a, b) => a.setNumber - b.setNumber).map((s, i) => fromServerSet(s, i + 1, unit));
 
   // The technique self-report is stored on the exercise's first logged set that
   // carries one (see saveExerciseReview in the screen), so read it back the same way.
@@ -239,10 +267,10 @@ export function buildFromPlan(
         uid: nextSetUid(),
         setNumber: loggedSets.length + i + 1,
         reps: String(pe.reps),
-        weight: String(pe.weight),
+        weight: String(prescribedInUnit(pe.weight, unit)),
         rpe: '',
         targetReps: pe.reps,
-        targetWeight: pe.weight,
+        targetWeight: deliveredPrescriptionKg(pe.weight, unit),
         targetRpe: pe.rpe,
         isCompleted: false,
       }),
@@ -277,8 +305,10 @@ export function buildFromPlan(
  * server holds that the draft never saw is re-attached rather than dropped —
  * losing logged work is the one outcome worth guarding against here.
  */
-export function reconcileDraft(draft: WorkoutDraft, serverSets: SessionSet[]): Exercise[] {
+export function reconcileDraft(draft: WorkoutDraft, serverSets: SessionSet[], unit: LiftingUnit = 'kg'): Exercise[] {
+  draft = inUnit(draft, unit);
   const byId = new Map(serverSets.map((s) => [s.id, s]));
+  const byClientSetId = new Map(serverSets.filter((s) => s.clientSetId).map((s) => [s.clientSetId!, s]));
   const removed = new Set(draft.removedSetIds ?? []);
   const claimed = new Set<string>();
 
@@ -287,7 +317,23 @@ export function reconcileDraft(draft: WorkoutDraft, serverSets: SessionSet[]): E
     order,
     sets: ex.sets.map((set) => {
       const uid = nextSetUid();
-      if (!set.id) return { ...set, uid, isSaving: false, prs: undefined };
+      if (!set.id) {
+        // A set the server already holds although the phone never heard back — the
+        // save landed and its response was lost, or the app closed mid-save. Adopt
+        // the row rather than re-attach it below as a second copy of the same set.
+        const landed = set.clientSetId ? byClientSetId.get(set.clientSetId) : undefined;
+        if (landed) {
+          claimed.add(landed.id);
+          // Still queued means the phone's values are newer than the server's; the
+          // queue will push them (to this id) on the next flush.
+          if (set.unsynced) return { ...set, uid, id: landed.id, isSaving: false, prs: undefined };
+          return { ...fromServerSet(landed, set.setNumber, unit), uid };
+        }
+        // Ticked but never confirmed — the app closed mid-save. Queue it, or the set
+        // would sit there looking logged while the server never hears of it.
+        const unconfirmed = set.isCompleted && !!set.clientSetId;
+        return { ...set, uid, isSaving: false, prs: undefined, unsynced: set.unsynced || unconfirmed };
+      }
       const server = byId.get(set.id);
       if (!server) {
         // Saved, then deleted (or lost) server-side: keep what was typed, but stop
@@ -295,24 +341,26 @@ export function reconcileDraft(draft: WorkoutDraft, serverSets: SessionSet[]): E
         return { ...set, uid, id: undefined, isCompleted: false, isSaving: false, prs: undefined };
       }
       claimed.add(set.id);
-      return { ...fromServerSet(server, set.setNumber), uid };
+      // An edit (an un-tick, a re-tick) still queued is newer than the server's copy.
+      if (set.unsynced) return { ...set, uid, isSaving: false, prs: undefined };
+      return { ...fromServerSet(server, set.setNumber, unit), uid };
     }),
   }));
 
   // Sets the server holds that this draft never recorded — saved from another
   // device, or saved after the last draft write. Re-attach them so nothing logged
   // is silently lost.
-  const orphans = serverSets.filter((s) => !claimed.has(s.id) && !removed.has(s.id));
+  const orphans = serverSets.filter((s) => !claimed.has(s.id) && !wasRemoved(s, removed));
   for (const s of orphans) {
     const target = exercises.find((ex) => ex.name === s.exerciseName);
     if (target) {
-      target.sets = [...target.sets, fromServerSet(s, target.sets.length + 1)];
+      target.sets = [...target.sets, fromServerSet(s, target.sets.length + 1, unit)];
     } else {
       exercises.push({
         name: s.exerciseName,
         order: exercises.length,
         isExpanded: true,
-        sets: [fromServerSet(s, 1)],
+        sets: [fromServerSet(s, 1, unit)],
       });
     }
   }
@@ -320,10 +368,62 @@ export function reconcileDraft(draft: WorkoutDraft, serverSets: SessionSet[]): E
   return exercises.map((ex, order) => ({ ...ex, order, sets: renumber(ex.sets) }));
 }
 
+/**
+ * The draft with its typed weights in `unit`. A workout started in kg and resumed after
+ * the athlete switched to pounds would otherwise show "100" under a pound header — a
+ * number off by more than half. Ticked-off warm-ups are in the old unit's round numbers
+ * and are simply forgotten.
+ */
+function inUnit(draft: WorkoutDraft, unit: LiftingUnit): WorkoutDraft {
+  const from = draft.unit ?? 'kg';
+  if (from === unit) return draft;
+  return {
+    ...draft,
+    unit,
+    exercises: draft.exercises.map((ex) => ({
+      ...ex,
+      warmupsDone: undefined,
+      sets: ex.sets.map((set) => ({ ...set, weight: convertTyped(set.weight, from, unit) })),
+    })),
+  };
+}
+
+/**
+ * Restore the draft when the server could not be asked (no signal on resume).
+ *
+ * reconcileDraft against an EMPTY server list reads every saved set as "the server lost
+ * it" and un-ticks it — so reopening a workout in a basement gym used to wipe the session
+ * off the screen, and re-ticking the sets would have logged each one twice. With no
+ * answer from the server, the phone's own record is the best one there is: keep it, and
+ * queue anything ticked but never confirmed.
+ */
+export function restoreDraftOffline(draft: WorkoutDraft, unit: LiftingUnit = 'kg'): Exercise[] {
+  return inUnit(draft, unit).exercises.map((ex, order) => ({
+    ...ex,
+    order,
+    sets: renumber(ex.sets.map((set) => ({
+      ...set,
+      uid: nextSetUid(),
+      isSaving: false,
+      prs: undefined,
+      unsynced: set.unsynced || (set.isCompleted && !set.id),
+    }))),
+  }));
+}
+
+/**
+ * Whether the athlete deleted this server row. Removals are remembered by server id and,
+ * for a set deleted while its save was still queued, by clientSetId — that save may have
+ * landed after all, and the row it made must not come back on resume.
+ */
+function wasRemoved(s: SessionSet, removed: Set<string>): boolean {
+  return removed.has(s.id) || (!!s.clientSetId && removed.has(s.clientSetId));
+}
+
 /** Ids of sets the athlete deleted that the server still has — the delete needs a retry. */
 export function unresolvedDeletions(draft: WorkoutDraft, serverSets: SessionSet[]): string[] {
   const removed = new Set(draft.removedSetIds ?? []);
-  return serverSets.filter((s) => removed.has(s.id)).map((s) => s.id);
+  return serverSets.filter((s) => wasRemoved(s, removed)).map((s) => s.id);
 }
 
 /**
@@ -341,7 +441,12 @@ export function unresolvedDeletions(draft: WorkoutDraft, serverSets: SessionSet[
  * again when the server's numbers arrive. A null target (never done, or offline) leaves the
  * weight EMPTY: no number is better than the wrong movement's number.
  */
-export function applySubstitution(ex: Exercise, newName: string, target: SubstituteTarget | null): Exercise {
+export function applySubstitution(
+  ex: Exercise,
+  newName: string,
+  target: SubstituteTarget | null,
+  unit: LiftingUnit = 'kg',
+): Exercise {
   const original = ex.substitutedFor ?? ex.name;
   return {
     ...ex,
@@ -353,9 +458,9 @@ export function applySubstitution(ex: Exercise, newName: string, target: Substit
     sets: ex.sets.map((s) => (s.isCompleted || s.id ? s : {
       ...s,
       reps: String(target?.reps ?? s.targetReps ?? s.reps),
-      weight: target?.weight != null ? String(target.weight) : '',
+      weight: target?.weight != null ? String(prescribedInUnit(target.weight, unit)) : '',
       targetReps: target?.reps ?? s.targetReps,
-      targetWeight: target?.weight ?? undefined,
+      targetWeight: target?.weight != null ? deliveredPrescriptionKg(target.weight, unit) : undefined,
       targetRpe: target?.rpe ?? s.targetRpe,
       adjustedWeight: undefined,
     })),

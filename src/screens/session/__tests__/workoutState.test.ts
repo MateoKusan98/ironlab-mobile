@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { SessionSet } from '../../../services/session.service';
+import { toKg } from '../../../units/weight';
 import {
   Exercise,
   WorkoutDraft,
@@ -9,6 +10,7 @@ import {
   loadDraft,
   pruneOtherDrafts,
   reconcileDraft,
+  restoreDraftOffline,
   saveDraft,
   shouldAskForAdjustment,
   unresolvedDeletions,
@@ -324,5 +326,81 @@ describe('applySubstitution — a swap gets its own numbers (2026-10-06)', () =>
     expect(twice.substitutedFor).toBe('Good Morning');
     const back = applySubstitution(twice, 'Good Morning', null);
     expect(back.substitutedFor).toBeUndefined();
+  });
+});
+
+describe('offline set queue on resume (2026-10-07)', () => {
+  const tickedLocally = (exercises: Exercise[], over: Partial<Exercise['sets'][number]>) => {
+    exercises[0].sets[0] = { ...exercises[0].sets[0], isCompleted: true, clientSetId: 'c-1', ...over };
+    return exercises;
+  };
+
+  it('adopts the row a save made when its response was lost, instead of showing the set twice', () => {
+    const landed = serverSet({ clientSetId: 'c-1' });
+    const exercises = tickedLocally(buildFromPlan(plan, []), {});
+    const [squat] = reconcileDraft(draftOf(exercises), [landed]);
+    expect(squat.sets.filter((s) => s.isCompleted)).toHaveLength(1);
+    expect(squat.sets[0].id).toBe(landed.id);
+  });
+
+  it('queues a set that was ticked but never confirmed (app closed mid-save)', () => {
+    const exercises = tickedLocally(buildFromPlan(plan, []), {});
+    const [squat] = reconcileDraft(draftOf(exercises), []);
+    expect(squat.sets[0]).toMatchObject({ isCompleted: true, unsynced: true });
+  });
+
+  it('keeps a queued edit over the server copy it has not reached yet', () => {
+    const saved = serverSet({ repsCompleted: 5 });
+    const exercises = buildFromPlan(plan, [saved]);
+    exercises[0].sets[0] = { ...exercises[0].sets[0], isCompleted: false, unsynced: true };
+    const [squat] = reconcileDraft(draftOf(exercises), [saved]);
+    expect(squat.sets[0]).toMatchObject({ id: saved.id, isCompleted: false, unsynced: true });
+  });
+
+  it('does not resurrect a set deleted while its save was still queued', () => {
+    const landed = serverSet({ clientSetId: 'c-gone' });
+    const result = reconcileDraft(draftOf(buildFromPlan(plan, []), ['c-gone']), [landed]);
+    expect(result.flatMap((e) => e.sets).some((s) => s.id === landed.id)).toBe(false);
+    expect(unresolvedDeletions(draftOf([], ['c-gone']), [landed])).toEqual([landed.id]);
+  });
+
+  it('reopening the workout with no signal keeps every logged set ticked', () => {
+    // reconcileDraft against an empty list used to read this as "the server lost them all".
+    const saved = serverSet();
+    const exercises = buildFromPlan(plan, [saved]);
+    const [squat] = restoreDraftOffline(draftOf(exercises));
+    expect(squat.sets[0]).toMatchObject({ id: saved.id, isCompleted: true, weight: '100' });
+    expect(squat.sets[0].unsynced).toBeFalsy();
+  });
+
+  it('with no signal, still queues what was ticked but never confirmed', () => {
+    const exercises = tickedLocally(buildFromPlan(plan, []), {});
+    const [squat] = restoreDraftOffline(draftOf(exercises));
+    expect(squat.sets[0]).toMatchObject({ isCompleted: true, unsynced: true, clientSetId: 'c-1' });
+  });
+
+  it('persists the queue with the draft', async () => {
+    const exercises = tickedLocally(buildFromPlan(plan, []), { unsynced: true, performedAt: '2026-10-07T17:40:00Z' });
+    await saveDraft('sess', exercises, []);
+    const draft = await loadDraft('sess');
+    expect(draft!.exercises[0].sets[0]).toMatchObject({ unsynced: true, clientSetId: 'c-1', performedAt: '2026-10-07T17:40:00Z' });
+  });
+});
+
+describe('a pound lifter meets the prescription they were shown (2026-10-07)', () => {
+  // The engine judges a set by weightUsed < targetWeight (earned-step, variation-anchor
+  // evidence, comp-lift residual). 102.5kg shown as 225lb logs as 102.06kg — recording
+  // the unrounded 102.5 would mark every such set "not met" and he would never earn a step.
+  it('records the delivered 225lb as the prescription, so loading exactly that meets it', () => {
+    const [squat] = buildFromPlan([{ name: 'Back Squat', sets: 1, reps: 5, weight: 102.5, rpe: 8 }], [], 'lb');
+    const set = squat.sets[0];
+    expect(set.weight).toBe('225');
+    const loggedKg = toKg(parseFloat(set.weight), 'lb');
+    expect(loggedKg).toBeGreaterThanOrEqual(set.targetWeight!);
+  });
+
+  it('leaves a kg lifter\'s prescription exactly as the engine computed it', () => {
+    const [squat] = buildFromPlan([{ name: 'Back Squat', sets: 1, reps: 5, weight: 102.5, rpe: 8 }], []);
+    expect(squat.sets[0]).toMatchObject({ weight: '102.5', targetWeight: 102.5 });
   });
 });

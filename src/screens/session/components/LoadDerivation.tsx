@@ -3,9 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { theme, palette, alpha } from '../../../theme';
 import { LoadBasisView } from '../../../services/ai-coach.service';
+import { formatNumber, formatWeight, prescribedInUnit, unitLabel } from '../../../units/weight';
+import { useLiftingUnit } from '../../../units/useLiftingUnit';
 
 export interface LoadDerivationProps {
   basis: LoadBasisView;
+  /** The computed load, kg. */
   weight: number;
   /** weight as a percentage of the basis anchor, computed server-side. */
   weightPerc?: number;
@@ -20,7 +23,6 @@ const ROLE_LABEL: Record<string, string> = {
   technique: 'technique day',
 };
 
-const kg = (n: number) => `${Math.round(n * 10) / 10}kg`;
 
 /**
  * WHY THIS WEIGHT — the derivation behind a computed comp-lift load, spelled out.
@@ -44,7 +46,12 @@ const kg = (n: number) => `${Math.round(n * 10) / 10}kg`;
  */
 export const LoadDerivation: React.FC<LoadDerivationProps> = ({ basis, weight, weightPerc, onFixMax }) => {
   const { t } = useTranslation();
+  const unit = useLiftingUnit();
   const { rpeParts, stale } = basis;
+  // Every term in the athlete's unit. The chain is computed in kg; in pounds the last step
+  // also lands the result on a loadable 5lb, which the rounding line says.
+  const w = (kg: number) => formatWeight(Math.round(kg * 10) / 10, unit);
+  const result = `${formatNumber(prescribedInUnit(weight, unit))}${unitLabel(unit)}`;
 
   const anchorLabel =
     basis.anchorSource === 'stored-1rm' ? t('loadDerivation.sourceStored', { defaultValue: 'your stored 1RM' })
@@ -62,10 +69,10 @@ export const LoadDerivation: React.FC<LoadDerivationProps> = ({ basis, weight, w
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>{t('loadDerivation.title', { weight, defaultValue: 'WHY {{weight}}KG' })}</Text>
+      <Text style={styles.title}>{t('loadDerivation.title', { weight: result.toUpperCase(), defaultValue: 'WHY {{weight}}' })}</Text>
 
       <View style={styles.row}>
-        <Text style={styles.value}>{kg(basis.anchor)}</Text>
+        <Text style={styles.value}>{w(basis.anchor)}</Text>
         <Text style={styles.term}>{anchorLabel}</Text>
       </View>
 
@@ -83,9 +90,13 @@ export const LoadDerivation: React.FC<LoadDerivationProps> = ({ basis, weight, w
 
       <View style={styles.resultRow}>
         <Text style={styles.result}>
-          {weightPerc ? `${weightPerc}% → ` : ''}{weight}kg
+          {weightPerc ? `${weightPerc}% → ` : ''}{result}
         </Text>
-        <Text style={styles.term}>{t('loadDerivation.rounded', { increment: basis.incrementKg, defaultValue: 'rounded to the nearest {{increment}}kg' })}</Text>
+        <Text style={styles.term}>
+          {unit === 'lb'
+            ? t('loadDerivation.roundedLb', { defaultValue: 'rounded to a loadable 5lb' })
+            : t('loadDerivation.rounded', { increment: basis.incrementKg, defaultValue: 'rounded to the nearest {{increment}}kg' })}
+        </Text>
       </View>
 
       {/* The stale anchor. Stated as an estimate, because that is what it is — the
@@ -101,8 +112,8 @@ export const LoadDerivation: React.FC<LoadDerivationProps> = ({ basis, weight, w
         >
           <Text style={styles.staleText}>
             {t('loadDerivation.stale', {
-              demonstrated: kg(stale.demonstratedE1Rm),
-              stored: kg(stale.storedAnchor),
+              demonstrated: w(stale.demonstratedE1Rm),
+              stored: w(stale.storedAnchor),
               pct: Math.round(stale.deltaPct),
               defaultValue: 'Your logged sets estimate {{demonstrated}} — {{pct}}% above the {{stored}} this was priced from.',
             })}

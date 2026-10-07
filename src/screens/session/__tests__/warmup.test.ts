@@ -1,6 +1,6 @@
 import { warmupRamp } from '../warmup';
 
-const gym = { barKg: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25] };
+const gym = { bar: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25] };
 const weights = (top: number, reps = 5, bar: typeof gym | null = gym) => warmupRamp(top, reps, bar).map((s) => s.weight);
 
 describe('warm-up ramp', () => {
@@ -46,7 +46,23 @@ describe('warm-up ramp', () => {
 
   it('skips a jump this gym cannot load rather than inventing one', () => {
     // Only 20s: 60 and 100 load (20 / 40 a side); the 130 jump does not, nor does 120.
-    const twentiesOnly = { barKg: 20, plates: [20] };
+    const twentiesOnly = { bar: 20, plates: [20] };
     expect(weights(150, 5, twentiesOnly)).toEqual([20, 60, 100]);
+  });
+});
+
+describe('warm-ups in pounds (2026-10-07)', () => {
+  const lbGym = { bar: 45, plates: [45, 35, 25, 10, 5, 2.5] };
+  const weights = (top: number, reps: number) => warmupRamp(top, reps, lbGym, 'lb').map((s) => s.weight);
+
+  it('ramps a 315 the way a pound gym loads it — 135, 225, 275, never 132.3', () => {
+    expect(weights(315, 5)).toEqual([45, 135, 225, 275]);
+  });
+
+  it('only ever lands on plate-round pound loads', () => {
+    const round = new Set([45, 65, 95, 135, 185, 225, 275, 315, 365, 405, 455, 495]);
+    for (const top of [155, 225, 280, 365, 405, 500]) {
+      for (const w of weights(top, 3)) expect(round.has(w)).toBe(true);
+    }
   });
 });

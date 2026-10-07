@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { theme, palette, alpha } from '../../theme';
 import { PrForecast, PrLiftForecast, PrVerdict } from '../../services/ai-coach.service';
+import { formatWeight } from '../../units/weight';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
 
 /**
  * "Is a PR on today?" — the forecast the athlete sees before they walk up to the bar.
@@ -41,19 +43,20 @@ function isRenderable(f: PrForecast | null): f is PrForecast {
 }
 
 const MarginRow: React.FC<{ lift: PrLiftForecast }> = ({ lift }) => {
+  const unit = useLiftingUnit();
   if (lift.record == null || lift.projectedTop == null) return null;
   const up = (lift.marginPct ?? 0) >= 0;
   return (
     <View style={s.numbers}>
       <View style={s.numberBlock}>
         <Text style={s.numberLabel}>Your record</Text>
-        <Text style={s.numberValue}>{lift.record}kg</Text>
+        <Text style={s.numberValue}>{lift.record != null ? formatWeight(lift.record, unit) : '—'}</Text>
       </View>
       <Text style={[s.arrow, { color: up ? palette.success[500] : palette.gray[500] }]}>→</Text>
       <View style={s.numberBlock}>
         <Text style={s.numberLabel}>Projected today</Text>
         <Text style={[s.numberValue, { color: up ? palette.success[500] : palette.gray[300] }]}>
-          {lift.projectedTop}kg
+          {lift.projectedTop != null ? formatWeight(lift.projectedTop, unit) : '—'}
         </Text>
       </View>
       <View style={[s.marginPill, { backgroundColor: alpha(up ? palette.success[500] : palette.gray[500], 0.15) }]}>
@@ -66,6 +69,7 @@ const MarginRow: React.FC<{ lift: PrLiftForecast }> = ({ lift }) => {
 };
 
 const LiftDetail: React.FC<{ lift: PrLiftForecast }> = ({ lift }) => {
+  const unit = useLiftingUnit();
   const v = lift.verdict === 'insufficient_data' ? null : VERDICT[lift.verdict];
   return (
     <View style={s.liftBlock}>
@@ -87,8 +91,8 @@ const LiftDetail: React.FC<{ lift: PrLiftForecast }> = ({ lift }) => {
           day the single is not — worth naming so a good day isn't wasted. */}
       {lift.triple?.projected != null && (
         <Text style={s.tripleNote}>
-          A triple at {lift.triple.projected}kg would also stand as a record
-          {lift.triple.record != null ? ` (current best: ${lift.triple.record}kg)` : ''}.
+          A triple at {formatWeight(lift.triple.projected, unit)} would also stand as a record
+          {lift.triple.record != null ? ` (current best: ${formatWeight(lift.triple.record, unit)})` : ''}.
         </Text>
       )}
 

@@ -30,6 +30,8 @@ export interface SessionSet {
   techniqueNotes: string | null;
   techniqueRating: number | null;
   substitutedFor?: string | null;
+  /** The phone's id for the set (offline queue); null on sets from older app versions. */
+  clientSetId?: string | null;
   loggedAt: string;
   prs?: PRResult[];
 }
@@ -96,6 +98,10 @@ export interface AddSetInput {
   techniqueRating?: number;
   /** The prescribed movement this set was swapped in for, when the athlete substituted it. */
   substitutedFor?: string;
+  /** Makes the save idempotent — see setSync.ts. */
+  clientSetId?: string;
+  /** ISO time the set was done, for a set that syncs late. */
+  performedAt?: string;
 }
 
 export interface ExerciseSummary {
@@ -314,7 +320,37 @@ export interface LastPerformance {
   sets: LastPerformanceSet[];
 }
 
+/** One session of one movement (GET /sessions/exercise-history). All weights kg. */
+export interface ExerciseHistorySession {
+  sessionId: string;
+  completedAt: string;
+  sets: LastPerformanceSet[];
+  /** Heaviest set of the day; null for a bodyweight-only day. */
+  topSet: LastPerformanceSet | null;
+  /** Stats-only Epley e1RM of the day's best set (≤12 reps); null when none qualifies. */
+  e1rm: number | null;
+}
+
+/** The heaviest weight actually lifted for a rep count. */
+export interface RepBest {
+  reps: number;
+  weight: number;
+  completedAt: string;
+}
+
+export interface ExerciseHistory {
+  /** Newest first. */
+  sessions: ExerciseHistorySession[];
+  repBests: RepBest[];
+}
+
 export const sessionService = {
+  /** Every logged session of one movement, matched the way "last time" matches it. */
+  getExerciseHistory: async (name: string): Promise<ExerciseHistory> => {
+    const { data } = await api.get<{ data: ExerciseHistory }>('/sessions/exercise-history', { params: { name } });
+    return data.data;
+  },
+
   /** "Last time" per movement, keyed by the names sent. Movements never logged are absent. */
   getLastPerformance: async (names: string[]): Promise<Record<string, LastPerformance>> => {
     const { data } = await api.post<{ data: Record<string, LastPerformance> }>('/sessions/last-performance', { names });

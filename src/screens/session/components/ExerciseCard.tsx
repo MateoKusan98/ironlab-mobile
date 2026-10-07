@@ -3,7 +3,9 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { palette } from '../../../theme';
 import { ExerciseCue } from '../../../services/exerciseCue.service';
-import { InSessionAdjustment } from '../../../services/ai-coach.service';
+import { BarLoading, InSessionAdjustment } from '../../../services/ai-coach.service';
+import { plateSetFor, prescribedInUnit, unitLabel } from '../../../units/weight';
+import { useLiftingUnit } from '../../../units/useLiftingUnit';
 import type { LastPerformance } from '../../../services/session.service';
 import { Exercise, LocalSet } from '../workoutState';
 import { openTutorial } from '../exerciseCatalog';
@@ -50,7 +52,7 @@ export interface ExerciseCardProps {
   exercise: Exercise;
   exIdx: number;
   exName: (name: string) => string;
-  barLoading: { barKg: number; plates: number[] } | null | undefined;
+  barLoading: BarLoading | null | undefined;
   /** The live load cut, when it belongs to this exercise. */
   adjustment: InSessionAdjustment | null;
   /** What the athlete did the previous time they trained this movement, if ever. */
@@ -69,6 +71,8 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   exercise: ex, exIdx, exName, barLoading, adjustment, lastTime, cueForm, actions,
 }) => {
   const { t } = useTranslation();
+  const unit = useLiftingUnit();
+  const plateSet = plateSetFor(barLoading, unit);
   return (
     <View style={styles.exerciseCard}>
       {/* Exercise Header */}
@@ -78,7 +82,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
           <Text style={styles.exerciseMeta}>
             {ex.sets.filter((s) => s.isCompleted).length}/{ex.sets.length} sets
           </Text>
-          {lastTime && <LastTimeLine lastTime={lastTime} />}
+          {lastTime && <LastTimeLine lastTime={lastTime} exerciseName={ex.name} />}
         </View>
         <TouchableOpacity
           onPress={() => openTutorial(ex.name)}
@@ -129,14 +133,14 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
           <WarmupStrip
             exercise={ex}
-            barLoading={barLoading ?? null}
+            plateSet={plateSet}
             onToggle={(weight) => actions.toggleWarmup(exIdx, weight)}
           />
 
           {/* Column Headers */}
           <View style={styles.colHeaders}>
             <Text style={[styles.colHeader, { width: 30 }]}>{t('activeWorkout.set')}</Text>
-            <Text style={[styles.colHeader, { flex: 1 }]}>{t('activeWorkout.weight')}</Text>
+            <Text style={[styles.colHeader, { flex: 1 }]}>{t('activeWorkout.weightIn', { unit: unitLabel(unit), defaultValue: 'WEIGHT ({{unit}})' })}</Text>
             <Text style={[styles.colHeader, { flex: 1 }]}>{t('activeWorkout.repsLabel')}</Text>
             <TouchableOpacity
               accessibilityRole="button"
@@ -158,16 +162,18 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             // An accepted in-session cut changes the bar the athlete has to
             // build, so the stack draws that; the prescription it replaced stays
             // recorded on targetWeight.
-            const barWeight = set.adjustedWeight ?? set.targetWeight;
-            const prevBarWeight = ex.sets[setIdx - 1]?.adjustedWeight ?? ex.sets[setIdx - 1]?.targetWeight;
-            const showPlates = !!ex.barLoaded && !!barWeight && barWeight !== prevBarWeight;
+            // In the athlete's unit, on the same step as the weight printed in the row.
+            const barKg = set.adjustedWeight ?? set.targetWeight;
+            const barWeight = barKg != null ? prescribedInUnit(barKg, unit) : undefined;
+            const prevKg = ex.sets[setIdx - 1]?.adjustedWeight ?? ex.sets[setIdx - 1]?.targetWeight;
+            const showPlates = !!ex.barLoaded && !!barWeight && barKg !== prevKg;
             return (
               <SetRow
                 key={set.uid}
                 set={set}
                 showPlates={showPlates}
                 barWeight={barWeight}
-                barLoading={barLoading}
+                plateSet={plateSet}
                 onChangeField={(field, v) => actions.updateSetField(exIdx, setIdx, field, v)}
                 onEndEditing={(field) => actions.maybePromptPrefill(exIdx, setIdx, field)}
                 onRpeFocus={actions.handleRpeFocus}

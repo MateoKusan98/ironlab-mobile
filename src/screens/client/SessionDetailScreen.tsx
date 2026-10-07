@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, RouteProp } from '@react-navigation/native';
@@ -15,6 +16,9 @@ import { theme, palette } from '../../theme';
 import { sessionService, WorkoutSession, SessionSet } from '../../services/session.service';
 import { Moon, Minus, ThumbsUp, Fire, Lightning, Trophy } from 'phosphor-react-native';
 import { SessionDebriefCard } from '../../components/ui';
+import { formatWeight, loggedInUnit } from '../../units/weight';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
+import { useOpenExerciseHistory } from './exercise-history/useOpenExerciseHistory';
 
 const MOOD_ICON: Record<string, React.ReactElement> = {
   tired:   <Moon size={20} weight="fill" color={palette.coolGray[500]} />,
@@ -44,6 +48,8 @@ function groupSetsByExercise(sets: SessionSet[]): { name: string; sets: SessionS
 export const SessionDetailScreen: React.FC = () => {
   const { t } = useTranslation();
   const { exName } = useExerciseName();
+  const unit = useLiftingUnit();
+  const openHistory = useOpenExerciseHistory();
   const route = useRoute<RouteProp<RootStackParamList, 'SessionDetail'>>();
   const { sessionId } = route.params;
 
@@ -153,8 +159,8 @@ export const SessionDetailScreen: React.FC = () => {
           </View>
           {totalVolume > 0 && (
             <View style={styles.summaryStat}>
-              <Text style={styles.summaryValue}>{Math.round(totalVolume).toLocaleString()}</Text>
-              <Text style={styles.summaryLabel}>{t('sessionDetail.kgTotal')}</Text>
+              <Text style={styles.summaryValue}>{Math.round(loggedInUnit(totalVolume, unit)).toLocaleString()}</Text>
+              <Text style={styles.summaryLabel}>{unit === 'lb' ? 'lb total' : t('sessionDetail.kgTotal')}</Text>
             </View>
           )}
         </View>
@@ -164,17 +170,22 @@ export const SessionDetailScreen: React.FC = () => {
           const hasExPR = sets.some((s) => s.isPR);
           return (
             <View key={name} style={[styles.exerciseCard, hasExPR && styles.exerciseCardPR]}>
-              <View style={styles.exerciseHeader}>
-                <Text style={styles.exerciseName}>{exName(name)}</Text>
+              <TouchableOpacity
+                style={styles.exerciseHeader}
+                onPress={() => openHistory(name)}
+                accessibilityRole="button"
+                accessibilityHint={t('exerciseHistory.openHint', { defaultValue: 'Opens every session of this exercise' })}
+              >
+                <Text style={styles.exerciseName}>{exName(name)} ›</Text>
                 {hasExPR && <View style={styles.prTag}><Trophy size={12} weight="fill" color={palette.brand[400]} /><Text style={styles.prTagText}> PR</Text></View>}
-              </View>
+              </TouchableOpacity>
 
               {sets.map((s, i) => (
                 <View key={s.id} style={styles.setRow}>
                   <Text style={styles.setNum}>{i + 1}</Text>
                   <Text style={styles.setDetail}>
                     {s.weightUsed != null && s.weightUsed > 0
-                      ? `${s.weightUsed}kg`
+                      ? formatWeight(s.weightUsed, unit)
                       : 'BW'}
                     {' × '}
                     {s.repsCompleted ?? '—'} reps

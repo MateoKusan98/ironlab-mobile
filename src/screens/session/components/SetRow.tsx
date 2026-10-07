@@ -1,9 +1,13 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Trophy } from 'phosphor-react-native';
+import { CloudSlash, Trophy } from 'phosphor-react-native';
 import { palette } from '../../../theme';
 import { PlateStack } from '../../../components/ui/PlateStack';
+import type { PlateSet } from '../../../utils/plateMath';
+import type { PRResult } from '../../../services/session.service';
+import { LiftingUnit, formatGain, formatWeight } from '../../../units/weight';
+import { useLiftingUnit } from '../../../units/useLiftingUnit';
 import { LocalSet } from '../workoutState';
 import { styles } from '../ActiveWorkoutScreen.styles';
 
@@ -11,8 +15,9 @@ export interface SetRowProps {
   set: LocalSet;
   /** Draw the plate stack under this row (the first row of each prescribed load). */
   showPlates: boolean;
+  /** The prescribed load in the athlete's unit — the number the plate stack must agree with. */
   barWeight: number | undefined;
-  barLoading: { barKg: number; plates: number[] } | null | undefined;
+  plateSet: PlateSet | null;
   onChangeField: (field: 'weight' | 'reps' | 'rpe', value: string) => void;
   onEndEditing: (field: 'weight' | 'rpe') => void;
   onRpeFocus: () => void;
@@ -28,9 +33,10 @@ export interface SetRowProps {
  * Split out of ActiveWorkoutScreen (2026-10-06, a move with no behaviour change).
  */
 export const SetRow: React.FC<SetRowProps> = ({
-  set, showPlates, barWeight, barLoading, onChangeField, onEndEditing, onRpeFocus, onRemove, onComplete, onUncomplete,
+  set, showPlates, barWeight, plateSet, onChangeField, onEndEditing, onRpeFocus, onRemove, onComplete, onUncomplete,
 }) => {
   const { t } = useTranslation();
+  const unit = useLiftingUnit();
   const hasTruePR = !!set.prs?.some((p) => p.tier === 'pr');
   return (
     <View>
@@ -80,11 +86,9 @@ export const SetRow: React.FC<SetRowProps> = ({
           >
             <Text style={styles.removeSetBtnText}>✕</Text>
           </TouchableOpacity>
-          {set.isSaving ? (
-            <View style={styles.logBtn}>
-              <ActivityIndicator color={palette.white} size="small" />
-            </View>
-          ) : set.isCompleted ? (
+          {/* No spinner: a set is ticked the moment it is tapped and saved behind the
+              tick (setSync.ts). A save in the air only blocks a second tap. */}
+          {set.isCompleted ? (
             <TouchableOpacity
               style={styles.doneCheck}
               onPress={onUncomplete}
@@ -110,12 +114,26 @@ export const SetRow: React.FC<SetRowProps> = ({
         </View>
       </View>
 
+      {set.unsynced && (
+        <View
+          style={styles.unsyncedRow}
+          accessible
+          accessibilityLabel={t('activeWorkout.notSyncedA11y', { defaultValue: 'Not synced yet. Saved on this phone, will retry.' })}
+        >
+          <CloudSlash size={12} color={palette.gray[400]} />
+          <Text style={styles.unsyncedText}>
+            {t('activeWorkout.notSynced', { defaultValue: 'Not synced yet · saved on this phone' })}
+          </Text>
+        </View>
+      )}
+
       {/* What to hang on the bar for this set's prescribed load.
           Presentational — it reads targetWeight, never writes one. */}
       {showPlates && (
         <PlateStack
-          weightKg={barWeight!}
-          bar={barLoading}
+          weight={barWeight!}
+          bar={plateSet}
+          unit={unit}
           perSideLabel={t('activeWorkout.perSide', { defaultValue: 'per side' })}
         />
       )}
@@ -126,9 +144,7 @@ export const SetRow: React.FC<SetRowProps> = ({
           {set.prs.map((pr) => (
             <View key={pr.type} style={[styles.prBadge, pr.tier === 'mini' && styles.prBadgeMini]}>
               <Text style={[styles.prBadgeText, pr.tier === 'mini' && styles.prBadgeMiniText]}>
-                {pr.tier === 'pr'
-                  ? `🏆 PR · ${pr.e1rm ?? pr.value}kg 1RM${pr.prevE1rm ? ` (+${((pr.e1rm ?? pr.value) - pr.prevE1rm).toFixed(1)})` : ' · First ever!'}`
-                  : `mini PR · ${pr.label}: ${pr.value}kg${pr.previous ? ` (+${(pr.value - pr.previous).toFixed(1)})` : ''}`}
+                {prBadgeText(pr, unit)}
               </Text>
             </View>
           ))}
@@ -137,3 +153,13 @@ export const SetRow: React.FC<SetRowProps> = ({
     </View>
   );
 };
+
+/** "🏆 PR · 180kg 1RM (+2.5)" — every number in the athlete's unit, the gain included. */
+export function prBadgeText(pr: PRResult, unit: LiftingUnit): string {
+  const gain = (now: number, before: number) => formatGain(now, before, unit);
+  if (pr.tier === 'pr') {
+    const best = pr.e1rm ?? pr.value;
+    return `🏆 PR · ${formatWeight(best, unit)} 1RM${pr.prevE1rm ? ` (+${gain(best, pr.prevE1rm)})` : ' · First ever!'}`;
+  }
+  return `mini PR · ${pr.label}: ${formatWeight(pr.value, unit)}${pr.previous ? ` (+${gain(pr.value, pr.previous)})` : ''}`;
+}

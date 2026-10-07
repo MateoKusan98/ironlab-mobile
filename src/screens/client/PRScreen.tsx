@@ -10,8 +10,11 @@ import { theme, palette } from '../../theme';
 import { Trophy } from 'phosphor-react-native';
 import { sessionService } from '../../services/session.service';
 import { RepPR } from '@shared';
+import { formatWeight } from '../../units/weight';
+import { useLiftingUnit } from '../../units/useLiftingUnit';
 
 export const PRScreen: React.FC = () => {
+  const unit = useLiftingUnit();
   const { t } = useTranslation();
   const { exName } = useExerciseName();
   const [repPRs, setRepPRs] = useState<RepPR[]>([]);
@@ -91,7 +94,7 @@ export const PRScreen: React.FC = () => {
               {best && parseInt(best.reps) === 1 && (
                 <View style={styles.heroCard}>
                   <Text style={styles.heroLabel}>{t('prs.oneRepMax')}</Text>
-                  <Text style={styles.heroValue}>{parseFloat(best.maxWeight).toFixed(1)}kg</Text>
+                  <Text style={styles.heroValue}>{formatWeight(parseFloat(best.maxWeight), unit)}</Text>
                   {best.achievedAt && (
                     <Text style={styles.heroDate}>
                       {new Date(best.achievedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -108,7 +111,7 @@ export const PRScreen: React.FC = () => {
                     {reps.map((r) => (
                       <View key={r.reps} style={styles.repCard}>
                         <Text style={styles.repLabel}>{r.reps}RM</Text>
-                        <Text style={styles.repValue}>{parseFloat(r.maxWeight).toFixed(1)}kg</Text>
+                        <Text style={styles.repValue}>{formatWeight(parseFloat(r.maxWeight), unit)}</Text>
                         <Text style={styles.repDate}>
                           {r.achievedAt ? new Date(r.achievedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
                         </Text>
