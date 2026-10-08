@@ -280,7 +280,26 @@
     "notSyncedA11y": "Not synced yet. Saved on this phone, will retry.",
     "unsyncedFinishTitle": "Some sets haven't synced yet",
     "unsyncedFinishBody": "They are saved on this phone. Finish the workout once you have signal — nothing is lost in the meantime.",
-    "unsyncedRetry": "Try again"
+    "unsyncedRetry": "Try again",
+    "quickRpeLabel": "Done @ RPE",
+    "quickRpeA11y": "Log this set at RPE {{rpe}}",
+    "lockAllDoneTitle": "All sets done 💪",
+    "lockAllDoneBody": "Open IronLab and tap Finish to save the session.",
+    "lockTitle": "{{exercise}} · set {{set}} of {{total}}",
+    "lockBodyResting": "Rest until {{time}} · next {{next}}",
+    "lockBody": "Next: {{next}}",
+    "lockReps_one": "{{count}} rep",
+    "lockReps_other": "{{count}} reps",
+    "timeLeft": "~{{minutes}} min left",
+    "timeCutTitle": "Short on time?",
+    "timeCutSubtitle": "What is left takes about {{minutes}} min at your rest times. How long have you got?",
+    "timeCutMinutes": "{{count}} min",
+    "timeCutAlreadyShort": "What is left is already short — just get it done.",
+    "timeCutKept": "Main lifts stay as written — same sets, same weight.",
+    "timeCutMainTooLong": "The main lifts alone take about {{minutes}} min. Do them and call it a day — that is still a good session.",
+    "timeCutApply": "Cut it to ~{{minutes}} min",
+    "timeCutDropped": "✕ {{exercise}} — skipped today",
+    "timeCutTrimmed": "− {{exercise}}: {{from}} → {{to}} sets"
   },
   "loadDerivation": {
     "title": "WHY {{weight}}",
@@ -1639,7 +1658,10 @@
     "messages": "Messages",
     "messagesBody": "Direct messages from your coach and friends.",
     "coachReviews": "Sessions to review",
-    "coachReviewsBody": "An athlete's session is waiting for your sign-off."
+    "coachReviewsBody": "An athlete's session is waiting for your sign-off.",
+    "onThisPhone": "On this phone",
+    "lockScreenCard": "Workout on the lock screen",
+    "lockScreenCardBody": "Your next set and when rest ends, without unlocking the phone."
   },
   "shareCard": {
     "open": "Share as story image",

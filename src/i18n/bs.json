@@ -175,7 +175,27 @@
     "notSyncedA11y": "Još nije sinhronizovano. Sačuvano na telefonu, pokušat ćemo ponovo.",
     "unsyncedFinishTitle": "Neke serije još nisu sinhronizovane",
     "unsyncedFinishBody": "Sačuvane su na telefonu. Završi trening kad imaš signal — ništa se u međuvremenu ne gubi.",
-    "unsyncedRetry": "Pokušaj ponovo"
+    "unsyncedRetry": "Pokušaj ponovo",
+    "quickRpeLabel": "Gotovo @ RPE",
+    "quickRpeA11y": "Upiši ovu seriju sa RPE {{rpe}}",
+    "lockAllDoneTitle": "Sve serije gotove 💪",
+    "lockAllDoneBody": "Otvori IronLab i dodirni Završi da sačuvaš trening.",
+    "lockTitle": "{{exercise}} · serija {{set}} od {{total}}",
+    "lockBodyResting": "Odmor do {{time}} · sljedeće {{next}}",
+    "lockBody": "Sljedeće: {{next}}",
+    "lockReps_one": "{{count}} ponavljanje",
+    "lockReps_few": "{{count}} ponavljanja",
+    "lockReps_other": "{{count}} ponavljanja",
+    "timeLeft": "još ~{{minutes}} min",
+    "timeCutTitle": "Nemaš vremena?",
+    "timeCutSubtitle": "Ostatak traje oko {{minutes}} min uz tvoje odmore. Koliko vremena imaš?",
+    "timeCutMinutes": "{{count}} min",
+    "timeCutAlreadyShort": "Ostatak je već kratak — samo ga odradi.",
+    "timeCutKept": "Glavna dizanja ostaju kako piše — iste serije, ista težina.",
+    "timeCutMainTooLong": "Samo glavna dizanja traju oko {{minutes}} min. Odradi njih i završi — i to je dobar trening.",
+    "timeCutApply": "Skrati na ~{{minutes}} min",
+    "timeCutDropped": "✕ {{exercise}} — preskačeš danas",
+    "timeCutTrimmed": "− {{exercise}}: serije {{from}} → {{to}}"
   },
   "sessionSummary": {
     "greatWork": "Odličan rad!",
@@ -1060,7 +1080,10 @@
     "messages": "Poruke",
     "messagesBody": "Direktne poruke od trenera i prijatelja.",
     "coachReviews": "Treninzi za pregled",
-    "coachReviewsBody": "Trening sportiste čeka tvoje odobrenje."
+    "coachReviewsBody": "Trening sportiste čeka tvoje odobrenje.",
+    "onThisPhone": "Na ovom telefonu",
+    "lockScreenCard": "Trening na zaključanom ekranu",
+    "lockScreenCardBody": "Sljedeća serija i kraj odmora bez otključavanja telefona."
   },
   "shareCard": {
     "open": "Podijeli kao sliku za story",

@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { Vibration } from 'react-native';
 import { aiCoachService, InSessionAdjustment } from '../../../services/ai-coach.service';
 import { Exercise, LocalSet, shouldAskForAdjustment } from '../workoutState';
 import { LiftingUnit, prescribedInUnit } from '../../../units/weight';
+import * as haptics from '../../../haptics/haptics';
 
 /**
  * The live in-session load cut: asked for after an overshoot, offered under the
@@ -64,7 +64,7 @@ export function useLoadAdjustment(
         : { ...s, weight: String(prescribedInUnit(data.suggestedWeight, unit)), adjustedWeight: data.suggestedWeight }),
     }));
     setAdjustment(null);
-    Vibration.vibrate(30);
+    haptics.lightTap();
   };
 
   const dismissAdjustment = () => setAdjustment(null);

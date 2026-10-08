@@ -174,7 +174,26 @@
     "notSyncedA11y": "Сè уште не е синхронизирано. Зачувано на телефонот, ќе пробаме повторно.",
     "unsyncedFinishTitle": "Некои серии сè уште не се синхронизирани",
     "unsyncedFinishBody": "Зачувани се на телефонот. Заврши го тренингот кога ќе имаш сигнал — ништо не се губи во меѓувреме.",
-    "unsyncedRetry": "Обиди се повторно"
+    "unsyncedRetry": "Обиди се повторно",
+    "quickRpeLabel": "Готово @ RPE",
+    "quickRpeA11y": "Запиши ја серијата со RPE {{rpe}}",
+    "lockAllDoneTitle": "Сите серии се готови 💪",
+    "lockAllDoneBody": "Отвори IronLab и допри Заврши за да го зачуваш тренингот.",
+    "lockTitle": "{{exercise}} · серија {{set}} од {{total}}",
+    "lockBodyResting": "Одмор до {{time}} · следно {{next}}",
+    "lockBody": "Следно: {{next}}",
+    "lockReps_one": "{{count}} повторување",
+    "lockReps_other": "{{count}} повторувања",
+    "timeLeft": "уште ~{{minutes}} мин",
+    "timeCutTitle": "Немаш време?",
+    "timeCutSubtitle": "Остатокот трае околу {{minutes}} мин со твоите одмори. Колку време имаш?",
+    "timeCutMinutes": "{{count}} мин",
+    "timeCutAlreadyShort": "Остатокот е веќе краток — само заврши го.",
+    "timeCutKept": "Главните кревања остануваат како што се напишани — исти серии, иста тежина.",
+    "timeCutMainTooLong": "Само главните кревања траат околу {{minutes}} мин. Направи ги нив и заврши — и тоа е добар тренинг.",
+    "timeCutApply": "Скрати на ~{{minutes}} мин",
+    "timeCutDropped": "✕ {{exercise}} — го прескокнуваш денес",
+    "timeCutTrimmed": "− {{exercise}}: серии {{from}} → {{to}}"
   },
   "sessionSummary": {
     "greatWork": "Одлична работа!",
@@ -1073,7 +1092,10 @@
     "messages": "Пораки",
     "messagesBody": "Директни пораки од тренерот и пријателите.",
     "coachReviews": "Тренинзи за преглед",
-    "coachReviewsBody": "Тренинг на спортист чека твое одобрување."
+    "coachReviewsBody": "Тренинг на спортист чека твое одобрување.",
+    "onThisPhone": "На овој телефон",
+    "lockScreenCard": "Тренинг на заклучен екран",
+    "lockScreenCardBody": "Следната серија и крајот на одморот без отклучување на телефонот."
   },
   "shareCard": {
     "open": "Сподели како слика за story",

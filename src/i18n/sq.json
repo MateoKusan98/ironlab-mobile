@@ -174,7 +174,26 @@
     "notSyncedA11y": "Ende e pasinkronizuar. Ruajtur në telefon, do të provojmë përsëri.",
     "unsyncedFinishTitle": "Disa seri ende nuk janë sinkronizuar",
     "unsyncedFinishBody": "Janë ruajtur në telefon. Përfundoje stërvitjen kur të kesh sinjal — asgjë nuk humbet ndërkohë.",
-    "unsyncedRetry": "Provo përsëri"
+    "unsyncedRetry": "Provo përsëri",
+    "quickRpeLabel": "Kryer @ RPE",
+    "quickRpeA11y": "Regjistro këtë seri me RPE {{rpe}}",
+    "lockAllDoneTitle": "Të gjitha seritë u kryen 💪",
+    "lockAllDoneBody": "Hap IronLab dhe prek Përfundo për ta ruajtur stërvitjen.",
+    "lockTitle": "{{exercise}} · seria {{set}} nga {{total}}",
+    "lockBodyResting": "Pushim deri në {{time}} · tjetra {{next}}",
+    "lockBody": "Tjetra: {{next}}",
+    "lockReps_one": "{{count}} përsëritje",
+    "lockReps_other": "{{count}} përsëritje",
+    "timeLeft": "edhe ~{{minutes}} min",
+    "timeCutTitle": "Nuk ke kohë?",
+    "timeCutSubtitle": "Pjesa e mbetur zgjat rreth {{minutes}} min me pushimet e tua. Sa kohë ke?",
+    "timeCutMinutes": "{{count}} min",
+    "timeCutAlreadyShort": "Pjesa e mbetur është tashmë e shkurtër — thjesht kryeje.",
+    "timeCutKept": "Ngritjet kryesore mbeten siç janë shkruar — të njëjtat seri, e njëjta peshë.",
+    "timeCutMainTooLong": "Vetëm ngritjet kryesore zgjasin rreth {{minutes}} min. Bëji ato dhe mbaro — edhe kjo është stërvitje e mirë.",
+    "timeCutApply": "Shkurtoje në ~{{minutes}} min",
+    "timeCutDropped": "✕ {{exercise}} — e kapërcen sot",
+    "timeCutTrimmed": "− {{exercise}}: seri {{from}} → {{to}}"
   },
   "sessionSummary": {
     "greatWork": "Punë e shkëlqyer!",
@@ -1059,7 +1078,10 @@
     "messages": "Mesazhet",
     "messagesBody": "Mesazhe direkte nga trajneri dhe miqtë.",
     "coachReviews": "Seanca për rishikim",
-    "coachReviewsBody": "Seanca e një atleti pret miratimin tënd."
+    "coachReviewsBody": "Seanca e një atleti pret miratimin tënd.",
+    "onThisPhone": "Në këtë telefon",
+    "lockScreenCard": "Stërvitja në ekranin e kyçur",
+    "lockScreenCardBody": "Seria tjetër dhe fundi i pushimit pa e zhbllokuar telefonin."
   },
   "shareCard": {
     "open": "Shpërndaje si imazh për story",

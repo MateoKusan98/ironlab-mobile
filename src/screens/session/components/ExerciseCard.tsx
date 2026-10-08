@@ -16,6 +16,7 @@ import { ExerciseReview } from './ExerciseReview';
 import { LoadAdjustCard } from './LoadAdjustCard';
 import { LastTimeLine } from './LastTimeLine';
 import { WarmupStrip } from './WarmupStrip';
+import { QuickRpeChips } from './QuickRpeChips';
 
 /** The handlers an exercise card needs, all addressed by this card's exercise index. */
 export interface ExerciseCardActions {
@@ -28,7 +29,8 @@ export interface ExerciseCardActions {
   maybePromptPrefill: (exIdx: number, setIdx: number, field: 'weight' | 'rpe') => void;
   handleRpeFocus: () => void;
   removeSet: (exIdx: number, setIdx: number) => void;
-  completeSet: (exIdx: number, setIdx: number) => void;
+  /** `rpe` is the one-tap path: rate and tick together (QuickRpeChips). */
+  completeSet: (exIdx: number, setIdx: number, rpe?: string) => void;
   uncompleteSet: (exIdx: number, setIdx: number) => void;
   addSet: (exIdx: number) => void;
   updateExerciseField: (exIdx: number, field: 'techniqueRating' | 'exerciseNotes', value: number | string) => void;
@@ -73,6 +75,11 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   const { t } = useTranslation();
   const unit = useLiftingUnit();
   const plateSet = plateSetFor(barLoading, unit);
+  // One-tap rating only on the set the athlete is about to do, and only once it has
+  // something to log — completeSet refuses an empty set.
+  const nextSetIdx = ex.sets.findIndex((s) => !s.isCompleted);
+  const nextSet = ex.sets[nextSetIdx];
+  const showQuickRpe = !!nextSet && (!!nextSet.reps || !!nextSet.weight);
   return (
     <View style={styles.exerciseCard}>
       {/* Exercise Header */}
@@ -168,19 +175,23 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             const prevKg = ex.sets[setIdx - 1]?.adjustedWeight ?? ex.sets[setIdx - 1]?.targetWeight;
             const showPlates = !!ex.barLoaded && !!barWeight && barKg !== prevKg;
             return (
-              <SetRow
-                key={set.uid}
-                set={set}
-                showPlates={showPlates}
-                barWeight={barWeight}
-                plateSet={plateSet}
-                onChangeField={(field, v) => actions.updateSetField(exIdx, setIdx, field, v)}
-                onEndEditing={(field) => actions.maybePromptPrefill(exIdx, setIdx, field)}
-                onRpeFocus={actions.handleRpeFocus}
-                onRemove={() => actions.removeSet(exIdx, setIdx)}
-                onComplete={() => actions.completeSet(exIdx, setIdx)}
-                onUncomplete={() => actions.uncompleteSet(exIdx, setIdx)}
-              />
+              <React.Fragment key={set.uid}>
+                <SetRow
+                  set={set}
+                  showPlates={showPlates}
+                  barWeight={barWeight}
+                  plateSet={plateSet}
+                  onChangeField={(field, v) => actions.updateSetField(exIdx, setIdx, field, v)}
+                  onEndEditing={(field) => actions.maybePromptPrefill(exIdx, setIdx, field)}
+                  onRpeFocus={actions.handleRpeFocus}
+                  onRemove={() => actions.removeSet(exIdx, setIdx)}
+                  onComplete={() => actions.completeSet(exIdx, setIdx)}
+                  onUncomplete={() => actions.uncompleteSet(exIdx, setIdx)}
+                />
+                {showQuickRpe && setIdx === nextSetIdx && (
+                  <QuickRpeChips targetRpe={set.targetRpe} onLog={(rpe) => actions.completeSet(exIdx, setIdx, rpe)} />
+                )}
+              </React.Fragment>
             );
           })}
 

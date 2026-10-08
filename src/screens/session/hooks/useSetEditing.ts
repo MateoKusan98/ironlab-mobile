@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
-import { Alert, Vibration } from 'react-native';
+import { Alert } from 'react-native';
 import { sessionService } from '../../../services/session.service';
-import { useSettingsStore } from '../../../stores/settings.store';
-import { classifyExercise } from '../../../utils/exerciseType';
 import { Exercise, LocalSet, nextSetUid } from '../workoutState';
 import { loggedAsOf, newClientSetId, patchSetByUid, rememberRemoval } from '../setSync';
 import type { PushResult } from './useSetSync';
 import { LiftingUnit, unitLabel } from '../../../units/weight';
+import * as haptics from '../../../haptics/haptics';
+import { useRestSecsFor } from './useRestSecsFor';
 
 export interface SetEditingDeps {
   exercises: Exercise[];
@@ -37,8 +37,7 @@ export function useSetEditing(deps: SetEditingDeps) {
   // Remembers which (exercise, field, value) prefill prompts we've already shown,
   // so blurring the same field repeatedly doesn't re-ask for the same value.
   const prefillAskedRef = useRef<Set<string>>(new Set());
-  const compoundRestSecs = useSettingsStore((s) => s.compoundRestSecs);
-  const isolationRestSecs = useSettingsStore((s) => s.isolationRestSecs);
+  const restSecsFor = useRestSecsFor();
 
   const addSet = (exIdx: number) => {
     setExercises((prev) => {
@@ -130,10 +129,15 @@ export function useSetEditing(deps: SetEditingDeps) {
    * Tick a set. It is ticked NOW, whatever the signal: the save runs behind it, and a save
    * that fails for want of signal leaves the set ticked and queued (useSetSync) instead of
    * un-ticking it and asking the athlete to try again — see setSync.ts.
+   *
+   * `rpe` is the one-tap path (QuickRpeChips): rate and tick in a single touch. It is
+   * folded in here rather than set first and ticked after, because the state update
+   * would not have landed by the time this reads the set — the tick would save the
+   * set without the rating the athlete just gave it.
    */
-  const completeSet = async (exIdx: number, setIdx: number) => {
+  const completeSet = async (exIdx: number, setIdx: number, rpe?: string) => {
     const ex = exercises[exIdx];
-    const set = ex.sets[setIdx];
+    const set = rpe ? { ...ex.sets[setIdx], rpe } : ex.sets[setIdx];
     // Ignore taps while a save is already in flight — otherwise a double-tap can
     // start a second save (or an un-complete) before the first has returned an id,
     // leaving the server and the UI out of sync.
@@ -143,10 +147,9 @@ export function useSetEditing(deps: SetEditingDeps) {
       return;
     }
 
-    Vibration.vibrate(40);
+    haptics.setDone();
     markActivity();
-    const restDuration = classifyExercise(ex.name) === 'compound' ? compoundRestSecs : isolationRestSecs;
-    startRest(restDuration);
+    startRest(restSecsFor(ex.name));
 
     const ticked: LocalSet = {
       ...set,
@@ -159,7 +162,7 @@ export function useSetEditing(deps: SetEditingDeps) {
 
     const result = await pushSet({ exIdx, ex, set: ticked });
     if (result.status === 'saved') {
-      if (result.prs && result.prs.length > 0) Vibration.vibrate([0, 60, 40, 60]);
+      if (result.prs && result.prs.length > 0) haptics.prEarned();
       // After the set is safely on the server, never before: the suggestion reads the set
       // log server-side, and asking about a set that has not landed would recompute
       // against the previous one.
@@ -177,7 +180,7 @@ export function useSetEditing(deps: SetEditingDeps) {
     // Don't let an un-complete race an in-flight save of the same set.
     if (set.isSaving) return;
 
-    Vibration.vibrate(30);
+    haptics.lightTap();
     stopRest();
     // Un-completing also clears any PR this set earned — the backend drops the
     // PR flag, so mirror that locally to hide the trophy (and keep it out of the

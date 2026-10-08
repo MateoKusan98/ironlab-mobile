@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Vibration } from 'react-native';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as haptics from '../haptics/haptics';
 import { scheduleRestTimerAlert, cancelRestTimerAlert } from '../services/pushNotification.service';
 
 export interface RestTimer {
   /** Seconds remaining, or null when no rest period is running. */
   restSecs: number | null;
+  /** Wall-clock time (ms) the running rest ends, or null. Changes only when rest is
+   *  started, adjusted or over — not every second like restSecs. */
+  restEndsAt: number | null;
   startRest: (seconds: number) => void;
   stopRest: () => void;
   /** Add/subtract time, recomputed from the live remaining seconds. */
   adjustRest: (delta: number) => void;
 }
-
-/** Vibration pattern played when the rest period elapses. */
-const REST_DONE_PATTERN = [0, 200, 100, 200, 100, 400];
 
 /**
  * The between-sets rest countdown.
@@ -34,6 +35,11 @@ export function useRestTimer(sessionId: string): RestTimer {
   const [restSecs, setRestSecs] = useState<number | null>(null);
   // Absolute wall-clock time (ms) the rest period ends.
   const restEndAtRef = useRef<number | null>(null);
+  const [restEndsAt, setRestEndsAt] = useState<number | null>(null);
+  const setEndAt = useCallback((endAt: number | null) => {
+    restEndAtRef.current = endAt;
+    setRestEndsAt(endAt);
+  }, []);
   // Id of the scheduled OS notification that beeps when rest ends.
   const restNotifIdRef = useRef<string | null>(null);
   const restPersistKey = `activeRest:${sessionId}`;
@@ -41,7 +47,7 @@ export function useRestTimer(sessionId: string): RestTimer {
   const startRest = useCallback((seconds: number) => {
     if (seconds <= 0) return;
     const endAt = Date.now() + seconds * 1000;
-    restEndAtRef.current = endAt;
+    setEndAt(endAt);
     setRestSecs(seconds);
     cancelRestTimerAlert(restNotifIdRef.current);
     restNotifIdRef.current = null;
@@ -52,15 +58,15 @@ export function useRestTimer(sessionId: string): RestTimer {
       restNotifIdRef.current = id;
       AsyncStorage.setItem(restPersistKey, JSON.stringify({ endAt, notifId: id })).catch(() => {});
     });
-  }, [restPersistKey]);
+  }, [restPersistKey, setEndAt]);
 
   const stopRest = useCallback(() => {
-    restEndAtRef.current = null;
+    setEndAt(null);
     setRestSecs(null);
     cancelRestTimerAlert(restNotifIdRef.current);
     restNotifIdRef.current = null;
     AsyncStorage.removeItem(restPersistKey).catch(() => {});
-  }, [restPersistKey]);
+  }, [restPersistKey, setEndAt]);
 
   const adjustRest = useCallback((delta: number) => {
     const remaining = restEndAtRef.current
@@ -76,10 +82,10 @@ export function useRestTimer(sessionId: string): RestTimer {
   useEffect(() => {
     if (restSecs === null) return;
     if (restSecs <= 0) {
-      Vibration.vibrate(REST_DONE_PATTERN);
+      haptics.restDone();
       // Don't cancel the notification here — let it fire so the sound plays even
       // if the screen is in the foreground (the handler suppresses its banner).
-      restEndAtRef.current = null;
+      setEndAt(null);
       restNotifIdRef.current = null;
       AsyncStorage.removeItem(restPersistKey).catch(() => {});
       setRestSecs(null);
@@ -92,7 +98,7 @@ export function useRestTimer(sessionId: string): RestTimer {
       setRestSecs(remaining);
     }, 1000);
     return () => clearTimeout(id);
-  }, [restSecs, restPersistKey]);
+  }, [restSecs, restPersistKey, setEndAt]);
 
   // Re-sync the visible countdown when returning from the background.
   useEffect(() => {
@@ -114,7 +120,7 @@ export function useRestTimer(sessionId: string): RestTimer {
         const { endAt, notifId } = JSON.parse(raw) as { endAt: number; notifId?: string | null };
         const remaining = Math.round((endAt - Date.now()) / 1000);
         if (remaining > 0) {
-          restEndAtRef.current = endAt;
+          setEndAt(endAt);
           restNotifIdRef.current = notifId ?? null;
           setRestSecs(remaining);
         } else {
@@ -125,7 +131,7 @@ export function useRestTimer(sessionId: string): RestTimer {
       }
     }).catch(() => {});
     return () => { cancelled = true; };
-  }, [restPersistKey]);
+  }, [restPersistKey, setEndAt]);
 
-  return { restSecs, startRest, stopRest, adjustRest };
+  return { restSecs, restEndsAt, startRest, stopRest, adjustRest };
 }

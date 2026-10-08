@@ -10,6 +10,7 @@ import { Switch } from '../../components/ui/Switch';
 import { useAuthStore } from '../../stores/auth.store';
 import { notificationPrefsService, NotificationPrefs } from '../../services/notificationPrefs.service';
 import { PREF_SECTIONS, PrefRow } from './notificationSettings.sections';
+import { useSettingsStore } from '../../stores/settings.store';
 
 /**
  * What the athlete wants to be told about. Every toggle saves on its own — there is no
@@ -22,6 +23,10 @@ export const NotificationSettingsScreen: React.FC = () => {
   const [prefs, setPrefs] = useState<NotificationPrefs | null>(null);
   const [failed, setFailed] = useState(false);
   const [osBlocked, setOsBlocked] = useState(false);
+  // A device setting, not a server pref: the card is posted by this phone, mid-set,
+  // with no network round trip to ask permission from.
+  const lockScreenCard = useSettingsStore((s) => s.lockScreenCard);
+  const setLockScreenCard = useSettingsStore((s) => s.setLockScreenCard);
   const tr = (key: string, fallback: string) => t(`notificationSettings.${key}`, { defaultValue: fallback });
 
   const load = useCallback(() => {
@@ -99,6 +104,17 @@ export const NotificationSettingsScreen: React.FC = () => {
             </View>
           );
         })}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{tr('onThisPhone', 'On this phone')}</Text>
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>{tr('lockScreenCard', 'Workout on the lock screen')}</Text>
+              <Text style={styles.rowBody}>{tr('lockScreenCardBody', 'Your next set and when rest ends, without unlocking the phone.')}</Text>
+            </View>
+            <Switch checked={lockScreenCard} onValueChange={setLockScreenCard} />
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

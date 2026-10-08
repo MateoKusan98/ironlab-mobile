@@ -67,6 +67,10 @@ export const styles = StyleSheet.create({
   resumeBtnText: { fontSize: 14, fontWeight: '700', color: palette.white },
 
 
+  timeLeftRow: { alignSelf: 'flex-start', marginBottom: 10, paddingVertical: 4 },
+  timeLeftText: { fontSize: 13, color: palette.gray[400] },
+  timeLeftAction: { color: palette.brand[400], fontWeight: '700' },
+
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },
 

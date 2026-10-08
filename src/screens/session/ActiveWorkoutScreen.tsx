@@ -41,6 +41,10 @@ import { useExerciseEditing } from './hooks/useExerciseEditing';
 import { useCueForm } from './hooks/useCueForm';
 import { useRpeGuide } from './hooks/useRpeGuide';
 import { useLastPerformance } from './hooks/useLastPerformance';
+import { useKeepScreenOn } from './hooks/useKeepScreenOn';
+import { useLockScreenCard } from './hooks/useLockScreenCard';
+import { useTimeCut } from './hooks/useTimeCut';
+import { TimeCutSheet } from './components/TimeCutSheet';
 import { sessionService } from '../../services/session.service';
 import { useLiftingUnit } from '../../units/useLiftingUnit';
 
@@ -63,7 +67,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const unit = useLiftingUnit();
 
   const { elapsedSeconds, isPaused, resume: resumeTimer, markActivity, syncStart } = useWorkoutTimer();
-  const { restSecs, startRest, stopRest, adjustRest } = useRestTimer(sessionId);
+  const { restSecs, restEndsAt, startRest, stopRest, adjustRest } = useRestTimer(sessionId);
   const {
     exercises, setExercises, resumeLoading, removedSetIdsRef, sentReviewsRef, resetToPlan,
   } = useWorkoutSession(sessionId, plannedExercises, syncStart, unit);
@@ -104,6 +108,9 @@ export const ActiveWorkoutScreen: React.FC = () => {
   const cueForm = useCueForm(exercises, saveCue, deleteCue);
   const { rpeGuideVisible, setRpeGuideVisible, handleRpeFocus } = useRpeGuide();
   const lastTimeByName = useLastPerformance(exercises.map((ex) => ex.name), !resumeLoading);
+  const timeCut = useTimeCut(exercises, setExercises);
+  const lockScreen = useLockScreenCard({ exercises, restEndsAt, exName, unit, enabled: !resumeLoading });
+  useKeepScreenOn();
 
   const handleMinimize = () => {
     navigation.navigate('ClientApp');
@@ -120,6 +127,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
           style: 'destructive',
           onPress: async () => {
             stopRest();
+            lockScreen.end();
             await clearDraft(sessionId);
             try {
               await sessionService.cancelSession(sessionId);
@@ -158,6 +166,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
     // The workout is over — drop any lingering rest beep/countdown, and the draft
     // with it: from here on the session lives on the server.
     stopRest();
+    lockScreen.end();
     clearDraft(sessionId);
     const durationMinutes = Math.floor(elapsedSeconds / 60);
     const allPRs = exercises.flatMap((ex) =>
@@ -232,6 +241,20 @@ export const ActiveWorkoutScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          {timeCut.minutesLeft > 0 && (
+            <TouchableOpacity
+              style={styles.timeLeftRow}
+              onPress={() => timeCut.setOpen(true)}
+              accessibilityRole="button"
+            >
+              <Text style={styles.timeLeftText}>
+                {t('activeWorkout.timeLeft', { minutes: timeCut.minutesLeft, defaultValue: '~{{minutes}} min left' })}
+                {'  ·  '}
+                <Text style={styles.timeLeftAction}>{t('activeWorkout.timeCutTitle', { defaultValue: 'Short on time?' })} ›</Text>
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {exercises.length === 0 && (
             <View style={styles.emptyState}>
               <Barbell size={48} weight="bold" color={palette.gray[600]} style={{ marginBottom: 12 }} />
@@ -305,6 +328,8 @@ export const ActiveWorkoutScreen: React.FC = () => {
       />
 
       {/* RPE Guide Modal */}
+      <TimeCutSheet timeCut={timeCut} exName={exName} />
+
       <RpeGuideModal visible={rpeGuideVisible} onClose={() => setRpeGuideVisible(false)} />
 
       <CueReminderModal reminder={cueReminder} onDismiss={dismissReminder} exName={exName} />

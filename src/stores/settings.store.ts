@@ -7,10 +7,13 @@ const STORAGE_KEY = '@ironlab_settings';
 interface SettingsState {
   compoundRestSecs: number;
   isolationRestSecs: number;
+  /** The live workout card on the lock screen. A device setting, like rest lengths. */
+  lockScreenCard: boolean;
   language: LanguageCode;
   loaded: boolean;
   setCompoundRestSecs: (v: number) => void;
   setIsolationRestSecs: (v: number) => void;
+  setLockScreenCard: (v: boolean) => void;
   setLanguage: (lang: LanguageCode) => void;
   load: () => Promise<void>;
 }
@@ -18,6 +21,7 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   compoundRestSecs: 180,
   isolationRestSecs: 90,
+  lockScreenCard: true,
   language: 'en',
   loaded: false,
 
@@ -28,6 +32,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setIsolationRestSecs: (v) => {
     set({ isolationRestSecs: v });
+    persist(get);
+  },
+
+  setLockScreenCard: (v) => {
+    set({ lockScreenCard: v });
     persist(get);
   },
 
@@ -46,6 +55,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         set({
           compoundRestSecs: parsed.compoundRestSecs ?? 180,
           isolationRestSecs: parsed.isolationRestSecs ?? 90,
+          lockScreenCard: parsed.lockScreenCard ?? true,
           language: lang,
         });
         i18n.changeLanguage(lang);
@@ -56,6 +66,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 }));
 
 function persist(get: () => SettingsState) {
-  const { compoundRestSecs, isolationRestSecs, language } = get();
-  AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ compoundRestSecs, isolationRestSecs, language })).catch(() => {});
+  const { compoundRestSecs, isolationRestSecs, lockScreenCard, language } = get();
+  AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ compoundRestSecs, isolationRestSecs, lockScreenCard, language })).catch(() => {});
 }

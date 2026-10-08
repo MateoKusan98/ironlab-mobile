@@ -176,7 +176,28 @@
     "notSyncedA11y": "Še ni sinhronizirano. Shranjeno na telefonu, poskusili bomo znova.",
     "unsyncedFinishTitle": "Nekatere serije še niso sinhronizirane",
     "unsyncedFinishBody": "Shranjene so na telefonu. Trening zaključi, ko imaš signal — medtem se nič ne izgubi.",
-    "unsyncedRetry": "Poskusi znova"
+    "unsyncedRetry": "Poskusi znova",
+    "quickRpeLabel": "Opravljeno @ RPE",
+    "quickRpeA11y": "Zabeleži to serijo z RPE {{rpe}}",
+    "lockAllDoneTitle": "Vse serije opravljene 💪",
+    "lockAllDoneBody": "Odpri IronLab in tapni Zaključi, da shraniš trening.",
+    "lockTitle": "{{exercise}} · serija {{set}} od {{total}}",
+    "lockBodyResting": "Počitek do {{time}} · naslednje {{next}}",
+    "lockBody": "Naslednje: {{next}}",
+    "lockReps_one": "{{count}} ponovitev",
+    "lockReps_two": "{{count}} ponovitvi",
+    "lockReps_few": "{{count}} ponovitve",
+    "lockReps_other": "{{count}} ponovitev",
+    "timeLeft": "še ~{{minutes}} min",
+    "timeCutTitle": "Ti zmanjkuje časa?",
+    "timeCutSubtitle": "Preostanek traja približno {{minutes}} min s tvojimi počitki. Koliko časa imaš?",
+    "timeCutMinutes": "{{count}} min",
+    "timeCutAlreadyShort": "Preostanek je že kratek — samo ga opravi.",
+    "timeCutKept": "Glavni dvigi ostanejo, kot so napisani — iste serije, ista teža.",
+    "timeCutMainTooLong": "Samo glavni dvigi trajajo približno {{minutes}} min. Opravi jih in zaključi — tudi to je dober trening.",
+    "timeCutApply": "Skrajšaj na ~{{minutes}} min",
+    "timeCutDropped": "✕ {{exercise}} — danes izpustiš",
+    "timeCutTrimmed": "− {{exercise}}: serije {{from}} → {{to}}"
   },
   "sessionSummary": {
     "greatWork": "Odlično delo!",
@@ -1075,7 +1096,10 @@
     "messages": "Sporočila",
     "messagesBody": "Neposredna sporočila trenerja in prijateljev.",
     "coachReviews": "Treningi za pregled",
-    "coachReviewsBody": "Trening športnika čaka na tvojo odobritev."
+    "coachReviewsBody": "Trening športnika čaka na tvojo odobritev.",
+    "onThisPhone": "Na tem telefonu",
+    "lockScreenCard": "Trening na zaklenjenem zaslonu",
+    "lockScreenCardBody": "Naslednja serija in konec počitka brez odklepanja telefona."
   },
   "shareCard": {
     "open": "Deli kot sliko za zgodbo",

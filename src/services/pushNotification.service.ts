@@ -4,14 +4,22 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { api } from './api';
 import { isRestTimerAlertEnabled } from './notificationPrefs.service';
+import { LIVE_WORKOUT_TYPE } from './liveWorkoutNotification.service';
 
 import { palette } from '../theme';
 // How notifications are displayed while app is in foreground.
 // Rest-timer alerts only need the SOUND while you're in the app — suppress the
 // redundant banner/list so the screen's own countdown UI stays the focus.
+// The live workout card is posted while the athlete is IN the app (every tick), so it
+// must stay silent and bannerless — but it still has to land in the list, or it never
+// reaches the lock screen it exists for.
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
-    const isRestTimer = notification.request.content.data?.type === REST_TIMER_TYPE;
+    const type = notification.request.content.data?.type;
+    if (type === LIVE_WORKOUT_TYPE) {
+      return { shouldShowAlert: false, shouldPlaySound: false, shouldSetBadge: false, shouldShowBanner: false, shouldShowList: true };
+    }
+    const isRestTimer = type === REST_TIMER_TYPE;
     return {
       shouldShowAlert: !isRestTimer,
       shouldPlaySound: true,
