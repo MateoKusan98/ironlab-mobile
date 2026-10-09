@@ -1,5 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../../navigation/AppNavigator';
 import { palette } from '../../../theme';
 import { InfoSheet } from '../../../components/ui/InfoSheet';
 
@@ -23,32 +27,45 @@ export interface RpeGuideModalProps {
   onClose: () => void;
 }
 
-export const RpeGuideModal: React.FC<RpeGuideModalProps> = ({ visible, onClose }) => (
-  <InfoSheet
-    visible={visible}
-    onClose={onClose}
-    title="What is RPE?"
-    subtitle="Rate of Perceived Exertion — how hard was that set?"
-  >
-    {SCALE.map(({ rpe, label, detail }) => (
-      <View key={rpe} style={styles.row}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{rpe}</Text>
+export const RpeGuideModal: React.FC<RpeGuideModalProps> = ({ visible, onClose }) => {
+  const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  // Close the sheet first: a modal left open would sit over the calculator.
+  const openCalculator = () => {
+    onClose();
+    navigation.navigate('RpeCalculator');
+  };
+  return (
+    <InfoSheet
+      visible={visible}
+      onClose={onClose}
+      title="What is RPE?"
+      subtitle="Rate of Perceived Exertion — how hard was that set?"
+    >
+      {SCALE.map(({ rpe, label, detail }) => (
+        <View key={rpe} style={styles.row}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{rpe}</Text>
+          </View>
+          <View style={styles.rowText}>
+            <Text style={styles.rowLabel}>{label}</Text>
+            <Text style={styles.rowDetail}>{detail}</Text>
+          </View>
         </View>
-        <View style={styles.rowText}>
-          <Text style={styles.rowLabel}>{label}</Text>
-          <Text style={styles.rowDetail}>{detail}</Text>
-        </View>
-      </View>
-    ))}
+      ))}
 
-    <View style={styles.note}>
-      <Text style={styles.noteText}>
-        Accurate RPE logging is how the AI detects fatigue and adjusts your loads automatically. Random numbers break the system.
-      </Text>
-    </View>
-  </InfoSheet>
-);
+      <View style={styles.note}>
+        <Text style={styles.noteText}>
+          Accurate RPE logging is how the AI detects fatigue and adjusts your loads automatically. Random numbers break the system.
+        </Text>
+      </View>
+
+      <TouchableOpacity style={styles.calcLink} onPress={openCalculator} accessibilityRole="button">
+        <Text style={styles.calcLinkText}>{t('rpeCalculator.open', { defaultValue: 'Open the RPE calculator ›' })}</Text>
+      </TouchableOpacity>
+    </InfoSheet>
+  );
+};
 
 const styles = StyleSheet.create({
   row: {
@@ -78,4 +95,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   noteText: { fontSize: 12, color: palette.brand[300], lineHeight: 18 },
+  calcLink: { paddingVertical: 12, marginTop: 4, alignItems: 'center' },
+  calcLinkText: { fontSize: 14, fontWeight: '700', color: palette.brand[400] },
 });

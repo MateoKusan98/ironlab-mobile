@@ -1692,5 +1692,23 @@
     "title": "BAR WEIGHTS",
     "sub": "The unit you load the bar in. Your history converts with it.",
     "saveFailed": "Could not change the unit. Try again."
+  },
+  "rpeCalculator": {
+    "title": "RPE calculator",
+    "subtitle": "From a set you did to the weight for the one you want",
+    "unavailable": "The calculator needs a connection the first time you open it.",
+    "yourSet": "THE SET YOU DID",
+    "target": "THE SET YOU WANT",
+    "reps": "Reps",
+    "repsA11y_one": "{{count}} rep",
+    "repsA11y_other": "{{count}} reps",
+    "rpeA11y": "RPE {{rpe}}",
+    "weightA11y": "Weight lifted, in {{unit}}",
+    "enterWeight": "Enter the weight you lifted.",
+    "resultFor": "for {{reps}} reps @ RPE {{rpe}}",
+    "estimatedMax": "Estimated max: {{max}}",
+    "roughEstimate": "Rough estimate: below RPE {{rpe}} or past {{reps}} reps, the chart is guessing at reps you never did. A set closer to failure gives a truer number.",
+    "footnote": "Uses the same RPE chart your coach prices your loads from.",
+    "open": "Open the RPE calculator ›"
   }
 }

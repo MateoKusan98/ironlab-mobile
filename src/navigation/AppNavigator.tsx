@@ -46,6 +46,7 @@ import { StatsScreen } from '../screens/client/StatsScreen';
 import { PRScreen } from '../screens/client/PRScreen';
 import { SessionDetailScreen } from '../screens/client/SessionDetailScreen';
 import { ExerciseHistoryScreen } from '../screens/client/exercise-history/ExerciseHistoryScreen';
+import { RpeCalculatorScreen } from '../screens/client/rpe-calculator/RpeCalculatorScreen';
 
 // Program Creator Screens
 import { ProgramCreatorStartScreen } from '../screens/client/program-builder/ProgramCreatorStartScreen';
@@ -134,6 +135,7 @@ export type RootStackParamList = {
   SessionDetail: { sessionId: string };
   /** Every logged session of one movement — `name` as logged or prescribed. */
   ExerciseHistory: { name: string };
+  RpeCalculator: undefined;
   StartSession: { plan?: string; nextSessionJson?: import('../services/ai-coach.service').NextSession | null; freeSession?: boolean; makeUp?: boolean; skipNext?: boolean; trainAhead?: boolean };
   ActiveWorkout: { sessionId: string; plannedExercises?: { name: string; sets: number; reps: number; weight: number; rpe?: number; weightPerc?: number; cue?: string; barLoaded?: boolean; loadBasis?: LoadBasisView }[]; barLoading?: import('../services/ai-coach.service').BarLoading | null };
   SessionSummary: { sessionId: string; durationMinutes: number; prs?: { type: string; label: string; value: number; previous: number | null; exerciseName: string; tier: 'pr' | 'mini'; e1rm?: number; prevE1rm?: number | null }[] };
@@ -249,6 +251,7 @@ export const AppNavigator: React.FC = () => {
                       <Stack.Screen name="PRs" component={PRScreen} />
                       <Stack.Screen name="SessionDetail" component={SessionDetailScreen} />
                       <Stack.Screen name="ExerciseHistory" component={ExerciseHistoryScreen} />
+                      <Stack.Screen name="RpeCalculator" component={RpeCalculatorScreen} />
 
                       <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
                         <Stack.Screen name="ProgramCreatorStart" component={ProgramCreatorStartScreen} />

@@ -13,6 +13,9 @@ import { daysSince, formatLastSets } from '../lastTime';
  * "Last time (4 days ago): 3×5 @ 160kg · RPE 8" under the exercise name — the number a
  * lifter checks between sets. Reports what was logged; it never suggests a load.
  * Tapping it opens the movement's whole history.
+ *
+ * The athlete's own note from that session ("belt from set 3") rides underneath: it was
+ * written for exactly this moment, and until 2026-10-09 it was saved and never shown again.
  */
 export const LastTimeLine: React.FC<{ lastTime: LastPerformance; exerciseName: string }> = ({ lastTime, exerciseName }) => {
   const { t } = useTranslation();
@@ -42,6 +45,9 @@ export const LastTimeLine: React.FC<{ lastTime: LastPerformance; exerciseName: s
       <Text style={styles.lastTime} numberOfLines={2}>
         {label}: {formatLastSets(lastTime.sets, unit)} ›
       </Text>
+      {lastTime.note ? (
+        <Text style={styles.lastTimeNote} numberOfLines={3}>“{lastTime.note}”</Text>
+      ) : null}
     </TouchableOpacity>
   );
 };

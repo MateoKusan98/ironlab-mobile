@@ -29,5 +29,6 @@ export const styles = StyleSheet.create({
   },
   sessionDate: { fontSize: 12, fontWeight: '700', color: palette.gray[400], marginBottom: 3 },
   sessionSets: { fontSize: 14, color: theme.colors.text },
+  sessionNote: { fontSize: 13, fontStyle: 'italic', color: palette.gray[400], marginTop: 3 },
   topSet: { fontSize: 14, fontWeight: '800', color: palette.brand[400], fontVariant: ['tabular-nums'] },
 });

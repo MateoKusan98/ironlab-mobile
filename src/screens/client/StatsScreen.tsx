@@ -25,6 +25,7 @@ import { Card } from '../../components/ui';
 import { formatNumber, formatVolume, formatWeight, loggedInUnit, unitLabel } from '../../units/weight';
 import { useLiftingUnit } from '../../units/useLiftingUnit';
 import { useOpenExerciseHistory } from './exercise-history/useOpenExerciseHistory';
+import { RpeCalculatorButton } from './rpe-calculator/RpeCalculatorButton';
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 
@@ -490,6 +491,7 @@ export const StatsScreen: React.FC = () => {
         left={<UserAvatar user={user} size={36} />}
         title={t('stats.title')}
         subtitle={overview.firstSessionDate ? t('stats.trainingSince', { date: fmtDate(overview.firstSessionDate) }) : undefined}
+        right={<RpeCalculatorButton />}
       />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 

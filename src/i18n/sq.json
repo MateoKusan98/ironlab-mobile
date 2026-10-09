@@ -1115,5 +1115,23 @@
   },
   "loadDerivation": {
     "roundedLb": "rrumbullakosur në 5lb që mund të ngarkohen"
+  },
+  "rpeCalculator": {
+    "title": "Kalkulatori RPE",
+    "subtitle": "Nga seria që bëre te pesha për atë që dëshiron",
+    "unavailable": "Kalkulatori ka nevojë për lidhje interneti herën e parë që e hap.",
+    "yourSet": "SERIA QË BËRE",
+    "target": "SERIA QË DËSHIRON",
+    "reps": "Përsëritje",
+    "repsA11y_one": "{{count}} përsëritje",
+    "repsA11y_other": "{{count}} përsëritje",
+    "rpeA11y": "RPE {{rpe}}",
+    "weightA11y": "Pesha e ngritur, në {{unit}}",
+    "enterWeight": "Shkruaj peshën që ngrite.",
+    "resultFor": "për {{reps}} përsëritje @ RPE {{rpe}}",
+    "estimatedMax": "Maksimumi i vlerësuar: {{max}}",
+    "roughEstimate": "Vlerësim i përafërt: nën RPE {{rpe}} ose mbi {{reps}} përsëritje tabela hamendëson përsëritje që nuk i bëre. Një seri më afër dështimit jep një numër më të saktë.",
+    "footnote": "Përdor të njëjtën tabelë RPE me të cilën trajneri të cakton peshat.",
+    "open": "Hap kalkulatorin RPE ›"
   }
 }

@@ -318,6 +318,8 @@ export interface LastPerformanceSet {
 export interface LastPerformance {
   completedAt: string;
   sets: LastPerformanceSet[];
+  /** The athlete's own note on the movement from that same session. Absent when none. */
+  note?: string;
 }
 
 /** One session of one movement (GET /sessions/exercise-history). All weights kg. */
@@ -329,6 +331,21 @@ export interface ExerciseHistorySession {
   topSet: LastPerformanceSet | null;
   /** Stats-only Epley e1RM of the day's best set (≤12 reps); null when none qualifies. */
   e1rm: number | null;
+  /** The athlete's note on the movement that day. Absent when none. */
+  note?: string;
+}
+
+/**
+ * The load engine's RPE chart (GET /sessions/rpe-chart), for the RPE calculator.
+ * `pctByReps[reps - 1][column]` is % of 1RM; `rpe` holds the column headers.
+ */
+export interface RpeChart {
+  rpe: number[];
+  pctByReps: number[][];
+  /** Below this RPE a set's implied max is an extrapolation. */
+  nearFailureRpe: number;
+  /** Past this many reps a set's implied max is an extrapolation. */
+  nearFailureMaxReps: number;
 }
 
 /** The heaviest weight actually lifted for a rep count. */
@@ -348,6 +365,11 @@ export const sessionService = {
   /** Every logged session of one movement, matched the way "last time" matches it. */
   getExerciseHistory: async (name: string): Promise<ExerciseHistory> => {
     const { data } = await api.get<{ data: ExerciseHistory }>('/sessions/exercise-history', { params: { name } });
+    return data.data;
+  },
+
+  getRpeChart: async (): Promise<RpeChart> => {
+    const { data } = await api.get<{ data: RpeChart }>('/sessions/rpe-chart');
     return data.data;
   },
 

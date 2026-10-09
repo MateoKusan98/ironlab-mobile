@@ -107,6 +107,7 @@ export const ExerciseHistoryScreen: React.FC = () => {
             <View style={{ flex: 1 }}>
               <Text style={styles.sessionDate}>{dateOf(s.completedAt)}</Text>
               <Text style={styles.sessionSets}>{formatLastSets(s.sets, unit)}</Text>
+              {s.note ? <Text style={styles.sessionNote}>“{s.note}”</Text> : null}
             </View>
             {s.topSet?.weight != null && (
               <Text style={styles.topSet}>{formatWeight(s.topSet.weight, unit)}×{s.topSet.reps}</Text>

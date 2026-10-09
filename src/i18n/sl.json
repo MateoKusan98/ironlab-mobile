@@ -1137,5 +1137,25 @@
   },
   "loadDerivation": {
     "roundedLb": "zaokroženo na 5lb, ki se dajo naložiti"
+  },
+  "rpeCalculator": {
+    "title": "RPE kalkulator",
+    "subtitle": "Od serije, ki si jo naredil, do teže za tisto, ki jo želiš",
+    "unavailable": "Kalkulator ob prvem odprtju potrebuje internetno povezavo.",
+    "yourSet": "SERIJA, KI SI JO NAREDIL",
+    "target": "SERIJA, KI JO ŽELIŠ",
+    "reps": "Ponovitve",
+    "repsA11y_one": "{{count}} ponovitev",
+    "repsA11y_two": "{{count}} ponovitvi",
+    "repsA11y_few": "{{count}} ponovitve",
+    "repsA11y_other": "{{count}} ponovitev",
+    "rpeA11y": "RPE {{rpe}}",
+    "weightA11y": "Dvignjena teža, v {{unit}}",
+    "enterWeight": "Vnesi težo, ki si jo dvignil.",
+    "resultFor": "za {{reps}} ponovitev @ RPE {{rpe}}",
+    "estimatedMax": "Ocenjeni maksimum: {{max}}",
+    "roughEstimate": "Groba ocena: pod RPE {{rpe}} ali nad {{reps}} ponovitvami tabela ugiba ponovitve, ki jih nisi naredil. Serija bližje odpovedi da natančnejšo številko.",
+    "footnote": "Uporablja isto RPE tabelo, po kateri ti trener določa teže.",
+    "open": "Odpri RPE kalkulator ›"
   }
 }
