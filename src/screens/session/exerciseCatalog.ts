@@ -1,6 +1,7 @@
 /**
  * The exercise catalogue the workout screen offers: the add/substitute lists, which
- * lifts count as key lifts for today, substitution suggestions, and tutorial search.
+ * lifts count as key lifts for today, and tutorial search. Substitution suggestions
+ * live in substitutes.ts.
  *
  * Split out of ActiveWorkoutScreen (2026-10-06, a move with no behaviour change).
  */
@@ -11,6 +12,11 @@ export const COMMON_EXERCISES = [
   'Squat', 'Bench Press', 'Deadlift', 'Overhead Press', 'Barbell Row',
   'Front Squat', 'Sumo Deadlift', 'Rack Pull', 'Trap Bar Deadlift', 'Romanian Deadlift',
   'Good Morning', 'Close-Grip Bench Press', 'Incline Bench Press', 'Decline Bench Press',
+
+  // Competition-lift variations
+  'Paused Squat', 'Tempo Squat', 'Pin Squat', 'Box Squat', 'Safety Bar Squat',
+  'Spoto Press', 'Paused Bench Press', 'Tempo Bench Press', 'Larsen Press',
+  'Paused Deadlift', 'Deficit Deadlift', 'Block Pull', 'Tempo Deadlift',
 
   // Chest
   'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Decline Dumbbell Press',
@@ -60,27 +66,6 @@ export const COMMON_EXERCISES = [
 ];
 
 export const KEY_EXERCISE_PATTERN = /\bsquat\b|\bbench\b|\bdeadlift\b/i;
-
-const SUBSTITUTE_MAP: Record<string, string[]> = {
-  squat: ['Hack Squat', 'Leg Press', 'Bulgarian Split Squat', 'Goblet Squat', 'Smith Machine Squat'],
-  bench: ['Dumbbell Bench Press', 'Incline Bench Press', 'Cable Fly', 'Dip', 'Machine Chest Press'],
-  deadlift: ['Romanian Deadlift', 'Rack Pull', 'Trap Bar Deadlift', 'Good Morning', 'Leg Press'],
-  ohp: ['Dumbbell Shoulder Press', 'Machine Shoulder Press', 'Arnold Press', 'Landmine Press', 'Cable Lateral Raise'],
-  row: ['Seated Cable Row', 'Dumbbell Row', 'Machine Row', 'T-Bar Row', 'Chest-Supported Row'],
-  pulldown: ['Pull-up', 'Assisted Pull-up', 'Cable Pullover', 'Straight-Arm Pulldown'],
-  curl: ['Hammer Curl', 'Cable Curl', 'Preacher Curl', 'Concentration Curl', 'Incline Dumbbell Curl'],
-  tricep: ['Skull Crusher', 'Close-Grip Bench', 'Cable Pushdown', 'Overhead Tricep Extension', 'Dip'],
-  lunge: ['Bulgarian Split Squat', 'Step Up', 'Reverse Lunge', 'Walking Lunge', 'Leg Press'],
-  rdl: ['Good Morning', 'Leg Curl', 'Hip Thrust', 'Glute Bridge', 'Stiff-Leg Deadlift'],
-};
-
-export function getSubstitutes(exerciseName: string): string[] {
-  const n = exerciseName.toLowerCase();
-  for (const [key, subs] of Object.entries(SUBSTITUTE_MAP)) {
-    if (n.includes(key)) return subs.filter(s => s.toLowerCase() !== n);
-  }
-  return COMMON_EXERCISES.filter(e => e.toLowerCase() !== n).slice(0, 5);
-}
 
 // Curated search queries — targeted to reliable channels so the first YouTube result
 // is consistently a high-quality, technique-focused tutorial.

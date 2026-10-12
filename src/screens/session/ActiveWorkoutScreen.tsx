@@ -31,7 +31,8 @@ import { SubstituteExerciseModal } from './components/SubstituteExerciseModal';
 import { WorkoutHeader } from './components/WorkoutHeader';
 import { ExerciseCard } from './components/ExerciseCard';
 import { clearDraft } from './workoutState';
-import { COMMON_EXERCISES, KEY_EXERCISE_PATTERN, getSubstitutes } from './exerciseCatalog';
+import { COMMON_EXERCISES, KEY_EXERCISE_PATTERN } from './exerciseCatalog';
+import { getSubstitutes } from './substitutes';
 import { styles } from './ActiveWorkoutScreen.styles';
 import { useWorkoutSession } from './hooks/useWorkoutSession';
 import { useLoadAdjustment } from './hooks/useLoadAdjustment';
@@ -312,7 +313,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
         exerciseName={substituteFor?.name ?? null}
         loggedSetCount={substituteFor ? substituteFor.sets.filter((set) => set.isCompleted).length : 0}
         isKeyLift={substituteFor ? KEY_EXERCISE_PATTERN.test(substituteFor.name) : false}
-        suggestions={substituteFor ? getSubstitutes(substituteFor.name) : []}
+        suggestions={substituteFor ? getSubstitutes(substituteFor.substitutedFor ?? substituteFor.name, substituteFor.name) : []}
         catalogue={COMMON_EXERCISES}
         onClose={() => exerciseEditing.setSubstituteIdx(null)}
         onSubstitute={(name) => substituteIdx !== null && exerciseEditing.substituteExercise(substituteIdx, name)}

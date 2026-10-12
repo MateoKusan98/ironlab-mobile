@@ -21,6 +21,7 @@ const ROLE_LABEL: Record<string, string> = {
   secondary: 'secondary day',
   volume: 'volume day',
   technique: 'technique day',
+  speed: 'speed day',
 };
 
 
