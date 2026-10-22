@@ -790,7 +790,7 @@ const styles = StyleSheet.create({
   photoImg: { width: '100%', height: '100%' },
   photoRemove: {
     position: 'absolute', top: 4, right: 4,
-    backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 10,
+    backgroundColor: alpha(palette.black, 0.6), borderRadius: 10,
     width: 20, height: 20, alignItems: 'center', justifyContent: 'center',
   },
   photoAdd: {
@@ -910,7 +910,7 @@ const styles = StyleSheet.create({
   videoLabel: { fontSize: 14, fontWeight: '600', color: theme.colors.textSecondary },
   mediaRemove: {
     position: 'absolute', top: 10, right: 10,
-    backgroundColor: 'rgba(0,0,0,0.65)', borderRadius: 12,
+    backgroundColor: alpha(palette.black, 0.65), borderRadius: 12,
     width: 28, height: 28, alignItems: 'center', justifyContent: 'center',
   },
 

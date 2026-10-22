@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme, palette } from '../../../theme';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 import { ExerciseSearchModal } from './ExerciseSearchModal';
 
@@ -24,6 +25,7 @@ type RouteParams = {
 
 export const ProgramCreatorDayScreen: React.FC = () => {
   const route = useRoute<RouteProp<RouteParams, 'params'>>();
+  const { t } = useTranslation();
   const { blockIndex, weekIndex, dayIndex } = route.params;
 
   const { draft, updateDay, addExerciseToDay, addSetToExercise } = useProgramBuilderStore();
@@ -72,8 +74,8 @@ export const ProgramCreatorDayScreen: React.FC = () => {
         <View style={styles.header}>
             <View style={styles.backBtn} />
             <View style={styles.headerTitles}>
-                <Text style={styles.headerTitle}>Day {day.dayNumber}</Text>
-                <Text style={styles.headerSubtitle}>Week {weekIndex + 1} · Block {blockIndex + 1}</Text>
+                <Text style={styles.headerTitle}>{t('programBuilder.dayN', { n: day.dayNumber })}</Text>
+                <Text style={styles.headerSubtitle}>{t('programBuilder.weekBlockSubtitle', { week: weekIndex + 1, block: blockIndex + 1 })}</Text>
             </View>
             <View style={{ width: 40 }} />
         </View>
@@ -82,8 +84,8 @@ export const ProgramCreatorDayScreen: React.FC = () => {
             
             <View style={styles.restDayCard}>
                 <View>
-                    <Text style={styles.restDayLabel}>Mark as Rest Day</Text>
-                    <Text style={styles.restDaySub}>Clear exercises and mark for recovery</Text>
+                    <Text style={styles.restDayLabel}>{t('programBuilder.markRestDay')}</Text>
+                    <Text style={styles.restDaySub}>{t('programBuilder.restDaySub')}</Text>
                 </View>
                 <Switch 
                     value={day.isRestDay} 
@@ -104,11 +106,11 @@ export const ProgramCreatorDayScreen: React.FC = () => {
                             
                             <View style={styles.setsContainer}>
                                 <View style={styles.setRowHeader}>
-                                    <Text style={[styles.setCol, {flex: 0.5}]}>Set</Text>
-                                    <Text style={styles.setCol}>Type</Text>
-                                    <Text style={styles.setCol}>Reps</Text>
-                                    <Text style={styles.setCol}>RPE</Text>
-                                    <Text style={styles.setCol}>Rest</Text>
+                                    <Text style={[styles.setCol, {flex: 0.5}]}>{t('programBuilder.colSet')}</Text>
+                                    <Text style={styles.setCol}>{t('programBuilder.colType')}</Text>
+                                    <Text style={styles.setCol}>{t('programBuilder.colReps')}</Text>
+                                    <Text style={styles.setCol}>{t('programBuilder.colRpe')}</Text>
+                                    <Text style={styles.setCol}>{t('programBuilder.colRest')}</Text>
                                 </View>
                                 {ex.sets.map((set) => (
                                     <View key={set.id} style={styles.setRow}>
@@ -122,13 +124,13 @@ export const ProgramCreatorDayScreen: React.FC = () => {
                             </View>
 
                             <TouchableOpacity accessibilityRole="button" style={styles.addSetBtn} onPress={() => handleAddSet(ex.id)}>
-                                <Text style={styles.addSetText}>+ Add Set</Text>
+                                <Text style={styles.addSetText}>{t('programBuilder.addSet')}</Text>
                             </TouchableOpacity>
                         </View>
                     ))}
 
                     <TouchableOpacity accessibilityRole="button" style={styles.addExerciseBtn} onPress={() => setShowSearch(true)}>
-                        <Text style={styles.addExerciseText}>+ Add Exercise</Text>
+                        <Text style={styles.addExerciseText}>{t('programBuilder.addExerciseBtn')}</Text>
                     </TouchableOpacity>
                 </>
             )}

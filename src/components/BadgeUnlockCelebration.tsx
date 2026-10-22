@@ -10,7 +10,7 @@ import {
   Dimensions,
   Easing,
 } from 'react-native';
-import { theme, palette } from '../theme';
+import { theme, palette, alpha } from '../theme';
 import { BADGE_CATALOG, BadgeKey } from '../services/badges.service';
 
 const { width } = Dimensions.get('window');
@@ -226,7 +226,7 @@ export const BadgeUnlockCelebration: React.FC<Props> = ({ newBadgeKeys, onDismis
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.92)',
+    backgroundColor: alpha(palette.black, 0.92),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: 60,
     height: '200%',
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: alpha(palette.white, 0.07),
     borderRadius: 8,
   },
   iconWrap: {

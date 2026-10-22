@@ -9,6 +9,7 @@ import {
   DimensionValue,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Trophy } from 'phosphor-react-native';
 import { theme, palette } from '../../theme';
 import { useBadges } from '../../hooks/useBadges';
@@ -31,6 +32,7 @@ function tierFor(b: { group: BadgeGroup; points: number }): MedalTier {
 
 export const BadgesScreen: React.FC = () => {
   const { data, isLoading, refetch, isRefetching } = useBadges();
+  const { t } = useTranslation();
   const { refresh: refreshBadges } = useBadgeCelebration();
   const [syncing, setSyncing] = useState(false);
 
@@ -69,9 +71,9 @@ export const BadgesScreen: React.FC = () => {
       <View style={styles.headerRow}>
         <View style={styles.backBtn} />
         <View>
-          <Text style={styles.title}>Badges</Text>
+          <Text style={styles.title}>{t('badges.title')}</Text>
           <Text style={styles.subtitle}>
-            {unlockedCount} / {totalCount} unlocked{syncing ? '  •  syncing...' : ''}
+            {t('badges.unlockedCount', { unlocked: unlockedCount, total: totalCount })}{syncing ? `  •  ${t('badges.syncing')}` : ''}
           </Text>
         </View>
       </View>
@@ -84,7 +86,7 @@ export const BadgesScreen: React.FC = () => {
         <View style={styles.pointsCard}>
           <View style={styles.pointsRow}>
             <View>
-              <Text style={styles.pointsLabel}>ACHIEVEMENT POINTS</Text>
+              <Text style={styles.pointsLabel}>{t('badges.achievementPoints')}</Text>
               <Text style={styles.pointsValue}>{points.toLocaleString()}</Text>
             </View>
             <Trophy size={38} weight="fill" color={nextThreshold === null ? palette.brand[400] : palette.gray[600]} />
@@ -96,24 +98,24 @@ export const BadgesScreen: React.FC = () => {
                 <View style={[styles.progressFill, { width: `${progressPct * 100}%` as DimensionValue }]} />
               </View>
               <View style={styles.progressLabels}>
-                <Text style={styles.progressSub}>{nextThreshold - points} pts to next milestone</Text>
+                <Text style={styles.progressSub}>{t('badges.ptsToNext', { count: nextThreshold - points })}</Text>
                 <Text style={styles.progressSub}>{nextThreshold.toLocaleString()}</Text>
               </View>
             </>
           )}
           {nextThreshold === null && (
             <Text style={[styles.progressSub, { marginTop: 8, color: palette.brand[400] }]}>
-              Max milestone reached — This Is Your Life Now
+              {t('badges.maxMilestone')}
             </Text>
           )}
 
           <View style={styles.pointsHintBox}>
-            <Text style={styles.pointsHintTitle}>HOW POINTS ARE EARNED</Text>
+            <Text style={styles.pointsHintTitle}>{t('badges.howEarnedTitle')}</Text>
             <Text style={styles.pointsHint}>
-              You earn points every time you train and eat — badges are just a bonus on top.
+              {t('badges.howEarned')}
             </Text>
             <Text style={styles.pointsHintList}>
-              +20 completing a session   ·   +5 logging readiness   ·   +10 RPE on your sets   ·   +5 technique notes   ·   +5 per meal (up to 6/day)   ·   bonus points each time a badge unlocks
+              {t('badges.earnList')}
             </Text>
           </View>
         </View>
@@ -124,7 +126,7 @@ export const BadgesScreen: React.FC = () => {
             <View style={[styles.heroGlow, { backgroundColor: TIERS[featured.tier].glow + '22' }]} />
             <Medallion tier={featured.tier} size={132} />
             <Text style={[styles.heroTier, { color: TIERS[featured.tier].glow }]}>
-              {TIERS[featured.tier].label} · TOP MEDAL
+              {t('badges.topMedal', { tier: TIERS[featured.tier].label })}
             </Text>
             <Text style={styles.heroName}>{featured.badge.name}</Text>
             <Text style={styles.heroDesc}>{featured.badge.description}</Text>
@@ -153,7 +155,7 @@ export const BadgesScreen: React.FC = () => {
                       <Text style={[styles.badgeName, !unlocked && styles.textMuted]}>{badge.name}</Text>
                       <Text style={[styles.badgeDesc, !unlocked && styles.textDimmed]} numberOfLines={2}>{badge.description}</Text>
                       {badge.points > 0 && (
-                        <Text style={[styles.badgePts, !unlocked && styles.textDimmed]}>+{badge.points} pts</Text>
+                        <Text style={[styles.badgePts, !unlocked && styles.textDimmed]}>{t('badges.pts', { count: badge.points })}</Text>
                       )}
                     </View>
                   );

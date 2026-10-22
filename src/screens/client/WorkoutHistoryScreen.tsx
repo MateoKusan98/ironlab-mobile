@@ -459,13 +459,13 @@ const styles = StyleSheet.create({
   },
   cardioCard: {
     borderColor: palette.brand[800],
-    backgroundColor: 'rgba(234,88,12,0.06)',
+    backgroundColor: alpha(palette.brand[600], 0.06),
   },
   cardioPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(234,88,12,0.12)',
+    backgroundColor: alpha(palette.brand[600], 0.12),
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 4,

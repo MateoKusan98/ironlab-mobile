@@ -9,8 +9,9 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme, palette } from '../../../theme';
+import { theme, palette, alpha } from '../../../theme';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 import { useCreateProgram } from '../../../hooks/useWorkout';
@@ -20,6 +21,7 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { draft, copyWeek, resetDraft } = useProgramBuilderStore();
   const createProgramMutation = useCreateProgram();
+  const { t } = useTranslation();
 
   const [copyModalVisible, setCopyModalVisible] = useState(false);
   const [sourceWeek, setSourceWeek] = useState<{bIdx: number, wIdx: number} | null>(null);
@@ -33,7 +35,7 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
   const handleCopySubmit = () => {
       if (sourceWeek && targetWeek) {
           copyWeek(sourceWeek.bIdx, sourceWeek.wIdx, targetWeek.bIdx, targetWeek.wIdx);
-          Alert.alert("Success", "Week plan copied successfully!");
+          Alert.alert(t('common.success'), t('programBuilder.weekCopied'));
       }
       setCopyModalVisible(false);
       setSourceWeek(null);
@@ -47,12 +49,12 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
   const handlePublish = () => {
     createProgramMutation.mutate(draft, {
       onSuccess: () => {
-        Alert.alert("Success", "Your super program was created successfully!");
+        Alert.alert(t('common.success'), t('programBuilder.programCreated'));
         resetDraft();
         navigation.navigate('ClientApp'); // Return to main dashboard
       },
       onError: (err) => {
-        Alert.alert("Error", "Failed to create program: " + String(err));
+        Alert.alert(t('common.error'), t('programBuilder.createFailed', { error: String(err) }));
       }
     });
   };
@@ -61,7 +63,7 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
         <View style={styles.header}>
             <View style={styles.backBtn} />
-            <Text style={styles.headerTitle}>Configure Days</Text>
+            <Text style={styles.headerTitle}>{t('programBuilder.configureDays')}</Text>
             <View style={{ width: 40 }} />
         </View>
 
@@ -70,7 +72,7 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                 <View key={block.id} style={styles.blockSection}>
                     <View style={styles.blockHeader}>
                         <Text style={styles.blockTitle}>{block.name}</Text>
-                        <Text style={styles.blockMeta}>{block.durationWeeks} Weeks</Text>
+                        <Text style={styles.blockMeta}>{t('programBuilder.blockWeeks', { count: block.durationWeeks })}</Text>
                     </View>
 
                     {block.weeks.map((week, wIdx) => (
@@ -78,7 +80,7 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                             <View style={styles.weekHeader}>
                                 <Text style={styles.weekTitle}>{week.name}</Text>
                                 <TouchableOpacity accessibilityRole="button" style={styles.copyBtn} onPress={() => openCopyModal(bIdx, wIdx)}>
-                                    <Text style={styles.copyBtnText}>Copy From...</Text>
+                                    <Text style={styles.copyBtnText}>{t('programBuilder.copyFrom')}</Text>
                                 </TouchableOpacity>
                             </View>
 
@@ -94,13 +96,13 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                                             style={[styles.dayCircle, isConfigured && styles.dayCircleConfigured, day.isRestDay && styles.dayCircleRest]}
                                             onPress={() => navigateToDay(bIdx, wIdx, dIdx)}
                                         >
-                                            <Text style={[styles.dayNumber, isConfigured && styles.dayTextActive]}>Day {day.dayNumber}</Text>
+                                            <Text style={[styles.dayNumber, isConfigured && styles.dayTextActive]}>{t('programBuilder.dayN', { n: day.dayNumber })}</Text>
                                             {isConfigured ? (
-                                                <Text style={styles.dayStatus}>{exercisesCount} exercises</Text>
+                                                <Text style={styles.dayStatus}>{t('programBuilder.exercisesCount', { count: exercisesCount })}</Text>
                                             ) : day.isRestDay ? (
-                                                <Text style={styles.dayStatus}>Rest</Text>
+                                                <Text style={styles.dayStatus}>{t('programBuilder.rest')}</Text>
                                             ) : (
-                                                <Text style={styles.dayStatus}>Empty</Text>
+                                                <Text style={styles.dayStatus}>{t('programBuilder.empty')}</Text>
                                             )}
                                         </TouchableOpacity>
                                     );
@@ -118,11 +120,11 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                 onPress={handlePublish}
                 disabled={createProgramMutation.isPending}
                 accessibilityRole="button"
-                accessibilityLabel="Publish Program"
+                accessibilityLabel={t('programBuilder.publishProgram')}
                 accessibilityState={{ disabled: createProgramMutation.isPending, busy: createProgramMutation.isPending }}
             >
                 <Text style={styles.publishBtnText}>
-                    {createProgramMutation.isPending ? 'Publishing...' : 'Publish Program'}
+                    {createProgramMutation.isPending ? t('programBuilder.publishing') : t('programBuilder.publishProgram')}
                 </Text>
             </TouchableOpacity>
         </View>
@@ -136,10 +138,10 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Copy Week Overview</Text>
-                    <Text style={styles.modalText}>Select a previously configured week to copy its exact structure (days, exercises, sets) into this week.</Text>
+                    <Text style={styles.modalTitle}>{t('programBuilder.copyWeekTitle')}</Text>
+                    <Text style={styles.modalText}>{t('programBuilder.copyWeekText')}</Text>
                     
-                    <Text style={styles.modalLabel}>Select Source:</Text>
+                    <Text style={styles.modalLabel}>{t('programBuilder.selectSource')}</Text>
                     <ScrollView style={{ maxHeight: 200, marginBottom: 20 }}>
                         {draft.blocks.map((b, bI) => (
                             b.weeks.map((w, wI) => {
@@ -165,7 +167,7 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
 
                     <View style={styles.modalActions}>
                         <TouchableOpacity accessibilityRole="button" style={styles.modalBtnCancel} onPress={() => setCopyModalVisible(false)}>
-                            <Text style={styles.modalBtnTextCancel}>Cancel</Text>
+                            <Text style={styles.modalBtnTextCancel}>{t('common.cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             accessibilityRole="button" 
@@ -173,7 +175,7 @@ export const ProgramCreatorWeeksScreen: React.FC = () => {
                             disabled={!sourceWeek}
                             onPress={handleCopySubmit}
                         >
-                            <Text style={styles.modalBtnTextSubmit}>Confirm Copy</Text>
+                            <Text style={styles.modalBtnTextSubmit}>{t('programBuilder.confirmCopy')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -250,7 +252,7 @@ const styles = StyleSheet.create({
   },
   publishBtnText: { color: palette.black, fontSize: 16, fontWeight: 'bold' },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  modalOverlay: { flex: 1, backgroundColor: alpha(palette.black, 0.7), justifyContent: 'flex-end' },
   modalContent: { backgroundColor: theme.colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
   modalTitle: { color: palette.white, fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
   modalText: { color: palette.gray[400], fontSize: 14, marginBottom: 24, lineHeight: 20 },

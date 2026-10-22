@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../stores/auth.store';
 import { api } from '../../services/api';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { ProgressPhotoResponse , ApiResponse } from '@shared';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -400,7 +400,7 @@ const cardStyles = StyleSheet.create({
     alignItems: 'center',
   },
   dateBadge: {
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: alpha(palette.black, 0.65),
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -410,7 +410,7 @@ const cardStyles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: alpha(palette.black, 0.65),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -432,7 +432,7 @@ const cardStyles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     color: palette.brand[400],
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: alpha(palette.black, 0.65),
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
@@ -445,7 +445,7 @@ const chipStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(0,0,0,0.72)',
+    backgroundColor: alpha(palette.black, 0.72),
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,

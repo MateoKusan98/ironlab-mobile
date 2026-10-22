@@ -16,7 +16,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { aiCoachService, ChatMessage, CoachPreferences } from '../../services/ai-coach.service';
 
 type Props = {
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(234,88,12,0.15)',
+    backgroundColor: alpha(palette.brand[600], 0.15),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,

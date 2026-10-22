@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: alpha(palette.black, 0.3),
   },
   featuredTopRow: {
     flexDirection: 'row',
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   newBadge: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: alpha(palette.black, 0.6),
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: alpha(palette.black, 0.6),
     alignItems: 'center',
     justifyContent: 'center',
   },

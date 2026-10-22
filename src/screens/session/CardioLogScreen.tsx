@@ -8,7 +8,7 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { sessionService } from '../../services/session.service';
 import { useAuthStore } from '../../stores/auth.store';
 import { useQueryClient } from '@tanstack/react-query';
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
   },
   typeCardSelected: {
     borderColor: palette.brand[600],
-    backgroundColor: 'rgba(234,88,12,0.1)',
+    backgroundColor: alpha(palette.brand[600], 0.1),
   },
   typeLabel: { fontSize: 11, color: palette.gray[500], fontWeight: '600', textAlign: 'center' },
   typeLabelSelected: { color: palette.brand[400] },

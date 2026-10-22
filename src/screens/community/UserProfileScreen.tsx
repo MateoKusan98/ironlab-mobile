@@ -9,6 +9,8 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -23,18 +25,19 @@ type Props = {
   route: RouteProp<RootStackParamList, 'UserProfile'>;
 };
 
-const formatRelativeTime = (dateStr: string) => {
+const formatRelativeTime = (dateStr: string, t: TFunction) => {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) return t('userProfile.minutesAgo', { count: mins });
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
+  if (hrs < 24) return t('userProfile.hoursAgo', { count: hrs });
+  return t('userProfile.daysAgo', { count: Math.floor(hrs / 24) });
 };
 
 export const UserProfileScreen: React.FC<Props> = ({ navigation, route }) => {
   const { userId, userName } = route.params;
   const { user: me } = useAuthStore();
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [startingConv, setStartingConv] = useState(false);
@@ -92,7 +95,7 @@ export const UserProfileScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           )}
           <Text style={styles.profileName}>{userName}</Text>
-          <Text style={styles.postCount}>{posts.length} posts</Text>
+          <Text style={styles.postCount}>{t('userProfile.postsCount', { count: posts.length })}</Text>
 
           {me?.id !== userId && (
             <TouchableOpacity
@@ -106,7 +109,7 @@ export const UserProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               ) : (
                 <>
                   <ChatCircleDots size={18} color={palette.white} weight="fill" />
-                  <Text style={styles.messageBtnText}>Message</Text>
+                  <Text style={styles.messageBtnText}>{t('userProfile.message')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -116,10 +119,10 @@ export const UserProfileScreen: React.FC<Props> = ({ navigation, route }) => {
         {loading ? (
           <ActivityIndicator color={theme.colors.primary} style={{ padding: 32 }} />
         ) : posts.length === 0 ? (
-          <Text style={styles.noPosts}>No posts yet</Text>
+          <Text style={styles.noPosts}>{t('community.noPostsYet')}</Text>
         ) : (
           <View style={styles.postsGrid}>
-            <Text style={styles.sectionTitle}>Posts</Text>
+            <Text style={styles.sectionTitle}>{t('userProfile.posts')}</Text>
             {posts.map(post => (
               <TouchableOpacity
                 accessibilityRole="button"
@@ -134,7 +137,7 @@ export const UserProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                   {post.type === 'PR_SHARE' && (
                     <Trophy size={14} color={palette.warning[400]} weight="fill" />
                   )}
-                  <Text style={styles.miniCardTime}>{formatRelativeTime(post.createdAt)}</Text>
+                  <Text style={styles.miniCardTime}>{formatRelativeTime(post.createdAt, t)}</Text>
                 </View>
                 {post.content ? (
                   <Text style={styles.miniCardContent} numberOfLines={3}>

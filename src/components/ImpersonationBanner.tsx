@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../stores/auth.store';
-import { palette } from '../theme';
+import { palette, alpha } from '../theme';
 
 /**
  * Persistent bar shown while a Super Admin is impersonating another user.
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   exitBtn: {
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: alpha(palette.black, 0.25),
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 5,

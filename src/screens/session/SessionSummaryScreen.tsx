@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { useTranslation } from 'react-i18next';
 import { useExerciseName } from '../../hooks/useExerciseName';
 import { sessionService, WorkoutSession } from '../../services/session.service';
@@ -848,7 +848,7 @@ const styles = StyleSheet.create({
 const durStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: alpha(palette.black, 0.7),
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,

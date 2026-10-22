@@ -16,7 +16,7 @@ import Svg, { Path, Line } from 'react-native-svg';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { CoachPreferences } from '../../services/ai-coach.service';
 
 const { width } = Dimensions.get('window');
@@ -238,7 +238,7 @@ const wheel = StyleSheet.create({
     left: 0,
     right: 0,
     height: ITEM_HEIGHT,
-    backgroundColor: 'rgba(234, 88, 12, 0.15)',
+    backgroundColor: alpha(palette.brand[600], 0.15),
     borderColor: palette.brand[500],
     borderWidth: 1.5,
     borderRadius: 14,
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   },
   optionCardSelected: {
     borderColor: palette.brand[600],
-    backgroundColor: 'rgba(234, 88, 12, 0.08)',
+    backgroundColor: alpha(palette.brand[600], 0.08),
   },
   optionIcon: { fontSize: 24 },
   optionLabel: { color: palette.white, fontSize: 15, fontWeight: '700', marginBottom: 4 },
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
   modeTitle: { color: palette.white, fontSize: 17, fontWeight: '800', flex: 1 },
   modeBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(234, 88, 12, 0.14)',
+    backgroundColor: alpha(palette.brand[600], 0.14),
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   intensityInfo: {
-    backgroundColor: 'rgba(234, 88, 12, 0.08)',
+    backgroundColor: alpha(palette.brand[600], 0.08),
     borderLeftWidth: 3,
     borderLeftColor: palette.brand[500],
     borderRadius: 8,

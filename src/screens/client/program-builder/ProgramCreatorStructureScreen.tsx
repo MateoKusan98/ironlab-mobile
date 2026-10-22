@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme, palette } from '../../../theme';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 
@@ -17,11 +18,12 @@ import { RootStackParamList } from '../../../navigation/AppNavigator';
 export const ProgramCreatorStructureScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { draft, generateBlocks } = useProgramBuilderStore();
+  const { t } = useTranslation();
 
   const [localBlocks, setLocalBlocks] = useState<{name: string, weeks: number}[]>(
       draft.blocks.length > 0 
       ? draft.blocks.map(b => ({ name: b.name, weeks: b.durationWeeks }))
-      : [{ name: 'Phase 1', weeks: draft.durationWeeks }]
+      : [{ name: t('programBuilder.defaultPhaseName', { n: 1 }), weeks: draft.durationWeeks }]
   );
 
   const totalAllocatedWeeks = localBlocks.reduce((sum, b) => sum + b.weeks, 0);
@@ -29,10 +31,10 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
 
   const handleAddBlock = () => {
       if (weeksRemaining <= 0) {
-          Alert.alert("All Weeks Allocated", "You must reduce the duration of another block to add a new one, or increase total program length.");
+          Alert.alert(t('programBuilder.allWeeksAllocatedTitle'), t('programBuilder.allWeeksAllocatedMsg'));
           return;
       }
-      setLocalBlocks([...localBlocks, { name: `Phase ${localBlocks.length + 1}`, weeks: weeksRemaining }]);
+      setLocalBlocks([...localBlocks, { name: t('programBuilder.defaultPhaseName', { n: localBlocks.length + 1 }), weeks: weeksRemaining }]);
   };
 
   const handleUpdateBlockWeeks = (index: number, delta: number) => {
@@ -48,7 +50,7 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
 
   const handleDeleteBlock = (index: number) => {
       if (localBlocks.length === 1) {
-          Alert.alert("Wait", "You must have at least one block.");
+          Alert.alert(t('programBuilder.waitTitle'), t('programBuilder.atLeastOneBlock'));
           return;
       }
       const newBlocks = localBlocks.filter((_, i) => i !== index);
@@ -57,7 +59,7 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
 
   const handleGenerateAndContinue = () => {
       if (weeksRemaining !== 0) {
-          Alert.alert("Unallocated Weeks", `You have ${weeksRemaining} weeks unallocated. Please distribute all ${draft.durationWeeks} weeks before continuing.`);
+          Alert.alert(t('programBuilder.unallocatedTitle'), t('programBuilder.unallocatedMsg', { count: weeksRemaining, total: draft.durationWeeks }));
           return;
       }
       
@@ -65,11 +67,11 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
       // We should warn them if they backtracked.
       if (draft.blocks.length > 0) {
           Alert.alert(
-              "Warning", 
-              "Changing the block structure will reset any exercises you've already configured. Continue?",
+              t('common.warning'),
+              t('programBuilder.resetStructureMsg'),
               [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Reset structure', style: 'destructive', onPress: () => {
+                  { text: t('common.cancel'), style: 'cancel' },
+                  { text: t('programBuilder.resetStructure'), style: 'destructive', onPress: () => {
                       generateBlocks(localBlocks);
                       navigation.navigate('ProgramCreatorWeeks');
                   }}
@@ -85,13 +87,13 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
         <View style={styles.header}>
             <View style={styles.backBtn} />
-            <Text style={styles.headerTitle}>Block Structure</Text>
+            <Text style={styles.headerTitle}>{t('programBuilder.blockStructure')}</Text>
             <View style={{ width: 40 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
             <View style={styles.progressBox}>
-                <Text style={styles.progressLabel}>Weeks Allocated</Text>
+                <Text style={styles.progressLabel}>{t('programBuilder.weeksAllocated')}</Text>
                 <Text style={styles.progressNumbers}>
                     <Text style={{ color: weeksRemaining === 0 ? palette.brand[500] : palette.white }}>{totalAllocatedWeeks}</Text>
                     <Text style={{ color: palette.gray[500] }}> / {draft.durationWeeks}</Text>
@@ -100,23 +102,23 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
                     <View style={[styles.progressFill, { width: `${Math.min(100, (totalAllocatedWeeks / draft.durationWeeks) * 100)}%`, backgroundColor: weeksRemaining === 0 ? palette.brand[500] : palette.gray[300] }]} />
                 </View>
                 {weeksRemaining !== 0 && (
-                    <Text style={styles.warningText}>{weeksRemaining} weeks left to allocate</Text>
+                    <Text style={styles.warningText}>{t('programBuilder.weeksLeft', { count: weeksRemaining })}</Text>
                 )}
             </View>
 
             <Text style={styles.instructions}>
-                Break your {draft.durationWeeks}-week program into specific phases (Blocks).
+                {t('programBuilder.structureInstructions', { count: draft.durationWeeks })}
             </Text>
 
             {localBlocks.map((block, index) => (
                 <View key={index} style={styles.blockCard}>
                     <View style={styles.blockCardHeader}>
-                        <Text style={styles.blockCardTitle}>Block {index + 1}</Text>
+                        <Text style={styles.blockCardTitle}>{t('programBuilder.blockN', { n: index + 1 })}</Text>
                         <TouchableOpacity
                             onPress={() => handleDeleteBlock(index)}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                             accessibilityRole="button"
-                            accessibilityLabel={`Delete block ${index + 1}`}
+                            accessibilityLabel={t('programBuilder.deleteBlockA11y', { n: index + 1 })}
                         >
                             <Text style={styles.deleteIcon}>✕</Text>
                         </TouchableOpacity>
@@ -124,19 +126,19 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
                     
                     <View style={styles.blockRow}>
                         <View style={styles.blockNameWrap}>
-                            <Text style={styles.label}>Phase Name</Text>
+                            <Text style={styles.label}>{t('programBuilder.phaseName')}</Text>
                             <Text style={styles.blockNameVal}>{block.name}</Text>
                         </View>
                         
                         <View style={styles.counterWrap}>
-                            <Text style={[styles.label, { textAlign: 'center' }]}>Weeks</Text>
+                            <Text style={[styles.label, { textAlign: 'center' }]}>{t('programBuilder.weeks')}</Text>
                             <View style={styles.counterControls}>
                                 <TouchableOpacity
                                     style={styles.counterBtn}
                                     onPress={() => handleUpdateBlockWeeks(index, -1)}
                                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                     accessibilityRole="button"
-                                    accessibilityLabel={`One fewer week in block ${index + 1}`}
+                                    accessibilityLabel={t('programBuilder.fewerWeekA11y', { n: index + 1 })}
                                 >
                                     <Text style={styles.counterBtnText}>-</Text>
                                 </TouchableOpacity>
@@ -146,7 +148,7 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
                                     onPress={() => handleUpdateBlockWeeks(index, 1)}
                                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                     accessibilityRole="button"
-                                    accessibilityLabel={`One more week in block ${index + 1}`}
+                                    accessibilityLabel={t('programBuilder.moreWeekA11y', { n: index + 1 })}
                                     accessibilityState={{ disabled: weeksRemaining === 0 }}
                                 >
                                     <Text style={styles.counterBtnText}>+</Text>
@@ -158,7 +160,7 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
             ))}
 
             <TouchableOpacity accessibilityRole="button" style={styles.addBlockBtn} onPress={handleAddBlock}>
-                <Text style={styles.addBlockText}>+ Add Block</Text>
+                <Text style={styles.addBlockText}>{t('programBuilder.addBlock')}</Text>
             </TouchableOpacity>
 
         </ScrollView>
@@ -169,7 +171,7 @@ export const ProgramCreatorStructureScreen: React.FC = () => {
                 style={[styles.nextBtn, weeksRemaining !== 0 && { opacity: 0.5 }]} 
                 onPress={handleGenerateAndContinue}
             >
-                <Text style={styles.nextBtnText}>Next Step: Configure Days →</Text>
+                <Text style={styles.nextBtnText}>{t('programBuilder.nextConfigureDays')}</Text>
             </TouchableOpacity>
         </View>
     </SafeAreaView>

@@ -12,7 +12,7 @@ import { Camera, CameraView } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../theme';
+import { palette, alpha } from '../../theme';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -308,12 +308,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(249, 115, 22, 0.15)',
+    backgroundColor: alpha(palette.brand[500], 0.15),
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(249, 115, 22, 0.4)',
+    borderColor: alpha(palette.brand[500], 0.4),
   },
   clothingHintIcon: {
     fontSize: 14,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     height: height * 0.5,
     borderWidth: 0,
     position: 'relative',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: alpha(palette.white, 0.05),
   },
   corner: {
     position: 'absolute',
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: palette.mono.aa,
     fontSize: 14,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: alpha(palette.black, 0.5),
     paddingHorizontal: 15,
     paddingVertical: 5,
     borderRadius: 20,
@@ -396,9 +396,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(24, 24, 27, 0.8)',
+    backgroundColor: alpha(palette.zinc[900], 0.8),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: alpha(palette.white, 0.15),
   },
   timerBtnActive: {
     backgroundColor: palette.brand[600],
@@ -440,9 +440,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: 'rgba(24, 24, 27, 0.85)',
+    backgroundColor: alpha(palette.zinc[900], 0.85),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: alpha(palette.white, 0.15),
   },
   galleryIcon: {
     fontSize: 18,
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   vitalCard: {
     position: 'absolute',
     left: 20,
-    backgroundColor: 'rgba(24, 24, 27, 0.8)',
+    backgroundColor: alpha(palette.zinc[900], 0.8),
     padding: 12,
     borderRadius: 16,
     alignItems: 'center',

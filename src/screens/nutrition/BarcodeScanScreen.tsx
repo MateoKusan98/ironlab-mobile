@@ -11,8 +11,9 @@ import {
 import { Camera, CameraView, BarcodeScanningResult } from 'expo-camera';
 import { useSafeAreaInsets , SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { palette } from '../../theme';
+import { palette, alpha } from '../../theme';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { api } from '../../services/api';
 
@@ -22,11 +23,12 @@ const FRAME_H = FRAME_W * 0.45;
 // True center of the screen — same value used by both the overlay and the corners
 const FRAME_TOP = (SCREEN_H - FRAME_H) / 2;
 const FRAME_LEFT = (SCREEN_W - FRAME_W) / 2;
-const OVERLAY = 'rgba(0,0,0,0.62)';
+const OVERLAY = alpha(palette.black, 0.62);
 
 export const BarcodeScanScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [looking, setLooking] = useState(false);
   const lastScanned = useRef<string | null>(null);
@@ -48,11 +50,11 @@ export const BarcodeScanScreen: React.FC = () => {
 
       if (!result.found) {
         Alert.alert(
-          'Product not found',
-          `Barcode ${data} wasn't found in our database. You can log it manually.`,
+          t('barcode.notFoundTitle'),
+          t('barcode.notFoundMsg', { code: data }),
           [
-            { text: 'Try Again', onPress: () => { lastScanned.current = null; setLooking(false); } },
-            { text: 'Log Manually', onPress: () => navigation.replace('ManualFoodLog', {}) },
+            { text: t('barcode.tryAgain'), onPress: () => { lastScanned.current = null; setLooking(false); } },
+            { text: t('barcode.logManually'), onPress: () => navigation.replace('ManualFoodLog', {}) },
           ],
         );
         return;
@@ -69,8 +71,8 @@ export const BarcodeScanScreen: React.FC = () => {
         },
       });
     } catch {
-      Alert.alert('Error', 'Could not look up this barcode. Check your connection.', [
-        { text: 'Retry', onPress: () => { lastScanned.current = null; setLooking(false); } },
+      Alert.alert(t('common.error'), t('barcode.lookupError'), [
+        { text: t('barcode.retry'), onPress: () => { lastScanned.current = null; setLooking(false); } },
       ]);
     } finally {
       setLooking(false);
@@ -80,9 +82,9 @@ export const BarcodeScanScreen: React.FC = () => {
   if (hasPermission === false) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.noCamera}>Camera permission is required to scan barcodes.</Text>
+        <Text style={styles.noCamera}>{t('barcode.permissionRequired')}</Text>
         <TouchableOpacity accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>Go back</Text>
+          <Text style={styles.backBtnText}>{t('barcode.goBack')}</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -132,7 +134,7 @@ export const BarcodeScanScreen: React.FC = () => {
         {looking && (
           <View style={styles.scanningOverlay}>
             <ActivityIndicator color={palette.brand[500]} size="small" />
-            <Text style={styles.scanningText}>Looking up product…</Text>
+            <Text style={styles.scanningText}>{t('barcode.lookingUp')}</Text>
           </View>
         )}
       </View>
@@ -143,7 +145,7 @@ export const BarcodeScanScreen: React.FC = () => {
         style={{ position: 'absolute', top: FRAME_TOP + FRAME_H + 18, left: 0, right: 0, alignItems: 'center' }}
       >
         <Text style={styles.hint}>
-          {looking ? '' : 'Point camera at a product barcode'}
+          {looking ? '' : t('barcode.hint')}
         </Text>
       </View>
 
@@ -154,11 +156,11 @@ export const BarcodeScanScreen: React.FC = () => {
           style={styles.closeBtn}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
-          accessibilityLabel="Close"
+          accessibilityLabel={t('a11y.close')}
         >
           <Text style={styles.closeText}>✕</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>🔲 Scan Barcode</Text>
+        <Text style={styles.headerTitle}>{t('barcode.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -169,7 +171,7 @@ export const BarcodeScanScreen: React.FC = () => {
           onPress={() => navigation.replace('ManualFoodLog', {})}
           style={styles.manualLink}
         >
-          <Text style={styles.manualLinkText}>Log manually instead</Text>
+          <Text style={styles.manualLinkText}>{t('barcode.manualInstead')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -207,15 +209,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: alpha(palette.black, 0.6),
     borderRadius: 4,
   },
   scanningText: { color: palette.white, fontSize: 14 },
 
   hint: {
-    color: 'rgba(255,255,255,0.85)',
+    color: alpha(palette.white, 0.85),
     fontSize: 13,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: alpha(palette.black, 0.45),
     paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 20,

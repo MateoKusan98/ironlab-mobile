@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { Button } from './Button';
 
 export interface TooltipProps {
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   description: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: alpha(palette.white, 0.8),
     lineHeight: 20,
   },
   actionRow: {

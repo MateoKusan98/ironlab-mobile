@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import { palette } from '../../../theme';
+import { palette, alpha } from '../../../theme';
 import { FormValue, FormValues, asNumber, asOptionalText, asStringList, asText, asTriState } from '@shared';
 import { DONT_KNOW, Option, Question, TFunction } from './questions';
 
@@ -306,7 +306,7 @@ const fs = StyleSheet.create({
 const q = StyleSheet.create({
   optionList: { gap: 10 },
   optionCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: palette.gray[900], borderRadius: 14, padding: 16, borderWidth: 1, borderColor: palette.gray[800] },
-  optionSelected: { borderColor: palette.brand[600], backgroundColor: 'rgba(234,88,12,0.08)' },
+  optionSelected: { borderColor: palette.brand[600], backgroundColor: alpha(palette.brand[600], 0.08) },
   optionText: { color: palette.gray[300], fontSize: 14, fontWeight: '600' },
   optionTextSelected: { color: palette.brand[400] },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: palette.gray[600], alignItems: 'center', justifyContent: 'center' },
@@ -314,7 +314,7 @@ const q = StyleSheet.create({
   radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: palette.white },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   chip: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20, backgroundColor: palette.gray[900], borderWidth: 1, borderColor: palette.gray[700], flexDirection: 'row', alignItems: 'center', gap: 6 },
-  chipSelected: { borderColor: palette.brand[500], backgroundColor: 'rgba(234,88,12,0.12)' },
+  chipSelected: { borderColor: palette.brand[500], backgroundColor: alpha(palette.brand[600], 0.12) },
   chipIcon: { fontSize: 14 },
   chipText: { color: palette.gray[400], fontSize: 13, fontWeight: '600' },
   chipTextSelected: { color: palette.brand[400] },
@@ -322,12 +322,12 @@ const q = StyleSheet.create({
   numberInput: { backgroundColor: palette.gray[900], borderRadius: 12, paddingHorizontal: 20, paddingVertical: 14, color: palette.white, fontSize: 24, fontWeight: '700', borderWidth: 1, borderColor: palette.gray[700], minWidth: 100, textAlign: 'center' },
   numberUnit: { color: palette.gray[400], fontSize: 16 },
   boolBtn: { flex: 1, paddingVertical: 14, borderRadius: 14, backgroundColor: palette.gray[900], borderWidth: 1, borderColor: palette.gray[700], alignItems: 'center' },
-  boolBtnSelected: { borderColor: palette.brand[500], backgroundColor: 'rgba(234,88,12,0.12)' },
+  boolBtnSelected: { borderColor: palette.brand[500], backgroundColor: alpha(palette.brand[600], 0.12) },
   boolText: { color: palette.gray[400], fontSize: 15, fontWeight: '700' },
   boolTextSelected: { color: palette.brand[400] },
   sliderRow: { flexDirection: 'row', gap: 10 },
   sliderDot: { flex: 1, aspectRatio: 1, borderRadius: 12, backgroundColor: palette.gray[900], borderWidth: 1, borderColor: palette.gray[700], alignItems: 'center', justifyContent: 'center' },
-  sliderDotActive: { backgroundColor: 'rgba(234,88,12,0.15)', borderColor: palette.brand[500] },
+  sliderDotActive: { backgroundColor: alpha(palette.brand[600], 0.15), borderColor: palette.brand[500] },
   sliderDotText: { color: palette.gray[500], fontSize: 16, fontWeight: '700' },
   sliderDotTextActive: { color: palette.brand[400] },
 });
@@ -349,7 +349,7 @@ const f = StyleSheet.create({
   dontKnowBtnActive: {
     borderColor: palette.brand[500],
     borderStyle: 'solid',
-    backgroundColor: 'rgba(234,88,12,0.08)',
+    backgroundColor: alpha(palette.brand[600], 0.08),
   },
   dontKnowText: { fontSize: 13, color: palette.gray[500], fontWeight: '600' },
   dontKnowTextActive: { color: palette.brand[400] },

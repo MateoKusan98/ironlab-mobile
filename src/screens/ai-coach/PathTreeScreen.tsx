@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import {
   aiCoachService, PathTree, PathNodeState, PathMilestone, PathBranch,
 } from '../../services/ai-coach.service';
@@ -16,8 +16,8 @@ type Props = {
 };
 
 const NODE_COLORS: Record<PathNodeState, { bg: string; border: string; text: string }> = {
-  completed: { bg: 'rgba(234,88,12,0.18)', border: palette.brand[500], text: palette.brand[300] },
-  current:   { bg: 'rgba(234,88,12,0.10)', border: palette.brand[400], text: palette.brand[300] },
+  completed: { bg: alpha(palette.brand[600], 0.18), border: palette.brand[500], text: palette.brand[300] },
+  current:   { bg: alpha(palette.brand[600], 0.10), border: palette.brand[400], text: palette.brand[300] },
   available: { bg: palette.gray[900],      border: palette.gray[700],  text: palette.gray[300] },
   locked:    { bg: palette.gray[900],      border: palette.gray[800],  text: palette.gray[600] },
 };
@@ -167,7 +167,7 @@ const s = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingTop: 4 },
 
   hereCard: {
-    backgroundColor: 'rgba(234,88,12,0.10)', borderWidth: 1, borderColor: palette.brand[600],
+    backgroundColor: alpha(palette.brand[600], 0.10), borderWidth: 1, borderColor: palette.brand[600],
     borderRadius: 16, padding: 16, marginBottom: 8,
   },
   hereLabel: { color: palette.brand[400], fontSize: 12, fontWeight: '800', letterSpacing: 0.5, marginBottom: 4 },
@@ -180,7 +180,7 @@ const s = StyleSheet.create({
     backgroundColor: palette.gray[900], borderWidth: 1, borderColor: palette.gray[700],
     borderRadius: 14, padding: 14,
   },
-  foundationCurrent: { borderColor: palette.brand[400], backgroundColor: 'rgba(234,88,12,0.10)' },
+  foundationCurrent: { borderColor: palette.brand[400], backgroundColor: alpha(palette.brand[600], 0.10) },
   foundationIcon: { fontSize: 26 },
   foundationLabel: { color: palette.white, fontSize: 15, fontWeight: '800' },
   foundationSub: { color: palette.gray[500], fontSize: 12, marginTop: 2 },
@@ -191,7 +191,7 @@ const s = StyleSheet.create({
     backgroundColor: palette.gray[900], borderWidth: 1, borderColor: palette.gray[800],
     borderRadius: 14, padding: 14, marginBottom: 10, opacity: 0.7,
   },
-  branchCurrent: { opacity: 1, borderColor: palette.brand[500], backgroundColor: 'rgba(234,88,12,0.06)' },
+  branchCurrent: { opacity: 1, borderColor: palette.brand[500], backgroundColor: alpha(palette.brand[600], 0.06) },
   branchHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   branchIcon: { fontSize: 20 },
   branchLabel: { color: palette.gray[300], fontSize: 16, fontWeight: '800', flex: 1 },
@@ -211,7 +211,7 @@ const s = StyleSheet.create({
     backgroundColor: palette.gray[900], borderWidth: 1, borderColor: palette.gray[800],
     borderRadius: 12, padding: 12, marginBottom: 8,
   },
-  msRowDone: { borderColor: palette.brand[600], backgroundColor: 'rgba(234,88,12,0.06)' },
+  msRowDone: { borderColor: palette.brand[600], backgroundColor: alpha(palette.brand[600], 0.06) },
   msIcon: { fontSize: 22 },
   msIconLocked: { opacity: 0.6 },
   msTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },

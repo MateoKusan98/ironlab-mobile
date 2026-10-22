@@ -11,6 +11,7 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme, palette } from '../../../theme';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useProgramBuilderStore } from '../../../store/useProgramBuilderStore';
 
@@ -18,12 +19,13 @@ import { RootStackParamList } from '../../../navigation/AppNavigator';
 export const ProgramCreatorStartScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { draft, setOverview } = useProgramBuilderStore();
+  const { t } = useTranslation();
 
   const handleNext = () => {
       // Validate inputs
       if (!draft.title.trim() || draft.durationWeeks < 1) {
           import('react-native').then(({ Alert }) => {
-              Alert.alert('Validation Error', 'Please provide a title and valid duration.');
+              Alert.alert(t('programBuilder.validationTitle'), t('programBuilder.validationMsg'));
           });
           return;
       }
@@ -40,23 +42,23 @@ export const ProgramCreatorStartScreen: React.FC = () => {
                     style={styles.backBtn}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     accessibilityRole="button"
-                    accessibilityLabel="Close"
+                    accessibilityLabel={t('a11y.close')}
                 >
                     <Text style={styles.backIcon}>✕</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>New Program</Text>
+                <Text style={styles.headerTitle}>{t('programBuilder.newProgram')}</Text>
                 <View style={{ width: 40 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.screenTitle}>Let's build something epic.</Text>
-                <Text style={styles.screenSubtitle}>Define the high-level goals of your new training program before we zoom into the day-to-day.</Text>
+                <Text style={styles.screenTitle}>{t('programBuilder.startTitle')}</Text>
+                <Text style={styles.screenSubtitle}>{t('programBuilder.startSubtitle')}</Text>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Program Title</Text>
+                    <Text style={styles.label}>{t('programBuilder.programTitle')}</Text>
                     <TextInput 
                         style={styles.input}
-                        placeholder="e.g., Summer Shredding, 5x5 Power..."
+                        placeholder={t('programBuilder.titlePlaceholder')}
                         placeholderTextColor={palette.gray[500]}
                         value={draft.title}
                         onChangeText={(text) => setOverview({ title: text })}
@@ -64,7 +66,7 @@ export const ProgramCreatorStartScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Goal</Text>
+                    <Text style={styles.label}>{t('programBuilder.goal')}</Text>
                     <View style={styles.chipRow}>
                         {['HYPERTROPHY', 'STRENGTH', 'FAT_LOSS', 'ENDURANCE'].map(goal => (
                             <TouchableOpacity 
@@ -72,11 +74,11 @@ export const ProgramCreatorStartScreen: React.FC = () => {
                                 onPress={() => setOverview({ goal })}
                                 style={[styles.chip, draft.goal === goal && styles.chipActive]}
                                 accessibilityRole="radio"
-                                accessibilityLabel={goal.replace('_', ' ')}
+                                accessibilityLabel={t(`programBuilder.goals.${goal}`)}
                                 accessibilityState={{ checked: draft.goal === goal }}
                             >
                                 <Text style={[styles.chipText, draft.goal === goal && styles.chipTextActive]}>
-                                    {goal.replace('_', ' ')}
+                                    {t(`programBuilder.goals.${goal}`)}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -84,7 +86,7 @@ export const ProgramCreatorStartScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Experience Level</Text>
+                    <Text style={styles.label}>{t('programBuilder.experienceLevel')}</Text>
                     <View style={styles.chipRow}>
                         {['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].map(diff => (
                             <TouchableOpacity 
@@ -92,21 +94,21 @@ export const ProgramCreatorStartScreen: React.FC = () => {
                                 onPress={() => setOverview({ difficulty: diff })}
                                 style={[styles.chip, draft.difficulty === diff && styles.chipActive]}
                                 accessibilityRole="radio"
-                                accessibilityLabel={diff}
+                                accessibilityLabel={t(`programBuilder.levels.${diff}`)}
                                 accessibilityState={{ checked: draft.difficulty === diff }}
                             >
-                                <Text style={[styles.chipText, draft.difficulty === diff && styles.chipTextActive]}>{diff}</Text>
+                                <Text style={[styles.chipText, draft.difficulty === diff && styles.chipTextActive]}>{t(`programBuilder.levels.${diff}`)}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Total Length (Weeks)</Text>
+                    <Text style={styles.label}>{t('programBuilder.totalLength')}</Text>
                     <TextInput 
                         style={styles.input}
                         keyboardType="number-pad"
-                        placeholder="e.g., 12"
+                        placeholder={t('programBuilder.lengthPlaceholder')}
                         placeholderTextColor={palette.gray[500]}
                         value={draft.durationWeeks ? String(draft.durationWeeks) : ''}
                         onChangeText={(text) => setOverview({ durationWeeks: parseInt(text) || 0 })}
@@ -114,12 +116,12 @@ export const ProgramCreatorStartScreen: React.FC = () => {
                 </View>
 
                 <View style={[styles.inputGroup, { marginTop: 20 }]}>
-                    <Text style={styles.label}>Description (Optional)</Text>
+                    <Text style={styles.label}>{t('programBuilder.descriptionOptional')}</Text>
                     <TextInput 
                         style={[styles.input, styles.textArea]}
                         multiline
                         numberOfLines={4}
-                        placeholder="What is this program focused on?"
+                        placeholder={t('programBuilder.descriptionPlaceholder')}
                         placeholderTextColor={palette.gray[500]}
                         value={draft.description || ''}
                         onChangeText={(text) => setOverview({ description: text })}
@@ -130,7 +132,7 @@ export const ProgramCreatorStartScreen: React.FC = () => {
 
             <View style={styles.footer}>
                 <TouchableOpacity accessibilityRole="button" style={styles.nextBtn} onPress={handleNext}>
-                    <Text style={styles.nextBtnText}>Next Step: Build Blocks →</Text>
+                    <Text style={styles.nextBtnText}>{t('programBuilder.nextBuildBlocks')}</Text>
                 </TouchableOpacity>
             </View>
         </KeyboardAvoidingView>

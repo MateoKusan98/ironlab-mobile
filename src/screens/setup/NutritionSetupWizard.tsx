@@ -12,7 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { usersService } from '../../services/users.service';
 import { nutritionService } from '../../services/nutrition.service';
@@ -217,7 +217,7 @@ export const NutritionSetupWizard: React.FC<{ onComplete: () => void }> = ({ onC
                 style={[
                   styles.chip,
                   isSelected && styles.chipActive,
-                  isSelected && opt.id !== 'None' && { borderColor: palette.info[500], backgroundColor: 'rgba(59, 130, 246, 0.1)' }
+                  isSelected && opt.id !== 'None' && { borderColor: palette.info[500], backgroundColor: alpha(palette.info[500], 0.1) }
                 ]}
                 onPress={() => toggleAllergy(opt.id)}
               >
@@ -623,7 +623,7 @@ const styles = StyleSheet.create({
   },
   optionItemActive: {
     borderColor: palette.brand[600],
-    backgroundColor: 'rgba(234, 88, 12, 0.1)',
+    backgroundColor: alpha(palette.brand[600], 0.1),
   },
   optionLeft: {
     flexDirection: 'row',
@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.brand[600],
     borderRadius: 12,
-    backgroundColor: 'rgba(234, 88, 12, 0.05)',
+    backgroundColor: alpha(palette.brand[600], 0.05),
   },
   pickerText: {
     fontSize: 20,

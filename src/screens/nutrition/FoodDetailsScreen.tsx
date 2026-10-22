@@ -17,7 +17,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useCreateFoodLog } from '../../hooks/useNutrition';
 
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 const { width } = Dimensions.get('window');
 
 export const FoodDetailsScreen: React.FC = () => {
@@ -104,7 +104,7 @@ export const FoodDetailsScreen: React.FC = () => {
           
           <View style={styles.photoOverlay}>
             <View style={styles.floatingCard}>
-                <View style={[styles.badge, { backgroundColor: 'rgba(234, 88, 12, 0.2)' }]}>
+                <View style={[styles.badge, { backgroundColor: alpha(palette.brand[600], 0.2) }]}>
                     <Text style={styles.badgeText}>🔥 {displayData.category}</Text>
                 </View>
                 <Text style={styles.title}>{displayData.name}</Text>
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: alpha(palette.black, 0.5),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -391,11 +391,11 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   floatingCard: {
-    backgroundColor: 'rgba(24, 24, 27, 0.95)',
+    backgroundColor: alpha(palette.zinc[900], 0.95),
     borderRadius: 32,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: alpha(palette.white, 0.1),
     shadowColor: palette.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 24,
     paddingBottom: 40,
-    backgroundColor: 'rgba(0,0,0,0.95)',
+    backgroundColor: alpha(palette.black, 0.95),
     borderTopWidth: 1,
     borderTopColor: theme.colors.cardElevated,
     gap: 16,

@@ -58,10 +58,10 @@ export const WorkoutScreen: React.FC = () => {
             </Text>
             <View style={styles.aiBannerCta}>
               <Text style={styles.aiBannerCtaText}>{user?.isAICoachSetupComplete ? 'Open coach' : 'Get started'}</Text>
-              <ArrowRight size={14} weight="bold" color="rgba(0,0,0,0.7)" />
+              <ArrowRight size={14} weight="bold" color={alpha(palette.black, 0.7)} />
             </View>
           </View>
-          <Robot size={52} weight="fill" color="rgba(0,0,0,0.18)" style={styles.aiBannerIcon} />
+          <Robot size={52} weight="fill" color={alpha(palette.black, 0.18)} style={styles.aiBannerIcon} />
         </TouchableOpacity>
 
         {/* Section: Start Training */}
@@ -213,10 +213,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   aiBannerLeft: { flex: 1 },
-  aiBannerLabel: { color: 'rgba(0,0,0,0.55)', fontSize: 11, fontWeight: '600', letterSpacing: 0.4, marginBottom: 6 },
+  aiBannerLabel: { color: alpha(palette.black, 0.55), fontSize: 11, fontWeight: '600', letterSpacing: 0.4, marginBottom: 6 },
   aiBannerTitle: { color: palette.black, fontSize: 18, fontWeight: '800', marginBottom: 14, lineHeight: 22 },
   aiBannerCta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  aiBannerCtaText: { color: 'rgba(0,0,0,0.7)', fontSize: 13, fontWeight: '700' },
+  aiBannerCtaText: { color: alpha(palette.black, 0.7), fontSize: 13, fontWeight: '700' },
   aiBannerIcon: { position: 'absolute', right: -8, bottom: -10 },
 
   // Action banners

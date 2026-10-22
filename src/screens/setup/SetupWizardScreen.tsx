@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { KeyboardAwareScreen } from '../../components/ui/KeyboardAwareScreen';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { usersService } from '../../services/users.service';
 import type { RootStackParamList } from '../../navigation/AppNavigator';
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   
   // Picker & Ruler
   wheelHighlightBoxed: { 
-    backgroundColor: 'rgba(234, 88, 12, 0.25)', // More vibrant orange fill
+    backgroundColor: alpha(palette.brand[600], 0.25), // More vibrant orange fill
     borderColor: palette.brand[500], 
     borderWidth: 1.5, 
     borderRadius: 16 
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
 
   // Gender
   radioOption: { backgroundColor: palette.gray[900], padding: 20, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: palette.gray[800] },
-  radioOptionSelected: { borderColor: palette.brand[600], backgroundColor: 'rgba(234, 88, 12, 0.05)' },
+  radioOptionSelected: { borderColor: palette.brand[600], backgroundColor: alpha(palette.brand[600], 0.05) },
   radioLabel: { color: palette.white, fontSize: 16, fontWeight: 'bold' },
   radioIcon: { fontSize: 20, marginRight: 12 },
   radioCircle: { width: 24, height: 24, borderRadius: 12, backgroundColor: palette.gray[950], borderWidth: 1, borderColor: palette.gray[700], alignItems: 'center', justifyContent: 'center' },
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
   
   // Avatar Styles
   avatarPlaceholderContainer: { alignItems: 'center', marginVertical: 48 },
-  avatarPlaceholder: { width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(234, 88, 12, 0.1)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(234, 88, 12, 0.2)' },
+  avatarPlaceholder: { width: 140, height: 140, borderRadius: 70, backgroundColor: alpha(palette.brand[600], 0.1), justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: alpha(palette.brand[600], 0.2) },
   uploadProgressContainer: { alignItems: 'center' },
   progressRingBase: { width: 180, height: 180, justifyContent: 'center', alignItems: 'center', marginBottom: 40 },
   avatarCircleBorder: { width: 160, height: 160, borderRadius: 80, overflow: 'hidden', borderWidth: 4, borderColor: palette.gray[800], zIndex: 1 },

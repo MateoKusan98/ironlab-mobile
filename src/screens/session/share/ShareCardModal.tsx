@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, useWindowDimensions, Alert } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../../theme';
+import { palette, alpha } from '../../../theme';
 import type { SessionSet } from '../../../services/session.service';
 import { buildShareCard, formatVolume } from './shareCard';
 import { captureToFile } from './viewShot';
@@ -123,7 +123,7 @@ const Stat: React.FC<{ value: string; label: string }> = ({ value, label }) => (
 );
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  backdrop: { flex: 1, backgroundColor: alpha(palette.black, 0.85), alignItems: 'center', justifyContent: 'center', padding: 24 },
   card: {
     backgroundColor: palette.gray[900],
     borderRadius: 20,

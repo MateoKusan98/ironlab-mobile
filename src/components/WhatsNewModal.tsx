@@ -10,8 +10,9 @@ import {
   Dimensions,
   Easing,
 } from 'react-native';
-import { theme, palette } from '../theme';
+import { theme, palette, alpha } from '../theme';
 import { ChangelogEntry } from '../data/changelog';
+import { useTranslation } from 'react-i18next';
 
 const { height } = Dimensions.get('window');
 
@@ -27,6 +28,7 @@ interface Props {
  * build, or on demand.
  */
 export const WhatsNewModal: React.FC<Props> = ({ entries, onDismiss }) => {
+  const { t } = useTranslation();
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslate = useRef(new Animated.Value(40)).current;
   const sheetOpacity = useRef(new Animated.Value(0)).current;
@@ -70,8 +72,8 @@ export const WhatsNewModal: React.FC<Props> = ({ entries, onDismiss }) => {
           ]}
         >
           <View style={styles.header}>
-            <Text style={styles.eyebrow}>WHAT'S NEW</Text>
-            <Text style={styles.title}>{latest?.title ?? `Version ${latest?.version}`}</Text>
+            <Text style={styles.eyebrow}>{t('whatsNew.eyebrow')}</Text>
+            <Text style={styles.title}>{latest?.title ?? t('whatsNew.version', { version: latest?.version })}</Text>
           </View>
 
           <ScrollView
@@ -97,7 +99,7 @@ export const WhatsNewModal: React.FC<Props> = ({ entries, onDismiss }) => {
           </ScrollView>
 
           <TouchableOpacity accessibilityRole="button" style={styles.button} onPress={onDismiss} activeOpacity={0.85}>
-            <Text style={styles.buttonText}>Got it</Text>
+            <Text style={styles.buttonText}>{t('common.gotIt')}</Text>
           </TouchableOpacity>
         </Animated.View>
       </Animated.View>
@@ -108,7 +110,7 @@ export const WhatsNewModal: React.FC<Props> = ({ entries, onDismiss }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: alpha(palette.black, 0.7),
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.xl,

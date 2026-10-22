@@ -7,8 +7,9 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 
@@ -31,6 +32,7 @@ const ChecklistItem: React.FC<{ label: string; value: string; isComplete: boolea
 export const FoodScanOnboardingScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [isReady, setIsReady] = useState(false);
+  const { t } = useTranslation();
 
   // Simulate hardware checks
   useEffect(() => {
@@ -47,13 +49,13 @@ export const FoodScanOnboardingScreen: React.FC = () => {
             </View>
         </View>
 
-        <Text style={styles.title}>Scan Meal with AI</Text>
-        <Text style={styles.subtitle}>Please ensure the following</Text>
+        <Text style={styles.title}>{t('foodScan.title')}</Text>
+        <Text style={styles.subtitle}>{t('foodScan.subtitle')}</Text>
 
         <View style={styles.checklist}>
-            <ChecklistItem label="Camera Quality" value="720p" isComplete={isReady} />
-            <ChecklistItem label="Internet Speed" value="10mbps" isComplete={isReady} />
-            <ChecklistItem label="Well Lit Room" value="True" isComplete={isReady} />
+            <ChecklistItem label={t('foodScan.cameraQuality')} value="720p" isComplete={isReady} />
+            <ChecklistItem label={t('foodScan.internetSpeed')} value="10mbps" isComplete={isReady} />
+            <ChecklistItem label={t('foodScan.wellLitRoom')} value={t('common.yes')} isComplete={isReady} />
         </View>
 
         <View style={styles.footer}>
@@ -63,7 +65,7 @@ export const FoodScanOnboardingScreen: React.FC = () => {
                 onPress={() => navigation.navigate('MealScan')}
                 disabled={!isReady}
             >
-                <Text style={styles.scanBtnText}>Scan Meal with AI</Text>
+                <Text style={styles.scanBtnText}>{t('foodScan.title')}</Text>
                 <Text style={styles.uploadIcon}>📷</Text>
             </TouchableOpacity>
 
@@ -73,7 +75,7 @@ export const FoodScanOnboardingScreen: React.FC = () => {
                 onPress={() => navigation.navigate('BarcodeScanner')}
                 disabled={!isReady}
             >
-                <Text style={styles.barcodeBtnText}>🔲  Scan Barcode</Text>
+                <Text style={styles.barcodeBtnText}>{t('foodScan.scanBarcode')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -81,7 +83,7 @@ export const FoodScanOnboardingScreen: React.FC = () => {
                 style={styles.manualBtn}
                 onPress={() => navigation.navigate('ManualFoodLog')}
             >
-                <Text style={styles.manualBtnText}>Log food manually</Text>
+                <Text style={styles.manualBtnText}>{t('foodScan.logManually')}</Text>
             </TouchableOpacity>
         </View>
       </ScrollView>
@@ -106,11 +108,11 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(234, 88, 12, 0.1)',
+    backgroundColor: alpha(palette.brand[600], 0.1),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(234, 88, 12, 0.2)',
+    borderColor: alpha(palette.brand[600], 0.2),
   },
   brainIcon: { fontSize: 32 },
   title: {

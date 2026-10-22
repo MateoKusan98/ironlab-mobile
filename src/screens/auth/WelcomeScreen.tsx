@@ -9,7 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { Envelope, GoogleLogo } from 'phosphor-react-native';
 import { useSocialAuth } from '../../hooks/useSocialAuth';
 
@@ -141,12 +141,12 @@ const styles = StyleSheet.create({
     gap: 10,
     borderRadius: theme.borderRadius['2xl'],
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.13)',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: alpha(palette.white, 0.13),
+    backgroundColor: alpha(palette.white, 0.06),
   },
   emailBtn: {
     borderColor: palette.brand[700],
-    backgroundColor: `rgba(194, 65, 12, 0.15)`,
+    backgroundColor: alpha(palette.brand[700], 0.15),
   },
   btnDisabled: {
     opacity: 0.45,

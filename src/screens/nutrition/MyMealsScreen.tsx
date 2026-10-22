@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
 import { nutritionService } from '../../services/nutrition.service';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { Card } from '../../components/ui';
 import { MyMeal } from '@shared';
 const MEAL_TYPES = [
@@ -198,7 +198,7 @@ const s = StyleSheet.create({
   emptyTitle: { color: palette.white, fontSize: 20, fontWeight: '700', marginBottom: 10 },
   emptySub:   { color: palette.mono[66], fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: alpha(palette.black, 0.7), justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: theme.colors.backgroundSecondary,
     borderTopLeftRadius: 24,

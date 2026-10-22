@@ -16,9 +16,12 @@ import { theme, palette } from '../../theme';
 import { Lightbulb, CheckCircle } from 'phosphor-react-native';
 
 import { apiErrorMessage } from '../../utils/apiError';
+import { LANGUAGE_LOCALES, safeLocaleDateString } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 const MAX_CHARS = 1000;
 
 export const SubmitIdeaScreen: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState<IdeaSubmission | null>(null);
@@ -44,7 +47,7 @@ export const SubmitIdeaScreen: React.FC = () => {
   const handleSubmit = async () => {
     const trimmed = content.trim();
     if (trimmed.length < 10) {
-      Alert.alert('Too short', 'Please write at least 10 characters for your idea.');
+      Alert.alert(t('ideas.tooShortTitle'), t('ideas.tooShortMsg'));
       return;
     }
     setLoading(true);
@@ -54,7 +57,7 @@ export const SubmitIdeaScreen: React.FC = () => {
       setContent('');
       loadHistory();
     } catch (e: unknown) {
-      Alert.alert('Error', apiErrorMessage(e, 'Could not submit idea.'));
+      Alert.alert(t('common.error'), apiErrorMessage(e, t('ideas.submitError')));
     } finally {
       setLoading(false);
     }
@@ -67,9 +70,9 @@ export const SubmitIdeaScreen: React.FC = () => {
   };
 
   const statusLabel = (status: string) => {
-    if (status === 'THANKED') return '👍 Acknowledged';
-    if (status === 'REJECTED') return '✗ Declined';
-    return '⏳ Pending review';
+    if (status === 'THANKED') return t('ideas.statusThanked');
+    if (status === 'REJECTED') return t('ideas.statusRejected');
+    return t('ideas.statusPending');
   };
 
   return (
@@ -81,31 +84,31 @@ export const SubmitIdeaScreen: React.FC = () => {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
             <View style={styles.backBtn} />
-            <Text style={styles.title}>Submit an Idea</Text>
+            <Text style={styles.title}>{t('ideas.title')}</Text>
           </View>
 
           <View style={styles.heroRow}>
             <Lightbulb size={32} weight="fill" color={palette.brand[400]} />
             <Text style={styles.heroText}>
-              Got an idea to make IronLab better? Share it — if we love it, you'll earn an achievement.
+              {t('ideas.hero')}
             </Text>
           </View>
 
           {submitted && (
             <View style={styles.successBanner}>
               <CheckCircle size={20} weight="fill" color={palette.success[400]} />
-              <Text style={styles.successText}>Idea submitted! We'll review it soon.</Text>
+              <Text style={styles.successText}>{t('ideas.submitted')}</Text>
             </View>
           )}
 
           <View style={styles.inputCard}>
-            <Text style={styles.inputLabel}>Your idea</Text>
+            <Text style={styles.inputLabel}>{t('ideas.yourIdea')}</Text>
             <TextInput
               style={styles.input}
               multiline
               numberOfLines={6}
               maxLength={MAX_CHARS}
-              placeholder="Describe your idea... (min 10 characters)"
+              placeholder={t('ideas.placeholder')}
               placeholderTextColor={palette.gray[600]}
               value={content}
               onChangeText={setContent}
@@ -122,14 +125,14 @@ export const SubmitIdeaScreen: React.FC = () => {
               {loading ? (
                 <ActivityIndicator size="small" color={palette.white} />
               ) : (
-                <Text style={styles.submitBtnText}>Submit Idea</Text>
+                <Text style={styles.submitBtnText}>{t('ideas.submit')}</Text>
               )}
             </TouchableOpacity>
           </View>
 
           {(myIdeas.length > 0 || loadingHistory) && (
             <View style={styles.historySection}>
-              <Text style={styles.historyTitle}>Your previous ideas</Text>
+              <Text style={styles.historyTitle}>{t('ideas.previous')}</Text>
               {loadingHistory ? (
                 <ActivityIndicator color={palette.brand[400]} style={{ marginTop: 12 }} />
               ) : (
@@ -141,7 +144,7 @@ export const SubmitIdeaScreen: React.FC = () => {
                         {statusLabel(idea.status)}
                       </Text>
                       <Text style={styles.ideaDate}>
-                        {new Date(idea.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {safeLocaleDateString(new Date(idea.createdAt), LANGUAGE_LOCALES[i18n.language] ?? 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </Text>
                     </View>
                   </View>

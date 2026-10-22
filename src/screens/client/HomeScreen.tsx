@@ -1135,7 +1135,7 @@ quickLabel: { fontSize: 11, fontWeight: '700', color: palette.gray[300], letterS
 
   creatineOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: alpha(palette.black, 0.6),
     justifyContent: 'flex-end',
   },
   creatineSheet: {

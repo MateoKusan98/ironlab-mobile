@@ -9,7 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { aiCoachService, AICoachProfileData, CoachPreferences } from '../../services/ai-coach.service';
 import { useAuthStore } from '../../stores/auth.store';
 
@@ -366,7 +366,7 @@ const s = StyleSheet.create({
 
   tabs: { paddingHorizontal: 16, gap: 8, paddingBottom: 8 },
   tab: { width: 36, height: 36, borderRadius: 10, backgroundColor: palette.gray[900], alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: palette.gray[800] },
-  tabActive: { borderColor: palette.brand[500], backgroundColor: 'rgba(234,88,12,0.1)' },
+  tabActive: { borderColor: palette.brand[500], backgroundColor: alpha(palette.brand[600], 0.1) },
   tabIcon: { fontSize: 16 },
 
   scrollContent: { paddingHorizontal: 20, paddingTop: 12 },

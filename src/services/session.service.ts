@@ -361,11 +361,37 @@ export interface ExerciseHistory {
   repBests: RepBest[];
 }
 
+/** 'json' is the whole log; the rest name one CSV table. */
+export type TrainingExportKind = 'json' | 'sets' | 'sessions' | 'maxes';
+
+export interface TrainingExportFile {
+  filename: string;
+  body: string;
+}
+
+/** `attachment; filename="ironlab-sets-2026-10-20.csv"` → the filename; null when absent. */
+export function filenameFromDisposition(header: unknown): string | null {
+  if (typeof header !== 'string') return null;
+  const match = /filename="([^"/\\]+)"/.exec(header);
+  return match ? match[1] : null;
+}
+
 export const sessionService = {
   /** Every logged session of one movement, matched the way "last time" matches it. */
   getExerciseHistory: async (name: string): Promise<ExerciseHistory> => {
     const { data } = await api.get<{ data: ExerciseHistory }>('/sessions/exercise-history', { params: { name } });
     return data.data;
+  },
+
+  /**
+   * The training log as a file (GET /sessions/export): JSON with everything, or one CSV
+   * table. Fetched as raw text so the JSON is written byte-for-byte, not re-serialised.
+   * The filename comes from the server, which dates it on the app's calendar.
+   */
+  downloadTrainingExport: async (kind: TrainingExportKind): Promise<TrainingExportFile> => {
+    const params = kind === 'json' ? { format: 'json' } : { format: 'csv', table: kind };
+    const res = await api.get<string>('/sessions/export', { params, responseType: 'text', transformResponse: (body) => body });
+    return { body: res.data, filename: filenameFromDisposition(res.headers['content-disposition']) ?? `ironlab-${kind}.${kind === 'json' ? 'json' : 'csv'}` };
   },
 
   getRpeChart: async (): Promise<RpeChart> => {

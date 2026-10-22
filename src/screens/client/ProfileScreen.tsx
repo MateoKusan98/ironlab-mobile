@@ -22,7 +22,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../stores/auth.store';
 import { useSettingsStore } from '../../stores/settings.store';
 import { useLogout } from '../../hooks/useAuth';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { useQueryClient } from '@tanstack/react-query';
 import { aiCoachService } from '../../services/ai-coach.service';
 import { usersService } from '../../services/users.service';
@@ -30,7 +30,8 @@ import { nutritionService } from '../../services/nutrition.service';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES, LanguageCode } from '../../i18n';
-import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug, Sparkle, Brain, ScanSmiley, TreeStructure } from 'phosphor-react-native';
+import { Barbell, ThumbsUp, Robot, Bell, Lock, ForkKnife, Question, Package, Users, Camera, Trophy, Lightbulb, Pill, ChatCircleDots, Bug, Sparkle, Brain, ScanSmiley, TreeStructure, FileCsv } from 'phosphor-react-native';
+import { TrainingExportSheet } from './training-export/TrainingExportSheet';
 import { useWhatsNew } from '../../contexts/WhatsNewContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBadges } from '../../hooks/useBadges';
@@ -94,6 +95,7 @@ export const ProfileScreen: React.FC = () => {
   const [trainingDays, setTrainingDays] = useState<string[]>([]);
   const [savingDays, setSavingDays] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showTrainingExport, setShowTrainingExport] = useState(false);
   const [nutritionTracking, setNutritionTracking] = useState(true);
   const [creatineReminder, setCreatineReminder] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -705,6 +707,17 @@ export const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
+            style={styles.menuItem}
+            onPress={() => setShowTrainingExport(true)}
+          >
+            <FileCsv size={20} weight="bold" color={palette.gray[400]} />
+            <View style={styles.exportTextWrap}>
+              <Text style={styles.menuText}>{t('trainingExport.menuTitle')}</Text>
+              <Text style={styles.exportSub}>{t('trainingExport.menuSub')}</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.menuItem, styles.menuItemLast]}
             onPress={handleExport}
             disabled={exporting}
@@ -840,6 +853,7 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+      <TrainingExportSheet visible={showTrainingExport} onClose={() => setShowTrainingExport(false)} />
     </SafeAreaView>
   );
 };
@@ -1159,7 +1173,7 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: alpha(palette.black, 0.7),
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,

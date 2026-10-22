@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { UserAvatar } from '../../components/ui/UserAvatar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { useAuthStore } from '../../stores/auth.store';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
   },
   mealCardOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: alpha(palette.black, 0.4),
     padding: 20,
     justifyContent: 'flex-end',
   },
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(249,115,22,0.1)',
+    backgroundColor: alpha(palette.brand[500], 0.1),
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,

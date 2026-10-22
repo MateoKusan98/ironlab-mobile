@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { X, Brain, Barbell, ForkKnife } from 'phosphor-react-native';
 import { ScreenHeader } from '../../components/ui/ScreenHeader';
 import { FitnessQuiz } from '../../components/ui/FitnessQuiz';
@@ -17,20 +18,21 @@ import {
 } from '../../data/fitnessQuiz';
 
 const LENGTHS = [
-  { label: 'Quick · 5', value: 5 },
-  { label: 'Standard · 10', value: 10 },
-  { label: 'Marathon · 20', value: 20 },
+  { labelKey: 'quiz.lengthQuick', value: 5 },
+  { labelKey: 'quiz.lengthStandard', value: 10 },
+  { labelKey: 'quiz.lengthMarathon', value: 20 },
 ];
 
-const LEVELS: { label: string; value: QuizDifficulty | undefined }[] = [
-  { label: 'Rated ⚡', value: undefined },
-  { label: 'Beginner', value: 1 },
-  { label: 'Intermediate', value: 2 },
-  { label: 'Advanced', value: 3 },
+const LEVELS: { labelKey: string; value: QuizDifficulty | undefined }[] = [
+  { labelKey: 'quiz.levelRated', value: undefined },
+  { labelKey: 'quiz.levelBeginner', value: 1 },
+  { labelKey: 'quiz.levelIntermediate', value: 2 },
+  { labelKey: 'quiz.levelAdvanced', value: 3 },
 ];
 
 export const QuizScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [limit, setLimit] = useState<number | null>(null);
   const [levelIdx, setLevelIdx] = useState(0);
   const [rating, setRating] = useState<number | null>(null);
@@ -51,7 +53,7 @@ export const QuizScreen: React.FC = () => {
       onPress={() => navigation.goBack()}
       hitSlop={10}
       accessibilityRole="button"
-      accessibilityLabel="Close"
+      accessibilityLabel={t('a11y.close')}
     >
       <X size={24} weight="bold" color={theme.colors.text} />
     </TouchableOpacity>
@@ -59,51 +61,49 @@ export const QuizScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScreenHeader left={<View />} title="Fitness Quiz" right={close} />
+      <ScreenHeader left={<View />} title={t('quiz.title')} right={close} />
 
       {limit === null ? (
         <ScrollView contentContainerStyle={styles.intro} showsVerticalScrollIndicator={false}>
           <View style={styles.iconCircle}>
             <Brain size={44} weight="fill" color={palette.brand[400]} />
           </View>
-          <Text style={styles.heroTitle}>Test your fitness IQ</Text>
+          <Text style={styles.heroTitle}>{t('quiz.heroTitle')}</Text>
           <Text style={styles.heroSub}>
-            From the basics to periodization and biomechanics — 240 questions across training,
-            nutrition, anatomy, recovery and the myths everyone gets wrong. Answer and learn — we
-            show you why.
+            {t('quiz.heroSub')}
           </Text>
 
           {rating !== null && (
             <View style={styles.ratingCard}>
               <Text style={styles.ratingValue}>⚡ {rating}</Text>
-              <Text style={styles.ratingLabel}>{ratingTitle(rating)} · your quiz rating</Text>
+              <Text style={styles.ratingLabel}>{t('quiz.yourRating', { title: ratingTitle(rating) })}</Text>
             </View>
           )}
 
           <View style={styles.tags}>
             <View style={styles.tag}>
               <Barbell size={16} weight="fill" color={palette.brand[400]} />
-              <Text style={styles.tagText}>Training</Text>
+              <Text style={styles.tagText}>{t('quiz.tagTraining')}</Text>
             </View>
             <View style={styles.tag}>
               <ForkKnife size={16} weight="fill" color={palette.emerald[400]} />
-              <Text style={styles.tagText}>Nutrition</Text>
+              <Text style={styles.tagText}>{t('quiz.tagNutrition')}</Text>
             </View>
           </View>
 
-          <Text style={styles.pick}>Difficulty</Text>
+          <Text style={styles.pick}>{t('quiz.difficulty')}</Text>
           <View style={styles.levelRow}>
             {LEVELS.map((l, i) => {
               const active = i === levelIdx;
               return (
                 <TouchableOpacity
                   accessibilityRole="button"
-                  key={l.label}
+                  key={l.labelKey}
                   style={[styles.levelChip, active && styles.levelChipActive]}
                   onPress={() => setLevelIdx(i)}
                 >
                   <Text style={[styles.levelChipText, active && styles.levelChipTextActive]}>
-                    {l.label}
+                    {t(l.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -111,15 +111,15 @@ export const QuizScreen: React.FC = () => {
           </View>
           <Text style={styles.levelHint}>
             {levelIdx === 0
-              ? 'Chess-style rating: questions match your level, and every answer moves your rating — hard wins pay big, easy misses cost more the higher you climb.'
-              : 'Unrated practice — questions stay at this level and your rating is untouched.'}
+              ? t('quiz.ratedHint')
+              : t('quiz.unratedHint')}
           </Text>
 
-          <Text style={styles.pick}>How many questions?</Text>
+          <Text style={styles.pick}>{t('quiz.howMany')}</Text>
           {LENGTHS.map((l) => (
             <Button
               key={l.value}
-              label={l.label}
+              label={`${t(l.labelKey)} · ${l.value}`}
               variant="outline"
               color="brand"
               onPress={() => setLimit(l.value)}
@@ -132,8 +132,8 @@ export const QuizScreen: React.FC = () => {
         <FitnessQuiz
           questionLimit={limit}
           difficulty={LEVELS[levelIdx].value}
-          title="Fitness Quiz"
-          subtitle="Pick the right answer"
+          title={t('quiz.title')}
+          subtitle={t('quiz.subtitle')}
           onFinish={() => setLimit(null)}
         />
       )}

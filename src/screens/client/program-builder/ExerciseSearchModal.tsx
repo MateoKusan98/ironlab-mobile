@@ -10,7 +10,7 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import { theme, palette } from '../../../theme';
+import { theme, palette, alpha } from '../../../theme';
 import { useExercises } from '../../../hooks/useWorkout';
 
 import { ExerciseCatalogItem } from '@shared';
@@ -119,7 +119,7 @@ export const ExerciseSearchModal: React.FC<ExerciseSearchModalProps> = ({ visibl
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
+  modalOverlay: { flex: 1, backgroundColor: alpha(palette.black, 0.8), justifyContent: 'flex-end' },
   modalContent: { 
       backgroundColor: theme.colors.card, 
       height: '85%', 

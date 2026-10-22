@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import { TextInput } from './TextInput';
 
 // A UI shell representing the Dropdown from Figma Specs
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: alpha(palette.black, 0.4),
     justifyContent: 'center',
     padding: theme.spacing.lg,
   },

@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../theme';
+import { palette, alpha } from '../../theme';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { api } from '../../services/api';
 
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   frame: {
     width: FRAME_SIZE,
     height: FRAME_SIZE,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: alpha(palette.white, 0.04),
     position: 'relative',
   },
   corner: { position: 'absolute', width: 36, height: 36, borderColor: palette.white },
@@ -176,10 +176,10 @@ const styles = StyleSheet.create({
   bottomRight:{ bottom: -2, right: -2,   borderBottomWidth: 3, borderRightWidth: 3,   borderBottomRightRadius: 14 },
 
   frameHint: {
-    color: 'rgba(255,255,255,0.7)',
+    color: alpha(palette.white, 0.7),
     fontSize: 13,
     marginTop: 18,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: alpha(palette.black, 0.45),
     paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 20,

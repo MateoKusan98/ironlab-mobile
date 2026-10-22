@@ -15,6 +15,7 @@ import { CoachStackParamList } from '../../navigation/CoachTabs';
 import { useCreateWorkoutPlan } from '../../hooks/useWorkout';
 import { CreateWorkoutExerciseDto } from '@shared';
 import { theme } from '../../theme';
+import { useTranslation } from 'react-i18next';
 
 type Route = RouteProp<CoachStackParamList, 'CreateWorkout'>;
 
@@ -29,6 +30,7 @@ export const CreateWorkoutScreen: React.FC = () => {
   const { params } = useRoute<Route>();
   const navigation = useNavigation();
   const createPlan = useCreateWorkoutPlan();
+  const { t } = useTranslation();
 
   const [title, setTitle] = useState('');
   const [scheduledDate, setScheduledDate] = useState(
@@ -58,7 +60,7 @@ export const CreateWorkoutScreen: React.FC = () => {
 
   const handleSubmit = () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter a workout title');
+      Alert.alert(t('common.error'), t('createWorkout.titleRequired'));
       return;
     }
 
@@ -73,7 +75,7 @@ export const CreateWorkoutScreen: React.FC = () => {
       }));
 
     if (validExercises.length === 0) {
-      Alert.alert('Error', 'Add at least one exercise');
+      Alert.alert(t('common.error'), t('createWorkout.exerciseRequired'));
       return;
     }
 
@@ -86,10 +88,10 @@ export const CreateWorkoutScreen: React.FC = () => {
       },
       {
         onSuccess: () => {
-          Alert.alert('Success', 'Workout plan created!');
+          Alert.alert(t('common.success'), t('createWorkout.planCreated'));
           navigation.goBack();
         },
-        onError: () => Alert.alert('Error', 'Failed to create plan'),
+        onError: () => Alert.alert(t('common.error'), t('createWorkout.planFailed')),
       },
     );
   };
@@ -98,19 +100,19 @@ export const CreateWorkoutScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <KeyboardAwareScreen style={styles.scroll}>
 
-        <Text style={styles.title}>Create Workout</Text>
-        <Text style={styles.subtitle}>For {params.clientName}</Text>
+        <Text style={styles.title}>{t('createWorkout.title')}</Text>
+        <Text style={styles.subtitle}>{t('createWorkout.forClient', { name: params.clientName })}</Text>
 
-        <Text style={styles.label}>Title</Text>
+        <Text style={styles.label}>{t('createWorkout.titleLabel')}</Text>
         <TextInput
           style={styles.input}
           value={title}
           onChangeText={setTitle}
-          placeholder="e.g. Upper Body Day"
+          placeholder={t('createWorkout.titlePlaceholder')}
           placeholderTextColor={theme.colors.textTertiary}
         />
 
-        <Text style={styles.label}>Scheduled Date</Text>
+        <Text style={styles.label}>{t('createWorkout.scheduledDate')}</Text>
         <TextInput
           style={styles.input}
           value={scheduledDate}
@@ -120,9 +122,9 @@ export const CreateWorkoutScreen: React.FC = () => {
         />
 
         <View style={styles.exercisesHeader}>
-          <Text style={styles.label}>Exercises</Text>
+          <Text style={styles.label}>{t('createWorkout.exercises')}</Text>
           <TouchableOpacity accessibilityRole="button" onPress={addExercise}>
-            <Text style={styles.addText}>+ Add</Text>
+            <Text style={styles.addText}>{t('createWorkout.add')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -132,7 +134,7 @@ export const CreateWorkoutScreen: React.FC = () => {
               <Text style={styles.exerciseNum}>#{i + 1}</Text>
               {exercises.length > 1 && (
                 <TouchableOpacity accessibilityRole="button" onPress={() => removeExercise(i)}>
-                  <Text style={styles.removeText}>Remove</Text>
+                  <Text style={styles.removeText}>{t('createWorkout.remove')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -140,12 +142,12 @@ export const CreateWorkoutScreen: React.FC = () => {
               style={styles.input}
               value={ex.exerciseName}
               onChangeText={(v) => updateExercise(i, 'exerciseName', v)}
-              placeholder="Exercise name"
+              placeholder={t('createWorkout.exerciseName')}
               placeholderTextColor={theme.colors.textTertiary}
             />
             <View style={styles.row}>
               <View style={styles.col}>
-                <Text style={styles.smallLabel}>Sets</Text>
+                <Text style={styles.smallLabel}>{t('createWorkout.sets')}</Text>
                 <TextInput
                   style={styles.input}
                   value={ex.sets}
@@ -154,7 +156,7 @@ export const CreateWorkoutScreen: React.FC = () => {
                 />
               </View>
               <View style={styles.col}>
-                <Text style={styles.smallLabel}>Reps</Text>
+                <Text style={styles.smallLabel}>{t('createWorkout.reps')}</Text>
                 <TextInput
                   style={styles.input}
                   value={ex.reps}
@@ -163,13 +165,13 @@ export const CreateWorkoutScreen: React.FC = () => {
                 />
               </View>
               <View style={styles.col}>
-                <Text style={styles.smallLabel}>Weight (kg)</Text>
+                <Text style={styles.smallLabel}>{t('createWorkout.weightKg')}</Text>
                 <TextInput
                   style={styles.input}
                   value={ex.targetWeight}
                   onChangeText={(v) => updateExercise(i, 'targetWeight', v)}
                   keyboardType="decimal-pad"
-                  placeholder="Opt."
+                  placeholder={t('createWorkout.optionalShort')}
                   placeholderTextColor={theme.colors.textTertiary}
                 />
               </View>
@@ -186,7 +188,7 @@ export const CreateWorkoutScreen: React.FC = () => {
           {createPlan.isPending ? (
             <ActivityIndicator color={theme.colors.text} />
           ) : (
-            <Text style={styles.submitText}>Create Plan</Text>
+            <Text style={styles.submitText}>{t('createWorkout.createPlan')}</Text>
           )}
         </TouchableOpacity>
       </KeyboardAwareScreen>

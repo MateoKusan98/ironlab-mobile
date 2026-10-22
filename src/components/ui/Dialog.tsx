@@ -9,7 +9,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { theme, palette } from '../../theme';
+import { theme, palette, alpha } from '../../theme';
 import i18n from '../../i18n';
 import { Button } from './Button';
 
@@ -108,7 +108,7 @@ export const Dialog: React.FC<DialogProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: alpha(palette.black, 0.6),
     justifyContent: 'center',
     alignItems: 'center',
     padding: theme.spacing.lg,

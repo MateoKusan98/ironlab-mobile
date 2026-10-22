@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { palette } from '../../theme';
+import { palette, alpha } from '../../theme';
 import { Card } from './Card';
 
 export interface InfoSheetProps {
@@ -70,7 +70,7 @@ export const InfoSheet: React.FC<InfoSheetProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: alpha(palette.black, 0.7),
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
