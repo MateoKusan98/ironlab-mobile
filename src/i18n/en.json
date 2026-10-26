@@ -307,6 +307,7 @@
     "sourceOwn": "your own logged best on this movement",
     "sourceRatio": "estimated from your competition lift (first time doing this one)",
     "sourceEarned": "earned: your last heavy days moved easier than asked",
+    "sourceLowRep": "your best recent low-rep set: your 1RM ran these sets too heavy",
     "rpeBlock": "RPE {{rpe}} for this block",
     "rpeRamp": "+{{amount}} this week",
     "rpeFrequency": "−{{amount}} for training it often",

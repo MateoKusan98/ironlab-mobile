@@ -25,6 +25,16 @@ describe('LoadDerivation', () => {
     expect(r.getByText('71% → 162.5kg')).toBeTruthy();
   });
 
+  // 2026-10-26: a bench strength day priced off his best 5 (130×5 @ 8.5) after his stored 165
+  // ran the 5s a plate heavy. Without its own label it fell through to "first time doing this one".
+  it('says when a low-rep set, not the stored max, priced the bar', async () => {
+    const r = await render(
+      <LoadDerivation basis={{ ...BASIS, anchor: 157.8, anchorSource: 'low-rep-ceiling', reps: 4 }} weight={130} />,
+    );
+    expect(r.getByText('your best recent low-rep set: your 1RM ran these sets too heavy')).toBeTruthy();
+    expect(r.queryByText(/first time doing this one/)).toBeNull();
+  });
+
   it('omits terms that did not move the number', async () => {
     const r = await render(<LoadDerivation basis={BASIS} weight={162.5} />);
     // No "+0 this week", no "−0 for frequency", no role line on an undiscounted day.

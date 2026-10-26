@@ -58,6 +58,7 @@ export const LoadDerivation: React.FC<LoadDerivationProps> = ({ basis, weight, w
     basis.anchorSource === 'stored-1rm' ? t('loadDerivation.sourceStored', { defaultValue: 'your stored 1RM' })
     : basis.anchorSource === 'own-e1rm' ? t('loadDerivation.sourceOwn', { defaultValue: 'your own logged best on this movement' })
     : basis.anchorSource === 'earned-step' ? t('loadDerivation.sourceEarned', { defaultValue: 'earned: your last heavy days moved easier than asked' })
+    : basis.anchorSource === 'low-rep-ceiling' ? t('loadDerivation.sourceLowRep', { defaultValue: 'your best recent low-rep set: your 1RM ran these sets too heavy' })
     : t('loadDerivation.sourceRatio', { defaultValue: 'estimated from your competition lift (first time doing this one)' });
 
   // Only the terms that actually moved the number. A line reading "−0 for frequency" is
